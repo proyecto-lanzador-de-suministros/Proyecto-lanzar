@@ -1,6 +1,6 @@
 # Esquema relacional
 
-> Ver [Esquema Relacional](./EsquemaRelacional_y_Relaciones.md)
+> Ver [Diagrama Entidad-Relación](./diagramaER.md)
 
 | Entidad | Atributos | Claves foráneas |
 |---|---|---|
