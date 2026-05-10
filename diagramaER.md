@@ -1,6 +1,6 @@
 # Diagrama Entidad Relación
-(basado en el original hecho por nacho)
-Ver [Esquema Relacional](./EsquemaRelacional_y_Relaciones.md)
+> (basado en el original hecho por nacho)
+> Ver [Esquema Relacional](./EsquemaRelacional_y_Relaciones.md)
  + **Herencia de Usuario** — `Remitente`, `Administrador` y `Solicitante` heredan de `Usuario` mediante una relación uno a uno opcional, tal como indica la nota del diagrama original.
  + **Historial de Estado con usuario** — incluí la relación de `HISTORIAL_ESTADO` con `USUARIO` para poder saber quién realizó cada cambio de estado
  + **Notificación** — la incluí y la vinculé tanto a `SOLICITUD` como a `USUARIO`, para que se pueda recuperar el historial de actualizaciones al volver a la sesión.
