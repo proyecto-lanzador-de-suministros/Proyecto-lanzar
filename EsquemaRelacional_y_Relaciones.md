@@ -1,52 +1,25 @@
 # Esquema relacional
 
-- **Usuario** (*id_usuario*, contraseña)
+> Ver [Esquema Relacional](./EsquemaRelacional_y_Relaciones.md)
 
-- **Solicitante** (*id_solicitante*, nombre, contacto)
-  - FK Solicitante(id_solicitante) referencia a Usuario(id_usuario)
+| Entidad | Atributos | Claves foráneas |
+|---|---|---|
+| **Usuario** | **id_usuario**, contraseña | — |
+| **Solicitante** | **id_solicitante**, nombre, contacto | `id_solicitante` → Usuario(id_usuario) |
+| **Administrador** | **id_admin**, nombre, usuario, permisos_rol | `id_admin` → Usuario(id_usuario) |
+| **Remitente** | **id_remitente**, nombre_base, latitud_base, longitud_base, capacidad_pista | `id_remitente` → Usuario(id_usuario) |
+| **Producto** | **id_producto**, nombre, descripcion, peso_unitario, *id_tipo* | `id_tipo` → Tipo(id_tipo) |
+| **Tipo** | **id_tipo**, nombre_categoria, peso_prioridad | — |
+| **Stock_Base** | **id_stock**, *id_remitente*, *id_producto*, cantidad_disponible | `id_producto` → Producto(id_producto)<br>`id_remitente` → Remitente(id_remitente) |
+| **Solicitud** | **id_solicitud**, fecha_creacion, estado_actual, prioridad, latitud_destino, longitud_destino, *id_solicitante*, *id_admin*, *id_remitente* | `id_solicitante` → Solicitante(id_solicitante)<br>`id_admin` → Administrador(id_admin)<br>`id_remitente` → Remitente(id_remitente) |
+| **Detalle_Solicitud** | **id_detalle**, *id_solicitud*, *id_producto*, cantidad_pedida | `id_solicitud` → Solicitud(id_solicitud)<br>`id_producto` → Producto(id_producto) |
+| **Historial_Estado** | **id_historial**, fecha_hora, estado_anterior, estado_nuevo, *id_solicitud*, *id_usuario* | `id_solicitud` → Solicitud(id_solicitud)<br>`id_usuario` → Usuario(id_usuario) |
+| **Notificacion** | **id_notificacion**, mensaje, fecha_hora, *id_solicitud*, *id_usuario_destino* | `id_solicitud` → Solicitud(id_solicitud)<br>`id_usuario_destino` → Usuario(id_usuario) |
+| **Vuelo** | **id_vuelo**, matricula_avion, piloto, combustible_estimado, *id_remitente* | `id_remitente` → Remitente(id_remitente) |
+| **Lanzamiento** | **id_lanzamiento**, latitud_calculada, longitud_calculada, altitud, datos_clima_api, *id_vuelo*, *id_solicitud*, *id_remitente* | `id_vuelo` → Vuelo(id_vuelo)<br>`id_solicitud` → Solicitud(id_solicitud)<br>`id_remitente` → Remitente(id_remitente) |
+| **Contenedor** | **id_contenedor**, tipo_paracaidas, peso_maximo, estado_mecanico, *id_lanzamiento* | `id_lanzamiento` → Lanzamiento(id_lanzamiento) |
 
-- **Administrador** (*id_admin*, nombre, usuario, permisos_rol)
-  - FK Administrador(id_admin) referencia a Usuario(id_usuario)
-
-- **Remitente** (*id_remitente*, nombre_base, latitud_base, longitud_base, capacidad_pista)
-  - FK Remitente(id_remitente) referencia a Usuario(id_usuario)
-
-- **Producto** (*id_producto*, nombre, descripcion, peso_unitario, *id_tipo*)
-  - FK Producto(id_tipo) referencia a Tipo(id_tipo)
-
-- **Tipo** (*id_tipo*, nombre_categoria, peso_prioridad)
-
-- **Stock_Base** (*id_stock*, *id_remitente*, *id_producto*, cantidad_disponible)
-  - FK Stock_Base(id_producto) referencia a Producto(id_producto)
-  - FK Stock_Base(id_remitente) referencia a Remitente(id_remitente)
-
-- **Solicitud** (*id_solicitud*, fecha_creacion, estado_actual, prioridad, latitud_destino, longitud_destino, *id_solicitante*, *id_admin*, *id_remitente*)
-  - FK Solicitud(id_solicitante) referencia a Solicitante(id_solicitante)
-  - FK Solicitud(id_admin) referencia a Administrador(id_admin)
-  - FK Solicitud(id_remitente) referencia a Remitente(id_remitente)
-
-- **Detalle_Solicitud** (*id_detalle*, *id_solicitud*, *id_producto*, cantidad_pedida)
-  - FK Detalle_Solicitud(id_solicitud) referencia a Solicitud(id_solicitud)
-  - FK Detalle_Solicitud(id_producto) referencia a Producto(id_producto)
-
-- **Historial_Estado** (*id_historial*, fecha_hora, estado_anterior, estado_nuevo, *id_solicitud*, *id_usuario*)
-  - FK Historial_Estado(id_usuario) referencia a Usuario(id_usuario)
-  - FK Historial_Estado(id_solicitud) referencia a Solicitud(id_solicitud)
-
-- **Notificacion** (*id_notificacion*, mensaje, fecha_hora, *id_solicitud*, *id_usuario_destino*)
-  - FK Notificacion(id_solicitud) referencia a Solicitud(id_solicitud)
-  - FK Notificacion(id_usuario_destino) referencia a Usuario(id_usuario)
-
-- **Vuelo** (*id_vuelo*, matricula_avion, piloto, combustible_estimado, *id_remitente*)
-  - FK Vuelo(id_remitente) referencia a Remitente(id_remitente)
-
-- **Lanzamiento** (*id_lanzamiento*, latitud_calculada, longitud_calculada, altitud, datos_clima_api, *id_vuelo*, *id_solicitud*, *id_remitente*)
-  - FK Lanzamiento(id_vuelo) referencia a Vuelo(id_vuelo)
-  - FK Lanzamiento(id_solicitud) referencia a Solicitud(id_solicitud)
-  - FK Lanzamiento(id_remitente) referencia a Remitente(id_remitente)
-
-- **Contenedor** (*id_contenedor*, tipo_paracaidas, peso_maximo, estado_mecanico, *id_lanzamiento*)
-  - FK Contenedor(id_lanzamiento) referencia a Lanzamiento(id_lanzamiento)
+> **Convenciones:** PK en **negrita** · FK en *cursiva* dentro de atributos · `código` en la columna de claves foráneas **FK***
 
 ---
 
