@@ -1,3 +1,4 @@
+# ***¡¡¡LEER Explicacion-estructura.md!!!!***
 # Idea General
 
 Aplicación (a definir si es web, mobile o desktop) que funciona como un sistema de solicitudes. La aplicación cuenta con dos paneles, uno destinado a los **remitentes** y otro a los **destinatarios**. Ambos paneles cuentan con un mapa interactivo de su zona.
