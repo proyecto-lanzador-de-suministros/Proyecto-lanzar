@@ -11,3 +11,12 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Solicitud {
+  id            String   @id @default(uuid())
+  descripcion   String
+  estado        String   @default("pendiente")
+  remitenteId   String
+  solicitanteId String
+  creadaEn      DateTime @default(now())
+}
