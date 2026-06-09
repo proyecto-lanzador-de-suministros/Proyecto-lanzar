@@ -58,3 +58,4 @@ Permite:
 - Aprobar y eliminar cuentas de cualquier tipo
 - Disparar toda acción que el solicitante y remitente realicen
 
+...
