@@ -6,14 +6,17 @@ import { authAdapter } from "@/container";
 
 export async function GET(req: Request) {
   const usuario = await authAdapter.obtenerUsuarioActual(req);
-  if (!usuario) return Response.redirect("/sign-in");
+
+  if (!usuario) {
+    return Response.redirect(new URL("/sign-in", req.url));
+  }
 
   switch (usuario.rol) {
     case "admin":
-      return Response.redirect("/admin/dashboard");
+      return Response.redirect(new URL("/admin/dashboard", req.url));
     case "remitente":
-      return Response.redirect("/remitente/dashboard");
+      return Response.redirect(new URL("/remitente/dashboard", req.url));
     case "solicitante":
-      return Response.redirect("/solicitante/dashboard");
+      return Response.redirect(new URL("/solicitante/dashboard", req.url));
   }
 }

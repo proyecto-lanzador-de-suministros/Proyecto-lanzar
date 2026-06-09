@@ -1,6 +1,10 @@
-// app/sign-in/[[...sign-in]]/page.tsx
+// app/sign-up/[[...sign-up]]/page.tsx
 import { SignUp } from "@clerk/nextjs";
 
-export default function SignInPage() {
-  return <SignUp />;
+export default function SignUpPage() {
+  return (
+    <main className="flex min-h-screen items-center justify-center">
+      <SignUp />
+    </main>
+  );
 }
