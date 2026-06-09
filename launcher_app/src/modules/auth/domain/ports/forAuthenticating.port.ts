@@ -7,4 +7,5 @@ export interface UsuarioAutenticado {
 
 export interface ForAuthenticating {
   obtenerUsuarioActual(req: Request): Promise<UsuarioAutenticado | null>;
+  cerrarSesion(): Promise<void>;
 }

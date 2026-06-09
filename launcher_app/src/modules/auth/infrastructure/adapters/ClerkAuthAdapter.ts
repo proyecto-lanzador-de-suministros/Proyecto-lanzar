@@ -20,4 +20,9 @@ export class ClerkAuthAdapter implements ForAuthenticating {
       rol,
     };
   }
+
+  async cerrarSesion(): Promise<void> {
+    // Clerk maneja el cierre de sesión desde el cliente
+    // con <SignOutButton /> o clerk.signOut()
+  }
 }
