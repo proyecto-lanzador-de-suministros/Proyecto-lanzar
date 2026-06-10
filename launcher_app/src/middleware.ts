@@ -3,7 +3,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)", // TODO: agregar rutas no protegidas
-  "/auth/login",
+  "/api/auth/login",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
