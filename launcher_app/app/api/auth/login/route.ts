@@ -5,8 +5,9 @@
 import { authAdapter } from "@/src/container";
 
 export async function GET(req: Request) {
+  console.log("get de login....");
   const usuario = await authAdapter.obtenerUsuarioActual(req);
-
+  console.log("se obtuvo user actual");
   if (!usuario) {
     return Response.redirect(new URL("/sign-in", req.url));
   }

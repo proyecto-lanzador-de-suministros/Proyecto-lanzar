@@ -9,6 +9,7 @@ export class ClerkAuthAdapter implements ForAuthenticating {
     _req: Request,
   ): Promise<UsuarioAutenticado | null> {
     const { userId, sessionClaims } = await auth();
+    console.log("sessionClaims.metadata:", sessionClaims?.metadata);
     if (!userId) return null;
 
     const rol = sessionClaims?.metadata?.rol as UsuarioAutenticado["rol"];
