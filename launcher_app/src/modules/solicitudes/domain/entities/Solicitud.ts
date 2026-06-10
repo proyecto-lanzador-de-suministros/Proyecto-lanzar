@@ -17,7 +17,7 @@ export type EstadoSolicitud =
 export interface Solicitud {
   id_solicitud: string;
   id_base: string;
-  id_usuario: string;
+  id_usuario: string; //es remitente o solicitante?
   fecha_solicitada: Date;
   estado: EstadoSolicitud;
   prioridad: Prioridad;

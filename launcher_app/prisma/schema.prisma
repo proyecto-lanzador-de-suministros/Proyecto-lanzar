@@ -14,10 +14,13 @@ datasource db {
 }
 
 model Solicitud {
-  id            String   @id @default(uuid())
-  descripcion   String
-  estado        String   @default("creada")
-  remitenteId   String
-  solicitanteId String
-  creadaEn      DateTime @default(now())
+  id               String   @id @default(uuid())
+  baseId           String
+  usuarioId        String
+  fechaSolicitada  DateTime
+  estado           String   @default("creada")
+  prioridad        String   @default("media")
+  ubicacionDestino Json
+  fechaEntrega     DateTime
+  fechaEstimada    DateTime
 }
