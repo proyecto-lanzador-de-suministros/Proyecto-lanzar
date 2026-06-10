@@ -16,3 +16,4 @@ Esta carpeta contiene toda la documentación del proyecto.
 | `Diagrama-ER.md` | Diagrama entidad-relación del modelo de datos en Mermaid |
 | `Diagramas-de-Secuencia.md` | Diagramas de secuencia UML del flujo de solicitudes, cancelaciones, autenticación y gestión de stock |
 | `Modelo relacional.md` | Modelo relacional con tablas, claves primarias y foráneas del esquema de base de datos |
+| `Pipeline de Datos.md` | Pipeline de datos: cálculo de trayectoria de caída libre y reserva/gestión de stock |
