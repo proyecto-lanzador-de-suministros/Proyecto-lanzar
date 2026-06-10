@@ -1,5 +1,5 @@
 # Diagrama ER
- + Bsasdi en entregable 3 
+ + Basado en diagrama de entregable 3 
 ```mermaid
 %%---
 %%config:
