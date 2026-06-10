@@ -10,11 +10,11 @@ export class MockSolicitudesRepository implements ForManagingSolicitudes {
   }
 
   async buscarPorId(id: string): Promise<Solicitud | null> {
-    return this.solicitudes.find((s) => s.id === id) ?? null;
+    return this.solicitudes.find((s) => s.id_solicitud === id) ?? null;
   }
 
   async listarPorSolicitante(userId: string): Promise<Solicitud[]> {
-    return this.solicitudes.filter((s) => s.solicitante === userId);
+    return this.solicitudes.filter((s) => s.id_usuario === userId);
   }
 
   async listarTodas(estadoFiltro?: string): Promise<Solicitud[]> {
