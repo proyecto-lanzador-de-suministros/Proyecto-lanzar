@@ -16,7 +16,7 @@ datasource db {
 model Solicitud {
   id            String   @id @default(uuid())
   descripcion   String
-  estado        String   @default("pendiente")
+  estado        String   @default("creada")
   remitenteId   String
   solicitanteId String
   creadaEn      DateTime @default(now())

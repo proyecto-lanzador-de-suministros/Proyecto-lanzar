@@ -17,8 +17,7 @@ erDiagram
     Base {
         string id_base PK
         string nombre
-        float longitud
-        float latitud
+        PuntoGeometria posicion_base
         string direccion
     }
 
@@ -29,7 +28,7 @@ erDiagram
         date fecha_solicitada
         string estado
         string prioridad
-        string ubicacion_destino
+        PuntoGeometria ubicacion_destino
         date fecha_entrega
         date fecha_estimada
     }
@@ -82,8 +81,8 @@ erDiagram
         string id_solicitud FK
         string id_usuario FK
         datetime fecha_hora
-        string estado_anterior
-        string estado_nuevo
+        EstadoSolicitud estado_anterior
+        EstadoSolicitud estado_nuevo
     }
 
     Notificacion {

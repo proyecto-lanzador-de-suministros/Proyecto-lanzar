@@ -11,7 +11,7 @@ export class CrearSolicitud {
     const solicitud: Solicitud = {
       ...datos,
       id: crypto.randomUUID(),
-      estado: "pendiente",
+      estado: "creada",
       creadaEn: new Date(),
     };
 

@@ -3,7 +3,7 @@ import { CrearSolicitud } from "../CrearSolicitud.usecase";
 import { MockSolicitudesRepository } from "@/modules/solicitudes/infrastructure/adapters/MockSolicitudesRepository";
 
 describe("CrearSolicitud", () => {
-  it("crea una solicitud con estado pendiente", async () => {
+  it("crea una solicitud con estado creada", async () => {
     const repo = new MockSolicitudesRepository();
     const useCase = new CrearSolicitud(repo);
 
@@ -13,7 +13,7 @@ describe("CrearSolicitud", () => {
       descripcion: "Enviar paquete",
     });
 
-    expect(solicitud.estado).toBe("pendiente");
+    expect(solicitud.estado).toBe("creada");
     expect(solicitud.id).toBeDefined();
   });
 

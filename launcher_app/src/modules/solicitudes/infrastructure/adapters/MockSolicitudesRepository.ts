@@ -16,4 +16,9 @@ export class MockSolicitudesRepository implements ForManagingSolicitudes {
   async listarPorSolicitante(userId: string): Promise<Solicitud[]> {
     return this.solicitudes.filter((s) => s.solicitante === userId);
   }
+
+  async listarTodas(estadoFiltro?: string): Promise<Solicitud[]> {
+    if (!estadoFiltro) return this.solicitudes;
+    return this.solicitudes.filter((s) => s.estado === estadoFiltro);
+  }
 }
