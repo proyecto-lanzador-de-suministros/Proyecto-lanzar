@@ -1,4 +1,7 @@
-// Entidad central del dominio. Contiene las reglas de negocio de una solicitud, incluyendo las transiciones de estado válidas.
+import type { PuntoGeometria } from "@/src/types/geometria";
+
+export type Prioridad = "baja" | "media" | "alta" | "urgente";
+
 export type EstadoSolicitud =
   | "creada"
   | "cancelada"
@@ -12,10 +15,13 @@ export type EstadoSolicitud =
   | "completada";
 
 export interface Solicitud {
-  id: string;
-  remitente: string; // userId
-  solicitante: string; // userId
-  descripcion: string;
+  id_solicitud: string;
+  id_base: string;
+  id_usuario: string;
+  fecha_solicitada: Date;
   estado: EstadoSolicitud;
-  creadaEn: Date;
+  prioridad: Prioridad;
+  ubicacion_destino: PuntoGeometria;
+  fecha_entrega: Date;
+  fecha_estimada: Date;
 }
