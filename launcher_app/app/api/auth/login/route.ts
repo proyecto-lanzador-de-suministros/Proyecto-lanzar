@@ -2,7 +2,7 @@
 //como auth se delega a clerk, este
 // archivo serviría como proxy nomás(ej):
 
-import { authAdapter } from "@/container";
+import { authAdapter } from "@/src/container";
 
 export async function GET(req: Request) {
   const usuario = await authAdapter.obtenerUsuarioActual(req);
