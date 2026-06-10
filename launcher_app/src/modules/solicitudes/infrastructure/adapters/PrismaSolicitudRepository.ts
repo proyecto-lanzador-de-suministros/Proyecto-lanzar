@@ -1,19 +1,28 @@
+import type { PuntoGeometria } from "@/src/types/geometria";
 import { ForManagingSolicitudes } from "../../domain/ports/forManagingSolicitudes.port";
 import { Solicitud } from "../../domain/entities/Solicitud";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
+import {
+  InputJsonObject,
+  JsonValue,
+} from "@/src/generated/prisma/runtime/client";
 
 export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
   async guardar(solicitud: Solicitud): Promise<void> {
     await prisma.solicitud.upsert({
-      where: { id: solicitud.id },
+      where: { id: solicitud.id_solicitud },
       update: { estado: solicitud.estado },
       create: {
-        id: solicitud.id,
-        remitenteId: solicitud.remitente,
-        solicitanteId: solicitud.solicitante,
-        descripcion: solicitud.descripcion,
+        id: solicitud.id_solicitud,
+        baseId: solicitud.id_base,
+        usuarioId: solicitud.id_usuario,
+        fechaSolicitada: solicitud.fecha_solicitada,
         estado: solicitud.estado,
-        creadaEn: solicitud.creadaEn,
+        prioridad: solicitud.prioridad,
+        ubicacionDestino:
+          solicitud.ubicacion_destino as unknown as InputJsonObject,
+        fechaEntrega: solicitud.fecha_entrega,
+        fechaEstimada: solicitud.fecha_estimada,
       },
     });
   }
@@ -26,35 +35,43 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
 
   async listarPorSolicitante(userId: string): Promise<Solicitud[]> {
     const rows = await prisma.solicitud.findMany({
-      where: { solicitanteId: userId },
+      where: { usuarioId: userId },
     });
-    return rows.map(this.toDomain);
+    return rows.map((row) => this.toDomain(row));
   }
 
-  // NUEVO MÉTODO PARA EL ADMINISTRADOR
   async listarTodas(estadoFiltro?: string): Promise<Solicitud[]> {
     const whereClause = estadoFiltro ? { estado: estadoFiltro } : {};
 
     const rows = await prisma.solicitud.findMany({
       where: whereClause,
-      orderBy: { creadaEn: "desc" }, // Las ordena por las más recientes primero
+      orderBy: { fechaSolicitada: "desc" },
     });
 
-    return rows.map(this.toDomain);
+    return rows.map((row) => this.toDomain(row));
   }
 
-  // Método privado de traducción: Prisma → dominio
-  // TODO: no usar any, usar un casteo a SolicitudPrisma como solución
-  // (ignoror tmeporalmente el error)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private toDomain(row: any): Solicitud {
+  private toDomain(row: {
+    id: string;
+    baseId: string;
+    usuarioId: string;
+    fechaSolicitada: Date;
+    estado: string;
+    prioridad: string;
+    ubicacionDestino: JsonValue;
+    fechaEntrega: Date;
+    fechaEstimada: Date;
+  }): Solicitud {
     return {
-      id: row.id,
-      remitente: row.remitenteId,
-      solicitante: row.solicitanteId,
-      descripcion: row.descripcion,
-      estado: row.estado,
-      creadaEn: row.creadaEn,
+      id_solicitud: row.id,
+      id_base: row.baseId,
+      id_usuario: row.usuarioId,
+      fecha_solicitada: row.fechaSolicitada,
+      estado: row.estado as Solicitud["estado"],
+      prioridad: row.prioridad as Solicitud["prioridad"],
+      ubicacion_destino: row.ubicacionDestino as unknown as PuntoGeometria,
+      fecha_entrega: row.fechaEntrega,
+      fecha_estimada: row.fechaEstimada,
     };
   }
 }
