@@ -1,10 +1,15 @@
 // Entidad central del dominio. Contiene las reglas de negocio de una solicitud, incluyendo las transiciones de estado válidas.
 export type EstadoSolicitud =
-  | "pendiente"
+  | "creada"
+  | "cancelada"
+  | "rechazada"
   | "asignada"
+  | "en_preparacion"
+  | "anulada"
+  | "lista"
   | "en_camino"
-  | "entregada"
-  | "cancelada";
+  | "lanzada"
+  | "completada";
 
 export interface Solicitud {
   id: string;
