@@ -17,29 +17,49 @@ interface SidebarProps {
 
 export default function Sidebar({ activeHref = "/" }: SidebarProps) {
   return (
-    <aside className="sidebar">
+    <aside
+      style={{
+        backgroundColor: "var(--color-surface-dark)",
+        width: 220,
+        minHeight: "100vh",
+      }}
+      className="flex flex-col gap-2 p-3"
+    >
       {/* Logo */}
-      <div className="sidebar-logo">
-        <Logo className="sidebar-logo-icon" />
-        <span className="sidebar-logo-text">
-          <span className="sidebar-logo-aero">Aero</span>
-          <span className="sidebar-logo-envios">Envíos</span>
+      <div className="flex items-center gap-2 px-2 pb-6">
+        <Logo className="w-9 h-9 shrink-0" />
+        <span className="text-xl font-bold tracking-tight">
+          <span className="text-white">Aero</span>
+          <span style={{ color: "var(--color-brand)" }}>Envíos</span>
         </span>
       </div>
 
       {/* Navegación */}
-      <nav className="sidebar-nav">
+      <nav className="flex flex-col gap-0.5 flex-1">
         {navItems.map((item) => {
           const isActive = item.href === activeHref;
           return (
             <a
               key={item.href}
               href={item.href}
-              className={`sidebar-nav-item ${isActive ? "sidebar-nav-item--active" : ""}`}
+              style={
+                isActive ? { backgroundColor: "var(--color-interactive)" } : {}
+              }
+              className={`flex items-center px-3 py-2.5 rounded-lg text-sm no-underline transition-colors
+                ${
+                  isActive
+                    ? "text-white"
+                    : "text-white/60 hover:text-white hover:bg-white/10"
+                }`}
             >
-              <span className="sidebar-nav-label">{item.label}</span>
+              <span className="flex-1">{item.label}</span>
               {item.badge > 0 && (
-                <span className="sidebar-nav-badge">{item.badge}</span>
+                <span
+                  style={{ backgroundColor: "var(--color-brand)" }}
+                  className="text-white text-[11px] font-semibold min-w-5 h-5 rounded-full flex items-center justify-center px-1"
+                >
+                  {item.badge}
+                </span>
               )}
             </a>
           );
@@ -47,134 +67,17 @@ export default function Sidebar({ activeHref = "/" }: SidebarProps) {
       </nav>
 
       {/* Bloque de ayuda */}
-      <div className="sidebar-help">
-        <p className="sidebar-help-title">¿Necesitás ayuda?</p>
-        <p className="sidebar-help-subtitle">
+      <div className="bg-white/10 rounded-xl p-4 flex flex-col items-center gap-1.5 text-center mt-2">
+        <p className="text-white text-[13px] font-semibold m-0">
+          ¿Necesitás ayuda?
+        </p>
+        <p className="text-white/55 text-xs m-0 leading-snug">
           Nuestro equipo está para ayudarte.
         </p>
-        <button className="sidebar-help-btn">Contactar soporte</button>
+        <button className="mt-2 w-full py-2 px-3 rounded-lg border border-white/30 bg-transparent text-white text-[13px] cursor-pointer hover:bg-white/10 transition-colors">
+          Contactar soporte
+        </button>
       </div>
-
-      <style>{`
-        .sidebar {
-          width: 220px;
-          min-height: 100vh;
-          background: var(--color-surface-dark);
-          display: flex;
-          flex-direction: column;
-          padding: 24px 12px;
-          gap: 8px;
-        }
-
-        .sidebar-logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 0 8px 24px;
-        }
-
-        .sidebar-logo-icon {
-          width: 36px;
-          height: 36px;
-          flex-shrink: 0;
-        }
-
-        .sidebar-logo-text {
-          font-size: 20px;
-          font-weight: 700;
-          letter-spacing: -0.3px;
-        }
-
-        .sidebar-logo-aero   { color: #ffffff; }
-        .sidebar-logo-envios { color: var(--color-brand); }
-
-        .sidebar-nav {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          flex: 1;
-        }
-
-        .sidebar-nav-item {
-          display: flex;
-          align-items: center;
-          padding: 10px 12px;
-          border-radius: 8px;
-          text-decoration: none;
-          color: rgba(255, 255, 255, 0.65);
-          font-size: 14px;
-          transition: background 0.15s, color 0.15s;
-        }
-
-        .sidebar-nav-item:hover {
-          background: rgba(255, 255, 255, 0.08);
-          color: #ffffff;
-        }
-
-        .sidebar-nav-item--active {
-          background: var(--color-interactive);
-          color: #ffffff;
-        }
-
-        .sidebar-nav-label { flex: 1; }
-
-        .sidebar-nav-badge {
-          background: var(--color-brand);
-          color: #ffffff;
-          font-size: 11px;
-          font-weight: 600;
-          min-width: 20px;
-          height: 20px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0 5px;
-        }
-
-        .sidebar-help {
-          background: rgba(255, 255, 255, 0.07);
-          border-radius: 12px;
-          padding: 16px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 6px;
-          text-align: center;
-          margin-top: 8px;
-        }
-
-        .sidebar-help-title {
-          color: #ffffff;
-          font-size: 13px;
-          font-weight: 600;
-          margin: 0;
-        }
-
-        .sidebar-help-subtitle {
-          color: rgba(255, 255, 255, 0.55);
-          font-size: 12px;
-          margin: 0;
-          line-height: 1.4;
-        }
-
-        .sidebar-help-btn {
-          margin-top: 8px;
-          width: 100%;
-          padding: 8px 12px;
-          border-radius: 8px;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          background: transparent;
-          color: #ffffff;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background 0.15s;
-        }
-
-        .sidebar-help-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-      `}</style>
     </aside>
   );
 }
