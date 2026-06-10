@@ -18,6 +18,7 @@
         "name": "next"
       }
     ],
+    // NO MODIFICAR PATH, de hacerlo corregir TODOS los imports
     "paths": {
       "@/*": ["./*"]
     }
