@@ -1,16 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// TODO: no hacer esta interface, importar de donde se define
-interface Solicitud {
-  id: string;
-  fechaSolicitada: string;
-  estado: string;
-  latDestino: number;
-  lonDestino: number;
-  solicitanteId: string;
-  remitenteId: string | null;
-}
+import type { Solicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 
 export default function AdminDashboard() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
@@ -45,27 +36,25 @@ export default function AdminDashboard() {
     fetchSolicitudes();
   }, [filtroEstado]);
 
-  const getStatusColor = (estado: string) => {
+  const getStatusColor = (estado: Solicitud["estado"]) => {
     switch (estado) {
-      case "Creada":
+      case "creada":
         return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Aprobada":
-        return "bg-indigo-100 text-indigo-800 border-indigo-200";
-      case "Asignada":
+      case "asignada":
         return "bg-teal-100 text-teal-800 border-teal-200";
-      case "En preparación":
+      case "en_preparacion":
         return "bg-orange-100 text-orange-800 border-orange-200";
-      case "Listo":
+      case "lista":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "En Camino":
+      case "en_camino":
         return "bg-purple-100 text-purple-800 border-purple-200";
-      case "Lanzada":
+      case "lanzada":
         return "bg-pink-100 text-pink-800 border-pink-200";
-      case "Completada":
+      case "completada":
         return "bg-green-100 text-green-800 border-green-200";
-      case "Rechazada":
-      case "Cancelada":
-      case "Anulada":
+      case "rechazada":
+      case "cancelada":
+      case "anulada":
         return "bg-red-100 text-red-800 border-red-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
@@ -95,17 +84,16 @@ export default function AdminDashboard() {
               onChange={(e) => setFiltroEstado(e.target.value)}
             >
               <option value="">Todos los estados</option>
-              <option value="Creada">Creada</option>
-              <option value="Aprobada">Aprobada</option>
-              <option value="Asignada">Asignada</option>
-              <option value="En preparación">En preparación</option>
-              <option value="Listo">Listo</option>
-              <option value="En Camino">En Camino</option>
-              <option value="Lanzada">Lanzada</option>
-              <option value="Completada">Completada</option>
-              <option value="Rechazada">Rechazada</option>
-              <option value="Cancelada">Cancelada</option>
-              <option value="Anulada">Anulada</option>
+              <option value="creada">Creada</option>
+              <option value="asignada">Asignada</option>
+              <option value="en_preparacion">En preparación</option>
+              <option value="lista">Listo</option>
+              <option value="en_camino">En Camino</option>
+              <option value="lanzada">Lanzada</option>
+              <option value="completada">Completada</option>
+              <option value="rechazada">Rechazada</option>
+              <option value="cancelada">Cancelada</option>
+              <option value="anulada">Anulada</option>
             </select>
           </div>
         </div>
@@ -147,14 +135,14 @@ export default function AdminDashboard() {
                 <tbody className="divide-y divide-gray-100 text-sm">
                   {solicitudes.map((solicitud) => (
                     <tr
-                      key={solicitud.id}
+                      key={solicitud.id_solicitud}
                       className="hover:bg-[#fff7f0] transition-colors group"
                     >
                       <td className="p-5 font-mono text-xs text-gray-500">
-                        #{solicitud.id.substring(0, 8)}
+                        #{solicitud.id_solicitud.substring(0, 8)}
                       </td>
                       <td className="p-5 text-gray-700 font-medium">
-                        {new Date(solicitud.fechaSolicitada).toLocaleDateString(
+                        {new Date(solicitud.fecha_solicitada).toLocaleDateString(
                           "es-AR",
                           {
                             day: "2-digit",
@@ -165,11 +153,11 @@ export default function AdminDashboard() {
                         )}
                       </td>
                       <td className="p-5 text-gray-600">
-                        {solicitud.latDestino.toFixed(4)},{" "}
-                        {solicitud.lonDestino.toFixed(4)}
+                        {solicitud.ubicacion_destino.coordinates[1].toFixed(4)},{" "}
+                        {solicitud.ubicacion_destino.coordinates[0].toFixed(4)}
                       </td>
                       <td className="p-5 text-gray-600">
-                        {solicitud.solicitanteId.substring(0, 8)}...
+                        {solicitud.id_usuario.substring(0, 8)}...
                       </td>
                       <td className="p-5">
                         <span
