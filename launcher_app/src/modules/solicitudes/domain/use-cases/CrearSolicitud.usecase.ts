@@ -6,13 +6,14 @@ export class CrearSolicitud {
   constructor(private readonly repo: ForManagingSolicitudes) {}
 
   async ejecutar(
-    datos: Omit<Solicitud, "id" | "estado" | "creadaEn">,
+    datos: Omit<Solicitud, "id_solicitud" | "estado" | "fecha_solicitada" | "fecha_estimada">,
   ): Promise<Solicitud> {
     const solicitud: Solicitud = {
       ...datos,
-      id: crypto.randomUUID(),
+      id_solicitud: crypto.randomUUID(),
       estado: "creada",
-      creadaEn: new Date(),
+      fecha_solicitada: new Date(),
+      fecha_estimada: datos.fecha_entrega,
     };
 
     await this.repo.guardar(solicitud);

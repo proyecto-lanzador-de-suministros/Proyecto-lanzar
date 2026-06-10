@@ -5,9 +5,11 @@ export async function POST(req: Request) {
   const body = await req.json();
 
   const solicitud = await crearSolicitud.ejecutar({
-    remitente: body.remitente,
-    solicitante: body.solicitante,
-    descripcion: body.descripcion,
+    id_base: body.id_base,
+    id_usuario: body.id_usuario,
+    prioridad: body.prioridad,
+    ubicacion_destino: body.ubicacion_destino,
+    fecha_entrega: new Date(body.fecha_entrega),
   });
 
   return Response.json(solicitud, { status: 201 });
