@@ -8,21 +8,62 @@ servers:
     description: Servidor de desarrollo
 
 tags:
+  - name: Autenticación
+    description: Endpoints para login de usuarios
   - name: Solicitudes
     description: Gestión de pedidos de encomiendas
-  - name: Envíos
-    description: Gestión del envío físico y contenedores
   - name: Bases
     description: Gestión de bases y stock de los remitentes
 
 paths:
+  # ==========================================
+  # MÓDULO: AUTENTICACIÓN
+  # ==========================================
+  /auth/login:
+    post:
+      summary: Iniciar sesión en el sistema
+      tags: [Autenticación]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT para autorización
+                  rol:
+                    type: string
+                    enum: [solicitante, remitente, admin]
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   # ==========================================
   # MÓDULO: SOLICITUDES
   # ==========================================
   /solicitudes:
     post:
       summary: Crear una nueva solicitud de envío
-      description: El solicitante envía las coordenadas (formato GeoJSON) y los productos deseados. El sistema valida internamente si hay stock en alguna base antes de crearla.
+      description: El solicitante envía las coordenadas y los productos deseados. El sistema valida internamente si hay stock en alguna base antes de crearla.
       tags: [Solicitudes]
       security:
         - bearerAuth: []
@@ -61,7 +102,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Detalle completo de la solicitud, incluyendo su envío físico y contenedor si ya fue asignado.
+          description: Detalle de la solicitud
           content:
             application/json:
               schema:
@@ -75,8 +116,8 @@ paths:
 
   /solicitudes/{id}/estado:
     patch:
-      summary: Actualizar el estado general de la solicitud
-      description: Utilizado por el Solicitante (para "Cancelada") o el sistema interno de gestión.
+      summary: Actualizar el estado de una solicitud
+      description: Utilizado por el Remitente (ej. pasar a "En preparación", "Listo", "Lanzado") o el Solicitante (para "Completada" o "Cancelada").
       tags: [Solicitudes]
       security:
         - bearerAuth: []
@@ -97,74 +138,16 @@ paths:
               properties:
                 nuevoEstado:
                   type: string
-                  enum: [Pendiente, Aprobada, Cancelada, Completada, Anulada]
+                  enum: [Cancelada, En preparación, Listo, En camino, Lanzada, Completada, Anulada]
       responses:
         '200':
-          description: Estado actualizado exitosamente.
+          description: Estado actualizado exitosamente. Este trigger asíncronamente guarda en Historial-Estado.
         '422':
-          description: Transición de estado inválida.
+          description: Transición de estado inválida (ej. pasar de Creada directamente a Lanzada).
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
-  # ==========================================
-  # MÓDULO: ENVÍOS FÍSICOS
-  # ==========================================
-  /envios/{id}:
-    get:
-      summary: Consultar el estado de un envío físico
-      description: Retorna los datos operativos del envío y del contenedor asociado.
-      tags: [Envíos]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Detalle del envío físico.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envio'
-        '404':
-          description: Envío no encontrado.
-
-  /envios/{id}/estado:
-    patch:
-      summary: Actualizar el estado físico de un envío
-      description: Utilizado por los operarios o la telemetría del contenedor para reportar el progreso físico de la entrega.
-      tags: [Envíos]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [nuevoEstado]
-              properties:
-                nuevoEstado:
-                  type: string
-                  enum: [En preparación, Listo para lanzamiento, En caída libre, Aterrizado, Recuperado]
-      responses:
-        '200':
-          description: Estado del envío actualizado.
-        '422':
-          description: Transición de estado físico inválida.
 
   # ==========================================
   # MÓDULO: BASES Y STOCK
@@ -199,7 +182,6 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Token JWT emitido por Clerk.
 
   schemas:
     # --- Esquema de Error Estándar ---
@@ -219,31 +201,19 @@ components:
               type: string
               nullable: true
 
-    # --- Objetos Geográficos (PostGIS / GeoJSON) ---
-    GeoJSONPoint:
-      type: object
-      required: [type, coordinates]
-      properties:
-        type:
-          type: string
-          enum: [Point]
-        coordinates:
-          type: array
-          description: Arreglo de coordenadas [longitud, latitud]
-          items:
-            type: number
-            format: double
-          minItems: 2
-          maxItems: 2
-          example: [-62.2663, -38.7183]
-
     # --- Esquemas de Dominio ---
     NuevaSolicitudRequest:
       type: object
-      required: [ubicacionDestino, prioridad, productos]
+      required: [latDestino, lonDestino, prioridad, productos]
       properties:
-        ubicacionDestino:
-          $ref: '#/components/schemas/GeoJSONPoint'
+        latDestino:
+          type: number
+          format: float
+          example: -38.7183
+        lonDestino:
+          type: number
+          format: float
+          example: -62.2663
         prioridad:
           type: string
           enum: [Alta, Media, Baja]
@@ -271,15 +241,17 @@ components:
           format: date-time
         estado:
           type: string
-          example: Aprobada
-        ubicacionDestino:
-          $ref: '#/components/schemas/GeoJSONPoint'
+          example: Creada
+        latDestino:
+          type: number
+          format: float
+        lonDestino:
+          type: number
+          format: float
         detalles:
           type: array
           items:
             $ref: '#/components/schemas/DetalleSolicitud'
-        envioAsignado:
-          $ref: '#/components/schemas/Envio'
 
     DetalleSolicitud:
       type: object
@@ -289,43 +261,6 @@ components:
           format: uuid
         cantidadSolicitada:
           type: integer
-
-    Envio:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        solicitudId:
-          type: string
-          format: uuid
-        estadoFisico:
-          type: string
-          example: En caída libre
-        baseOrigenId:
-          type: string
-          format: uuid
-        contenedor:
-          $ref: '#/components/schemas/Contenedor'
-        fechaLanzamiento:
-          type: string
-          format: date-time
-          nullable: true
-
-    Contenedor:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        codigoRastreo:
-          type: string
-        tipoParacaidas:
-          type: string
-          enum: [Estándar, Carga Pesada, Precisión GPS]
-        estadoOperativo:
-          type: string
-          enum: [Disponible, Asignado, En recuperación, Mantenimiento]
 
     StockBase:
       type: object
@@ -338,4 +273,4 @@ components:
         cantidadDisponible:
           type: integer
         cantidadReservada:
-          type: integer
+          type: integer 

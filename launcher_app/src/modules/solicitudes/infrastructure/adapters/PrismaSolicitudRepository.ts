@@ -1,5 +1,3 @@
-// Adaptador driven. Implementa forManagingSolicitudes usando Prisma como ORM contra la base de datos PostgreSQL.
-// src/modules/solicitudes/infrastructure/adapters/PrismaSolicitudesRepository.ts
 import { ForManagingSolicitudes } from "../../domain/ports/forManagingSolicitudes.port";
 import { Solicitud } from "../../domain/entities/Solicitud";
 import { prisma } from "@/infrastructure/db/prisma.client";
@@ -23,13 +21,25 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
   async buscarPorId(id: string): Promise<Solicitud | null> {
     const row = await prisma.solicitud.findUnique({ where: { id } });
     if (!row) return null;
-    return this.toDomain(row); // ← traducción
+    return this.toDomain(row);
   }
 
   async listarPorSolicitante(userId: string): Promise<Solicitud[]> {
     const rows = await prisma.solicitud.findMany({
       where: { solicitanteId: userId },
     });
+    return rows.map(this.toDomain);
+  }
+
+  // NUEVO MÉTODO PARA EL ADMINISTRADOR
+  async listarTodas(estadoFiltro?: string): Promise<Solicitud[]> {
+    const whereClause = estadoFiltro ? { estado: estadoFiltro } : {};
+    
+    const rows = await prisma.solicitud.findMany({
+      where: whereClause,
+      orderBy: { creadaEn: 'desc' }, // Las ordena por las más recientes primero
+    });
+    
     return rows.map(this.toDomain);
   }
 
