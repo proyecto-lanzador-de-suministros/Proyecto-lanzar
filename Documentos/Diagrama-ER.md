@@ -1,5 +1,5 @@
 # Diagrama ER
-
+ + Bsasdi en entregable 3 
 ```mermaid
 %%---
 %%config:
@@ -101,7 +101,7 @@ erDiagram
     Usuario ||--o{ HistorialEstado : "Registra"
     Usuario ||--o{ Notificacion : "Recibe"
     
-    Solicitud ||--|| Envio : "Deriva En"
+    Solicitud ||--o{ Envio : "Deriva En"
     Base ||--o{ StockBase : "Se almacena en"
     Base ||--o{ Envio : "Posee"
     
@@ -113,8 +113,4 @@ erDiagram
       
     Producto ||--o{ StockBase : "Se almacena en"
 ```
-
-Algunas aclaraciones:
-
-- Las cardinalidades las inferí del contexto del dominio (sistema de despacho de paquetes), ya que el diagrama original no las muestra explícitamente. Revisá especialmente las relaciones `Gestiona`, `Posee` y `Deriva En` si tenés definidas cardinalidades precisas.
-- La relación `Solicitud ||--|| Envio` la puse como 1-a-1 ya que `Deriva En` sugiere que una solicitud genera un único envío, pero podría ser 1-a-muchos según el negocio.
+- LLM puso `deriva en` (relación) como `1-1` en el diagrama original esta como `1-N`
