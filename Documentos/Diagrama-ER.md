@@ -1,10 +1,10 @@
 # Diagrama ER
 
 ```mermaid
----
-config:
-  layout: elk
----
+%%---
+%%config:
+  %%layout: elk
+%%---
 erDiagram
     Usuario {
         string id_usuario PK
@@ -33,6 +33,7 @@ erDiagram
         date fecha_entrega
         date fecha_estimada
     }
+    
 
     Envio {
         string id_envio PK
@@ -94,12 +95,12 @@ erDiagram
         string mensaje
         string canal_envio
     }
-
     Usuario ||--o{ Solicitud : "Realiza"
-    Usuario ||--o{ Base : "Gestiona"
+    Base ||--o{ Solicitud : "Pertenece"
+    Base }o--||Usuario: "Gestiona"
     Usuario ||--o{ HistorialEstado : "Registra"
     Usuario ||--o{ Notificacion : "Recibe"
-    Base ||--o{ Solicitud : "Pertenece"
+    
     Solicitud ||--|| Envio : "Deriva En"
     Base ||--o{ StockBase : "Se almacena en"
     Base ||--o{ Envio : "Posee"
@@ -110,7 +111,7 @@ erDiagram
     Envio ||--o{ Contenedor : "Contenido en"
     DetalleSolicitud }o--|| Producto : "Especifica en"
       
-    Producto ||--o{ StockBase : "Se almacena en"  
+    Producto ||--o{ StockBase : "Se almacena en"
 ```
 
 Algunas aclaraciones:
