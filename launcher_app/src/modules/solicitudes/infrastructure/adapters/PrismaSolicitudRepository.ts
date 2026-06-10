@@ -1,6 +1,6 @@
 import { ForManagingSolicitudes } from "../../domain/ports/forManagingSolicitudes.port";
 import { Solicitud } from "../../domain/entities/Solicitud";
-import { prisma } from "@/infrastructure/db/prisma.client";
+import { prisma } from "@/src/infrastructure/db/prisma.client";
 
 export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
   async guardar(solicitud: Solicitud): Promise<void> {
@@ -34,16 +34,19 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
   // NUEVO MÉTODO PARA EL ADMINISTRADOR
   async listarTodas(estadoFiltro?: string): Promise<Solicitud[]> {
     const whereClause = estadoFiltro ? { estado: estadoFiltro } : {};
-    
+
     const rows = await prisma.solicitud.findMany({
       where: whereClause,
-      orderBy: { creadaEn: 'desc' }, // Las ordena por las más recientes primero
+      orderBy: { creadaEn: "desc" }, // Las ordena por las más recientes primero
     });
-    
+
     return rows.map(this.toDomain);
   }
 
   // Método privado de traducción: Prisma → dominio
+  // TODO: no usar any, usar un casteo a SolicitudPrisma como solución
+  // (ignoror tmeporalmente el error)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private toDomain(row: any): Solicitud {
     return {
       id: row.id,
