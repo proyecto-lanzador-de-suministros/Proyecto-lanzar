@@ -5,21 +5,17 @@
     --color-brand: #f5a623;
     --color-surface-dark: #1b2a4a;
     --color-interactive: #1565c0;
-
     /* ── Fondos ── */
     --color-bg-page: #f4f6f9;
     --color-bg-card: #ffffff;
-
     /* ── Texto ── */
     --color-text-primary: #1a1a2e;
     --color-text-secondary: #6b7280;
-
     /* ── Estados semánticos ── */
     --color-info: #2196f3;
     --color-success: #4caf50;
     --color-warning: #ff9800;
     --color-danger: #f44336;
-
     /* ── Badges de tipo usuario ── */
     --color-badge-solicitante-bg: #e3f2fd;
     --color-badge-solicitante-text: #1565c0;
@@ -28,10 +24,36 @@
 }
 
 @theme inline {
+    /* Tipografía */
     --color-background: var(--color-bg-page);
     --color-foreground: var(--color-text-primary);
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
+
+    /* Marca */
+    --color-brand: var(--color-brand);
+    --color-surface-dark: var(--color-surface-dark);
+    --color-interactive: var(--color-interactive);
+
+    /* Fondos */
+    --color-bg-page: var(--color-bg-page);
+    --color-bg-card: var(--color-bg-card);
+
+    /* Texto */
+    --color-text-primary: var(--color-text-primary);
+    --color-text-secondary: var(--color-text-secondary);
+
+    /* Estados semánticos */
+    --color-info: var(--color-info);
+    --color-success: var(--color-success);
+    --color-warning: var(--color-warning);
+    --color-danger: var(--color-danger);
+
+    /* Badges */
+    --color-badge-solicitante-bg: var(--color-badge-solicitante-bg);
+    --color-badge-solicitante-text: var(--color-badge-solicitante-text);
+    --color-badge-remitente-bg: var(--color-badge-remitente-bg);
+    --color-badge-remitente-text: var(--color-badge-remitente-text);
 }
 
 body {
