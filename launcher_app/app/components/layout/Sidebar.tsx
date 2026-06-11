@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Logo from "@/app/components/ui/Logo";
 
 const navItems = [
@@ -17,20 +18,13 @@ interface SidebarProps {
 
 export default function Sidebar({ activeHref = "/" }: SidebarProps) {
   return (
-    <aside
-      style={{
-        backgroundColor: "var(--color-surface-dark)",
-        width: 220,
-        minHeight: "100vh",
-      }}
-      className="flex flex-col gap-2 p-3"
-    >
+    <aside className="w-56 min-h-screen bg-surface-dark flex flex-col gap-2 p-3 shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-2 px-2 pb-6">
         <Logo className="w-9 h-9 shrink-0" />
         <span className="text-xl font-bold tracking-tight">
           <span className="text-white">Aero</span>
-          <span style={{ color: "var(--color-brand)" }}>Envíos</span>
+          <span className="text-brand">Envíos</span>
         </span>
       </div>
 
@@ -39,29 +33,23 @@ export default function Sidebar({ activeHref = "/" }: SidebarProps) {
         {navItems.map((item) => {
           const isActive = item.href === activeHref;
           return (
-            <a
+            <Link
               key={item.href}
               href={item.href}
-              style={
-                isActive ? { backgroundColor: "var(--color-interactive)" } : {}
-              }
               className={`flex items-center px-3 py-2.5 rounded-lg text-sm no-underline transition-colors
                 ${
                   isActive
-                    ? "text-white"
+                    ? "bg-interactive text-white"
                     : "text-white/60 hover:text-white hover:bg-white/10"
                 }`}
             >
               <span className="flex-1">{item.label}</span>
               {item.badge > 0 && (
-                <span
-                  style={{ backgroundColor: "var(--color-brand)" }}
-                  className="text-white text-[11px] font-semibold min-w-5 h-5 rounded-full flex items-center justify-center px-1"
-                >
+                <span className="bg-brand text-white text-[11px] font-semibold min-w-5 h-5 rounded-full flex items-center justify-center px-1">
                   {item.badge}
                 </span>
               )}
-            </a>
+            </Link>
           );
         })}
       </nav>
