@@ -12,7 +12,9 @@ const solicitudesRepo = new PrismaSolicitudesRepository();
 // 2. Lo inyecta en el caso de uso (dominio)
 export const crearSolicitud = new CrearSolicitud(solicitudesRepo);
 export const listarSolicitudesAdmin = new ListarSolicitudesAdminUseCase(solicitudesRepo);
-
+// 3. Exportar el repo directamente para route handlers que necesiten operaciones
+//    puntuales (ej. buscarPorId + guardar en el PATCH de estado)
+export { solicitudesRepo };
 //Auth
 import { ClerkAuthAdapter } from "./modules/auth/infrastructure/adapters/ClerkAuthAdapter";
 import { IniciarSesion } from "./modules/auth/domain/use-cases/IniciarSesion.usecase";
