@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "@/app/components/ui/Logo";
+import { SidebarConfig } from "@/app/components/layout/types";
 
 const navItems = [
   { label: "Inicio", href: "/", badge: 0 },
@@ -12,14 +13,9 @@ const navItems = [
   { label: "Ayuda", href: "/ayuda", badge: 0 },
 ];
 
-interface SidebarProps {
-  activeHref?: string;
-}
-
-export default function Sidebar({ activeHref = "/" }: SidebarProps) {
+export default function Sidebar({ activeHref = "/" }: SidebarConfig) {
   return (
     <aside className="w-56 min-h-screen bg-surface-dark flex flex-col gap-2 p-3 shrink-0">
-      {/* Logo */}
       <div className="flex items-center gap-2 px-2 pb-6">
         <Logo className="w-9 h-9 shrink-0" />
         <span className="text-xl font-bold tracking-tight">
@@ -27,8 +23,6 @@ export default function Sidebar({ activeHref = "/" }: SidebarProps) {
           <span className="text-brand">Envíos</span>
         </span>
       </div>
-
-      {/* Navegación */}
       <nav className="flex flex-col gap-0.5 flex-1">
         {navItems.map((item) => {
           const isActive = item.href === activeHref;
@@ -53,8 +47,6 @@ export default function Sidebar({ activeHref = "/" }: SidebarProps) {
           );
         })}
       </nav>
-
-      {/* Bloque de ayuda */}
       <div className="bg-white/10 rounded-xl p-4 flex flex-col items-center gap-1.5 text-center mt-2">
         <p className="text-white text-[13px] font-semibold m-0">
           ¿Necesitás ayuda?

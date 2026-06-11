@@ -1,18 +1,13 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-
-interface TopBarProps {
-  role?: string;
-  subtitle?: string;
-  notificationCount?: number;
-}
+import { TopBarConfig } from "@/app/components/layout/types";
 
 export default function TopBar({
-  role = "Remitente",
-  subtitle = "Este es tu panel como remitente.",
-  notificationCount = 0,
-}: TopBarProps) {
+  role,
+  subtitle,
+  notificationCount,
+}: TopBarConfig) {
   const { user } = useUser();
 
   const fullName = user?.fullName ?? "Usuario";
@@ -25,17 +20,13 @@ export default function TopBar({
 
   return (
     <header className="flex items-center justify-between px-8 py-5 bg-bg-card border-b border-gray-100">
-      {/* Saludo */}
       <div>
         <h1 className="text-2xl font-bold text-text-primary">
           ¡Hola, {fullName}!
         </h1>
         <p className="text-sm text-text-secondary mt-0.5">{subtitle}</p>
       </div>
-
-      {/* Acciones */}
       <div className="flex items-center gap-4">
-        {/* Campana */}
         <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -58,21 +49,16 @@ export default function TopBar({
             </span>
           )}
         </button>
-
-        {/* Usuario */}
         <div className="flex items-center gap-3 cursor-pointer">
-          {/* Avatar */}
           <div className="w-10 h-10 rounded-full bg-interactive flex items-center justify-center shrink-0">
             <span className="text-white text-sm font-semibold">{initials}</span>
           </div>
-          {/* Nombre y rol */}
           <div className="hidden sm:block">
             <p className="text-sm font-semibold text-text-primary leading-tight">
               {fullName}
             </p>
             <p className="text-xs text-text-secondary">{role}</p>
           </div>
-          {/* Chevron */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
