@@ -1,7 +1,10 @@
-// Página del dashboard del rol remitente. Muestra solicitudes asignadas y estado del stock.
-import Sidebar from "@/app/components/layout/Sidebar";
-import TopBar from "@/app/components/layout/TopBar";
+// app/remitente/dashboard/page.tsx
+import AssignedRequestsTable from "@/app/components/requests/AssignedRequestsTable";
 
 export default function RemitenteDashboardPage() {
-  return <></>;
+  return (
+    <div className="flex flex-col gap-6">
+      <AssignedRequestsTable />
+    </div>
+  );
 }
