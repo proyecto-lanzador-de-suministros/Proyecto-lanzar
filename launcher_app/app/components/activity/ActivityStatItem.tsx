@@ -15,11 +15,15 @@ export default function ActivityStatItem({
   colorClass,
 }: ActivityStatItemProps) {
   return (
-    <div className="flex items-center gap-3">
-      <span className={`${colorClass} mt-0.5`}>{icon}</span>
+    <div className="flex items-center gap-2">
+      <span className={`${colorClass} mt-3`}>{icon}</span>
       <div>
-        <p className="text-xs text-slate-400 dark:text-slate-500">{label}</p>
-        <p className={`text-xl font-bold ${colorClass}`}>{value}</p>
+        <p className="text-xs leading-tight text-slate-400 dark:text-slate-500">
+          {label}
+        </p>
+        <p className={`text-lg font-bold leading-tight ${colorClass}`}>
+          {value}
+        </p>
       </div>
     </div>
   );

@@ -54,7 +54,7 @@ export default function AssignedRequestsTable() {
     <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
             Solicitudes asignadas
           </h2>
@@ -91,14 +91,16 @@ export default function AssignedRequestsTable() {
                 key={s.id}
                 className="border-b border-slate-50 dark:border-slate-800 last:border-0"
               >
-                <td className="py-3 font-medium text-slate-700 dark:text-slate-200">
+                <td className="py-6 font-medium text-slate-700 dark:text-slate-200">
                   {s.id}
                 </td>
                 <td className="py-3">
                   <p className="text-slate-700 dark:text-slate-200">
                     {s.destino}
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">{s.provincia}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    {s.provincia}
+                  </p>
                 </td>
                 <td className="py-3">
                   <StatusBadge variant={variant}>{label}</StatusBadge>

@@ -25,8 +25,8 @@ const NOTIFICACIONES_MOCK: NotificationItemProps[] = [
 
 export default function NotificationsPanel() {
   return (
-    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
-      <div className="flex items-center justify-between mb-2">
+    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
+      <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
           Notificaciones recientes
         </h2>

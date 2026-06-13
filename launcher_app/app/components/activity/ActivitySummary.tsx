@@ -92,8 +92,8 @@ const STATS_MOCK = [
 
 export default function ActivitySummary() {
   return (
-    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
-      <div className="flex items-center justify-between mb-4">
+    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5">
+      <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
           Resumen de actividad
         </h2>

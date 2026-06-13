@@ -16,8 +16,8 @@ export default function StockCard() {
     porcentaje > 50 ? "success" : porcentaje > 20 ? "warning" : "danger";
 
   return (
-    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
-      <div className="flex items-center justify-between mb-4">
+    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
+      <div className="flex items-center justify-between mb-0.5">
         <div className="flex items-center gap-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -42,21 +42,23 @@ export default function StockCard() {
         </button>
       </div>
 
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
+      <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
         Paracaídas disponibles
       </p>
       <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3">
         {STOCK_MOCK.disponibles}{" "}
-        <span className="text-sm font-normal text-slate-400 dark:text-slate-500">unidades</span>
+        <span className="text-sm font-normal text-slate-400 dark:text-slate-500">
+          unidades
+        </span>
       </p>
 
-      <ProgressBar value={porcentaje} variant={variant} className="mb-3" />
+      <ProgressBar value={porcentaje} variant={variant} className="mb-4.5" />
 
       <p className="text-xs text-slate-400 dark:text-slate-500">
         Última reposición: {STOCK_MOCK.ultimaReposicion}
       </p>
 
-      <button className="mt-4 w-full flex items-center justify-center gap-2 rounded-lg border border-[var(--color-interactive)] text-[var(--color-interactive)] text-sm font-medium py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+      <button className="mt-1 w-full flex items-center justify-center gap-2 rounded-lg border border-[var(--color-interactive)] text-[var(--color-interactive)] text-sm font-medium py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
