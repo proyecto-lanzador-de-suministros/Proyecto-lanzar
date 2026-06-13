@@ -1,5 +1,6 @@
 // app/components/dashboard/ActivitySummary.tsx
 import ActivityStatItem from "@/app/components/activity/ActivityStatItem";
+import DropdownTrigger from "../ui/DropdownTrigger";
 
 const STATS_MOCK = [
   {
@@ -96,9 +97,9 @@ export default function ActivitySummary() {
         <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
           Resumen de actividad
         </h2>
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <DropdownTrigger className="text-xs py-1 px-2">
           Este mes
-        </span>
+        </DropdownTrigger>
       </div>
       <div className="grid grid-cols-2 gap-4">
         {STATS_MOCK.map((stat) => (
