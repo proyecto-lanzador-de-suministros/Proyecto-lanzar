@@ -3,6 +3,7 @@ import AssignedRequestsTable from "@/app/components/requests/AssignedRequestsTab
 import CoverageMap from "@/app/components/map/CoverageMap";
 import ActivitySummary from "@/app/components/activity/ActivitySummary";
 import StockCard from "@/app/components/stock/StockCard";
+import NotificationsPanel from "@/app/components/notifications/NotificationsPanel";
 
 export default function RemitenteDashboardPage() {
   return (
@@ -16,6 +17,7 @@ export default function RemitenteDashboardPage() {
       <div className="flex flex-col gap-6 w-72 shrink-0">
         <StockCard />
         <ActivitySummary />
+        <NotificationsPanel />
       </div>
     </div>
   );
