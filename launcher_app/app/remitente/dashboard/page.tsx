@@ -7,14 +7,14 @@ import NotificationsPanel from "@/app/components/notifications/NotificationsPane
 
 export default function RemitenteDashboardPage() {
   return (
-    <div className="flex gap-3 h-full">
+    <div className="flex gap-3">
       {/* Columna principal */}
-      <div className="flex flex-col gap-3 flex-3/4 min-w-0 overflow-auto">
+      <div className="flex flex-col gap-3 flex-3/4 min-w-0">
         <CoverageMap />
         <AssignedRequestsTable />
       </div>
       {/*Col derecha */}
-      <div className="flex flex-col gap-2 flex-1/4 shrink-0 overflow-auto">
+      <div className="flex flex-col gap-2 w-[28%] shrink-0">
         <StockCard />
         <ActivitySummary />
         <NotificationsPanel />
