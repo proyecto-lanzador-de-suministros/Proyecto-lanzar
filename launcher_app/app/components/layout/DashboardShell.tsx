@@ -8,11 +8,11 @@ export default function DashboardShell({
   children,
 }: DashboardShellProps) {
   return (
-    <div className="flex min-h-screen bg-bg-page">
+    <div className="flex h-screen bg-bg-page overflow-hidden">
       <Sidebar {...sidebar} />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopBar {...topBar} />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 overflow-hidden">{children}</main>
       </div>
     </div>
   );

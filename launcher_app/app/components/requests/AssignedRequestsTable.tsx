@@ -98,7 +98,7 @@ export default function AssignedRequestsTable() {
                   <p className="text-slate-700 dark:text-slate-200">
                     {s.destino}
                   </p>
-                  <p className="text-xs text-slate-400">{s.provincia}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{s.provincia}</p>
                 </td>
                 <td className="py-3">
                   <StatusBadge variant={variant}>{label}</StatusBadge>

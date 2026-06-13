@@ -27,8 +27,8 @@ export default function ProgressBar({
 
   return (
     <div className={className} {...rest}>
-      {label ? <div className="mb-2 text-sm font-medium text-slate-700">{label}</div> : null}
-      <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+      {label ? <div className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">{label}</div> : null}
+      <div className="h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
         <div
           role="progressbar"
           aria-valuenow={clamped}
@@ -38,7 +38,7 @@ export default function ProgressBar({
           style={{ width: `${clamped}%` }}
         />
       </div>
-      <div className="mt-2 text-xs text-slate-500">{clamped}%</div>
+      <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">{clamped}%</div>
     </div>
   );
 }

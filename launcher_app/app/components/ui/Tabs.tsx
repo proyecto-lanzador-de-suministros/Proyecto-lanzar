@@ -19,7 +19,7 @@ export default function Tabs({
   onValueChange,
   className = "",
 }: TabsProps) {
-  const baseClasses = `inline-flex overflow-hidden rounded-full border border-slate-200 bg-white ${className}`.trim();
+  const baseClasses = `inline-flex overflow-hidden rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 ${className}`.trim();
 
   return (
     <div className={baseClasses} role="tablist" aria-label="Tabs">
@@ -28,7 +28,7 @@ export default function Tabs({
         const buttonClasses = `rounded-full px-4 py-2 text-sm font-medium transition ${
           selected
             ? "bg-[var(--color-interactive)] text-white"
-            : "text-slate-700 hover:bg-slate-50"
+            : "text-slate-700 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
         } ${item.disabled ? "cursor-not-allowed opacity-60" : ""}`.trim();
 
         return (

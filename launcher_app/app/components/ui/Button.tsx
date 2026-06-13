@@ -34,7 +34,7 @@ export default function Button({
       ? "bg-[var(--color-brand)] text-white hover:brightness-95 focus-visible:ring-[var(--color-brand)]"
       : variant === "danger"
       ? "bg-[var(--color-danger)] text-white hover:brightness-90 focus-visible:ring-[var(--color-danger)]"
-      : "bg-white border border-gray-200 text-[var(--color-text-primary)] hover:bg-gray-50 focus-visible:ring-gray-300";
+      : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-[var(--color-text-primary)] hover:bg-gray-50 dark:hover:bg-slate-700 focus-visible:ring-gray-300 dark:focus-visible:ring-slate-600";
 
   const sizeClasses =
     size === "sm"

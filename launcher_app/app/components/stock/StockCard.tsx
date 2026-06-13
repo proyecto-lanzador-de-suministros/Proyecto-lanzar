@@ -29,7 +29,7 @@ export default function StockCard() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-slate-400"
+            className="text-slate-400 dark:text-slate-500"
           >
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
           </svg>
@@ -47,7 +47,7 @@ export default function StockCard() {
       </p>
       <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3">
         {STOCK_MOCK.disponibles}{" "}
-        <span className="text-sm font-normal text-slate-400">unidades</span>
+        <span className="text-sm font-normal text-slate-400 dark:text-slate-500">unidades</span>
       </p>
 
       <ProgressBar value={porcentaje} variant={variant} className="mb-3" />
@@ -56,7 +56,7 @@ export default function StockCard() {
         Última reposición: {STOCK_MOCK.ultimaReposicion}
       </p>
 
-      <button className="mt-4 w-full flex items-center justify-center gap-2 rounded-lg border border-[var(--color-interactive)] text-[var(--color-interactive)] text-sm font-medium py-2 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors">
+      <button className="mt-4 w-full flex items-center justify-center gap-2 rounded-lg border border-[var(--color-interactive)] text-[var(--color-interactive)] text-sm font-medium py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
