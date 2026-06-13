@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { TopBarConfig } from "@/app/components/layout/types";
+import { TopBarConfig } from "./types";
 
 export default function TopBar({
   role,
