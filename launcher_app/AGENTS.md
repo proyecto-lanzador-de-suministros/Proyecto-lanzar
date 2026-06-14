@@ -4,61 +4,59 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-## Project overview
+## Project
 
-Package-delivery launcher app (university project). Domain language is **Spanish** — entity names, routes, use cases, and comments use Spanish terms (solicitudes, remitente, solicitante, stock, trayectoria, notificaciones).
+Domain language is **Spanish** — entity names, routes, use cases use Spanish terms (solicitudes, remitente, solicitante, stock, trayectoria, notificaciones). University project: package-delivery launcher app.
 
 ## Architecture: Hexagonal (Ports & Adapters)
 
-Every module under `src/modules/` follows the same structure:
+Each module under `src/modules/`:
 ```
 module/
-  domain/
-    entities/       # Core domain types
-    ports/          # Interfaces the domain depends on (forXxx.port.ts)
-    use-cases/      # Business logic (XxxYyy.usecase.ts)
-  infrastructure/
-    adapters/       # Concrete implementations (PrismaXxxRepository.ts, XxxAdapter.ts)
+  domain/{entities,ports,use-cases}/
+  infrastructure/adapters/
 ```
-
 Modules: `auth`, `solicitudes`, `stock`, `usuarios`, `trayectoria`, `notificaciones`.
 
 - **Composition root**: `src/container.ts` — only file that wires adapters to use cases.
 - **Domain must not import infrastructure.** Ports define the boundary.
-- **Infrastructure adapters** live in `src/infrastructure/` (db, maps, notifications, trajectory, weather) and inside each module's `infrastructure/adapters/`.
+- Shared infra adapters at `src/infrastructure/` (`db/`, `maps/`, `notifications/`, `weather/`).
 
-## Route structure (two `app/` dirs — this matters)
+## Routes
 
-- `app/` (project root) — **the real app**. Contains route groups by role:
-  - `(admin)/` — admin dashboard, user management
-  - `(remitente)/` — sender dashboard, stock, assigned requests
-  - `(solicitante)/` — requester dashboard, create/view requests
-  - `api/` — API route handlers
-- `src/app/` — **leftover from create-next-app boilerplate**. Do not add real routes here.
+- `app/` — real app routes. Plain directories, no route groups: `admin/`, `remitente/`, `solicitante/`, `api/`, `sign-in/`, `sign-up/`.
+- `src/app/` — does **not** exist. Do not create it.
 
-## Commands
+## Commands (from `launcher_app/`)
 
-All from `launcher_app/`:
 ```bash
-npm run dev      # Dev server on :3000
-npm run build    # Production build
-npm run lint     # ESLint (flat config, eslint-config-next)
+npm run dev           # Dev :3000
+npm run build         # prisma generate && next build
+npm run lint          # ESLint flat config
+npm run test          # Vitest
+npx tsc --noEmit      # Typecheck (no npm script)
 ```
-
-No test runner is configured yet. No typecheck script (use `npx tsc --noEmit`).
 
 ## Key tech
 
-- Next.js 16.2.6, React 19, TypeScript 5
-- Tailwind CSS v4 (PostCSS plugin via `@tailwindcss/postcss`)
-- React Compiler enabled (`reactCompiler: true` in `next.config.ts`)
-- Prisma (client singleton at `src/infrastructure/db/prisma.client.ts`, no schema file yet)
-- Path alias: `@/*` → `./src/*`
+- **Next.js 16.2.6** — read `node_modules/next/dist/docs/` before coding. React 19, TS 5, React Compiler on.
+- **Tailwind v4** — PostCSS plugin `@tailwindcss/postcss`, no `tailwind.config`.
+- **Prisma 7** — schema at `prisma/schema.prisma`, client generated to `src/generated/prisma/`. Uses Neon driver adapter (serverless Postgres). Build runs `prisma generate` first.
+- **Path alias** `@/*` → project root (`./*`), **not** `./src/*`. Vitest maps `@/` → `./src` — mismatch exists.
+- **Auth** — Clerk middleware protects all routes except `/sign-in`, `/sign-up`, `/api/auth/login`. Roles (admin/remitente/solicitante) via `sessionClaims.metadata.rol`.
 
 ## Conventions
 
 - Use cases: `VerbNoun.usecase.ts` (e.g., `CrearSolicitud.usecase.ts`)
 - Ports: `forGerund.port.ts` (e.g., `forManagingSolicitudes.port.ts`)
 - Adapters: `PrismaXxxRepository.ts` or `XxxAdapter.ts`
-- Server actions in `src/actions/` are an alternative to API route handlers for client-side CRUD
-- ER diagram and relational schema docs live at repo root (`diagramaER.md`, `EsquemaRelacional_y_Relaciones.md`)
+- Server actions in `src/actions/` complement API route handlers
+- ER docs at repo root: `diagramaER.md`, `EsquemaRelacional_y_Relaciones.md`
+- Component tests: `app/components/ui/tests/` (Vitest)
+
+## Gotchas
+
+- `@/*` resolves differently between Next.js (`./*`) and Vitest (`./src/*`) — test imports may break in-app and vice versa.
+- Build requires `prisma generate` before `next build` (automated in `npm run build`).
+- No typecheck npm script — use `npx tsc --noEmit`.
+- `.env` contains real production Clerk keys — treat with care.

@@ -1,4 +1,4 @@
-// app/remitente/layout.tsx
+// app/remitente/dashboard/layout.tsx
 import DashboardShell from "@/app/components/layout/DashboardShell";
 
 export default function RemitenteLayout({

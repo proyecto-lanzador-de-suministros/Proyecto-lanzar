@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { TopBarConfig } from "@/app/components/layout/types";
+import { TopBarConfig } from "./types";
 
 export default function TopBar({
   role,
@@ -19,15 +19,15 @@ export default function TopBar({
     .toUpperCase();
 
   return (
-    <header className="flex items-center justify-between px-8 py-5 bg-bg-card border-b border-gray-100">
+    <header className="flex items-center justify-between px-8 py-1.5 bg-bg-card border-b border-slate-200 dark:border-slate-700">
       <div>
         <h1 className="text-2xl font-bold text-text-primary">
           ¡Hola, {fullName}!
         </h1>
         <p className="text-sm text-text-secondary mt-0.5">{subtitle}</p>
       </div>
-      <div className="flex items-center gap-4">
-        <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+      <div className="flex items-center gap-1">
+        <button className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
