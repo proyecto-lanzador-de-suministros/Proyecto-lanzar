@@ -4,6 +4,8 @@
 //           CU-10 (Cancelar), CU-11 (Anular)
 // ============================================================
 
+import type { PuntoGeometria } from "@/src/types/geometria";
+
 export enum EstadoSolicitud {
   Creada = "Creada",
   // CU-09 va directo de Creada → Asignada (con stock) o Rechazada (sin stock)
@@ -22,6 +24,7 @@ export enum PrioridadSolicitud {
   Alta = "Alta",
   Media = "Media",
   Baja = "Baja",
+  Urgente = "Urgente",
 }
 
 // Estados desde los que el Solicitante o Admin pueden cancelar (CU-10)
@@ -30,14 +33,14 @@ const ESTADOS_CANCELABLES = new Set([
   EstadoSolicitud.Asignada,
 ]);
 
-// Estados desde los que Admin o Remitente pueden anular (CU-11)
+// Estados desde los que NO se puede anular (CU-11)
 const ESTADOS_NO_ANULABLES = new Set([
   EstadoSolicitud.Completada,
   EstadoSolicitud.Cancelada,
   EstadoSolicitud.Anulada,
 ]);
 
-// Transiciones válidas del ciclo de vida normal
+// Transiciones válidas del ciclo de vida
 const TRANSICIONES_VALIDAS: Partial<Record<EstadoSolicitud, EstadoSolicitud[]>> = {
   [EstadoSolicitud.Creada]: [
     EstadoSolicitud.Asignada,   // CU-09: stock suficiente
@@ -73,17 +76,18 @@ export interface ProductoSolicitado {
 }
 
 export interface SolicitudProps {
-  id: string;
-  solicitanteId: string;
-  latDestino: number;
-  lonDestino: number;
+  id_solicitud: string;
+  id_usuario: string;
+  id_base?: string;
+  ubicacion_destino: PuntoGeometria;
   prioridad: PrioridadSolicitud;
   productos: ProductoSolicitado[];
   estado: EstadoSolicitud;
-  remitenteId?: string;
+  fecha_solicitada: Date;
+  fecha_estimada?: Date;
+  fecha_entrega?: Date;
   motivoCancelacion?: string;
   motivoAnulacion?: string;
-  fechaCreacion: Date;
   fechaActualizacion: Date;
 }
 
@@ -92,12 +96,12 @@ export class Solicitud {
 
   // ── Factory: crea una solicitud nueva en estado Creada ──────────────────
   static crear(params: {
-    id: string;
-    solicitanteId: string;
-    latDestino: number;
-    lonDestino: number;
+    id_solicitud: string;
+    id_usuario: string;
+    ubicacion_destino: PuntoGeometria;
     prioridad: PrioridadSolicitud;
     productos: ProductoSolicitado[];
+    fecha_estimada?: Date;
   }): Solicitud {
     if (params.productos.length === 0) {
       throw new Error("La solicitud debe incluir al menos un producto.");
@@ -115,35 +119,36 @@ export class Solicitud {
     return new Solicitud({
       ...params,
       estado: EstadoSolicitud.Creada,
-      fechaCreacion: ahora,
+      fecha_solicitada: ahora,
       fechaActualizacion: ahora,
     });
   }
 
-  // ── Factory: reconstruye una solicitud desde persistencia ───────────────
+  // ── Factory: reconstruye desde persistencia ─────────────────────────────
   static reconstruir(props: SolicitudProps): Solicitud {
     return new Solicitud(props);
   }
 
   // ── Getters ─────────────────────────────────────────────────────────────
-  get id() { return this.props.id; }
-  get solicitanteId() { return this.props.solicitanteId; }
-  get latDestino() { return this.props.latDestino; }
-  get lonDestino() { return this.props.lonDestino; }
+  get id_solicitud() { return this.props.id_solicitud; }
+  get id_usuario() { return this.props.id_usuario; }
+  get id_base() { return this.props.id_base; }
+  get ubicacion_destino() { return this.props.ubicacion_destino; }
   get prioridad() { return this.props.prioridad; }
   get productos() { return this.props.productos; }
   get estado() { return this.props.estado; }
-  get remitenteId() { return this.props.remitenteId; }
+  get fecha_solicitada() { return this.props.fecha_solicitada; }
+  get fecha_estimada() { return this.props.fecha_estimada; }
+  get fecha_entrega() { return this.props.fecha_entrega; }
   get motivoCancelacion() { return this.props.motivoCancelacion; }
   get motivoAnulacion() { return this.props.motivoAnulacion; }
-  get fechaCreacion() { return this.props.fechaCreacion; }
   get fechaActualizacion() { return this.props.fechaActualizacion; }
 
   // ── Métodos de negocio ──────────────────────────────────────────────────
 
-  /** CU-09: stock OK → asigna remitente directamente (Creada → Asignada) */
-  asignar(remitenteId: string): void {
-    this.props.remitenteId = remitenteId;
+  /** CU-09: stock OK → asigna base directamente (Creada → Asignada) */
+  asignar(id_base: string): void {
+    this.props.id_base = id_base;
     this.transicionarA(EstadoSolicitud.Asignada);
   }
 
@@ -152,7 +157,7 @@ export class Solicitud {
     this.transicionarA(EstadoSolicitud.Rechazada);
   }
 
-  /** CU-10: el solicitante o admin cancela en estados tempranos */
+  /** CU-10: solicitante o admin cancela en estados tempranos */
   cancelar(motivo?: string): void {
     if (!ESTADOS_CANCELABLES.has(this.props.estado)) {
       throw new Error(
@@ -163,7 +168,7 @@ export class Solicitud {
     this.transicionarA(EstadoSolicitud.Cancelada);
   }
 
-  /** CU-11: admin o remitente anula en estados avanzados */
+  /** CU-11: admin o remitente anula (requiere motivo para auditoría) */
   anular(motivo: string): void {
     if (ESTADOS_NO_ANULABLES.has(this.props.estado)) {
       throw new Error(
@@ -174,9 +179,15 @@ export class Solicitud {
     this.transicionarA(EstadoSolicitud.Anulada);
   }
 
-  /** Avanza al siguiente estado del ciclo normal (En preparación → Lista → etc.) */
+  /** Avanza el estado en el ciclo normal (EnPreparacion → Lista → etc.) */
   avanzarEstado(nuevoEstado: EstadoSolicitud): void {
     this.transicionarA(nuevoEstado);
+  }
+
+  /** Registra la fecha real de entrega al completarse */
+  confirmarEntrega(): void {
+    this.transicionarA(EstadoSolicitud.Completada);
+    this.props.fecha_entrega = new Date();
   }
 
   // ── Helpers de consulta ─────────────────────────────────────────────────
@@ -190,12 +201,12 @@ export class Solicitud {
   }
 
   estaFinalizada(): boolean {
-    return (
-      this.props.estado === EstadoSolicitud.Completada ||
-      this.props.estado === EstadoSolicitud.Cancelada ||
-      this.props.estado === EstadoSolicitud.Anulada ||
-      this.props.estado === EstadoSolicitud.Rechazada
-    );
+    return [
+      EstadoSolicitud.Completada,
+      EstadoSolicitud.Cancelada,
+      EstadoSolicitud.Anulada,
+      EstadoSolicitud.Rechazada,
+    ].includes(this.props.estado);
   }
 
   // ── Validación de transición ────────────────────────────────────────────
