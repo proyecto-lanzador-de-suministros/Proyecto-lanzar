@@ -1,22 +1,50 @@
-// Caso de uso. Orquesta la creación de una solicitud: valida stock, calcula trayectoria y dispara notificaciones.
+// ============================================================
+// Caso de uso: Crear Solicitud (CU-08)
+// Orquesta la creación de una solicitud y delega el control de stock a ControlarSolicitud (CU-09).
+// ============================================================
+
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
-import { Solicitud } from "../entities/Solicitud";
+import { Solicitud, PrioridadSolicitud, ProductoSolicitado } from "../entities/Solicitud";
+import type { PuntoGeometria } from "@/src/types/geometria";
+import { ControlarSolicitud } from "./ControlarSolicitud.usecase";
+
+export interface CrearSolicitudInput {
+  id_usuario: string;
+  ubicacion_destino: PuntoGeometria;
+  prioridad: PrioridadSolicitud;
+  productos: ProductoSolicitado[];
+  fecha_estimada?: Date;
+}
+
+export interface CrearSolicitudOutput {
+  solicitud: Solicitud;
+  asignada: boolean;       // true si hubo stock, false si fue rechazada
+  stockFaltante?: string[]; // IDs de productos sin stock suficiente
+}
 
 export class CrearSolicitud {
-  constructor(private readonly repo: ForManagingSolicitudes) {}
+  constructor(
+    private readonly repo: ForManagingSolicitudes,
+    private readonly controlarSolicitud: ControlarSolicitud,
+  ) {}
 
-  async ejecutar(
-    datos: Omit<Solicitud, "id_solicitud" | "estado" | "fecha_solicitada" | "fecha_estimada">,
-  ): Promise<Solicitud> {
-    const solicitud: Solicitud = {
-      ...datos,
+  async ejecutar(input: CrearSolicitudInput): Promise<CrearSolicitudOutput> {
+    // 1. Crear la entidad en estado "Creada" — acá se validan productos y cantidades
+    const solicitud = Solicitud.crear({
       id_solicitud: crypto.randomUUID(),
-      estado: "creada",
-      fecha_solicitada: new Date(),
-      fecha_estimada: datos.fecha_entrega,
-    };
+      id_usuario: input.id_usuario,
+      ubicacion_destino: input.ubicacion_destino,
+      prioridad: input.prioridad,
+      productos: input.productos,
+      fecha_estimada: input.fecha_estimada,
+    });
 
+    // 2. Persistir en estado "creada"
     await this.repo.guardar(solicitud);
-    return solicitud;
+
+    // 3. Delegar control de stock y asignación a CU-09
+    const resultado = await this.controlarSolicitud.ejecutar(solicitud);
+
+    return resultado;
   }
 }
