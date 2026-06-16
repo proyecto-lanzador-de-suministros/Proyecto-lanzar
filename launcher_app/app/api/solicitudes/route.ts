@@ -1,16 +1,26 @@
-// Route handler de Next.js. Actúa como driver adapter HTTP para POST /api/solicitudes, delega al caso de uso CrearSolicitud.
-import { crearSolicitud } from "@/src/container";
+import { NextResponse } from "next/server";
+import { solicitudRepository } from "@/src/container";
 
-export async function POST(req: Request) {
-  const body = await req.json();
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const { nuevoEstado } = body;
 
-  const solicitud = await crearSolicitud.ejecutar({
-    id_base: body.id_base,
-    id_usuario: body.id_usuario,
-    prioridad: body.prioridad,
-    ubicacion_destino: body.ubicacion_destino,
-    fecha_entrega: new Date(body.fecha_entrega),
-  });
+    if (!nuevoEstado) return NextResponse.json({ error: "nuevoEstado es requerido" }, { status: 400 });
 
-  return Response.json(solicitud, { status: 201 });
+    // Usamos las funciones nativas del puerto de tu equipo
+    const solicitud = await solicitudRepository.buscarPorId(id);
+    if (!solicitud) return NextResponse.json({ error: "Solicitud no encontrada" }, { status: 404 });
+    
+    solicitud.avanzarEstado(nuevoEstado); // Regla de negocio estricta del dominio
+    await solicitudRepository.guardar(solicitud);
+
+    return NextResponse.json({ id: solicitud.id, estado: solicitud.estado });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
