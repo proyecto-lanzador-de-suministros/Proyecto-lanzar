@@ -117,6 +117,8 @@ model Solicitud {
   id_solicitante   String
   id_admin         String? // Nullable porque se asigna al aprobar (CU-09)
   id_remitente     String? // Nullable porque se asigna al aprobar (CU-09)
+  motivo_cancelacion String?
+  motivo_anulacion   String? 
 
   solicitante Solicitante    @relation(fields: [id_solicitante], references: [id_solicitante])
   admin       Administrador? @relation(fields: [id_admin], references: [id_admin])
