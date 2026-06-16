@@ -1,6 +1,6 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import type {
   Solicitud,
   EstadoSolicitud,
@@ -513,6 +513,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* ── FILA MEDIA ───────────────────────────────────────────────────── */}
+        {/* Grilla principal */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Gráfico dona */}

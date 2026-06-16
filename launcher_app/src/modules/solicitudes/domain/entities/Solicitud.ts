@@ -1,27 +1,24 @@
-import type { PuntoGeometria } from "@/src/types/geometria";
-
-export type Prioridad = "baja" | "media" | "alta" | "urgente";
-
 export type EstadoSolicitud =
   | "creada"
-  | "cancelada"
-  | "rechazada"
   | "asignada"
   | "en_preparacion"
-  | "anulada"
   | "lista"
   | "en_camino"
   | "lanzada"
-  | "completada";
+  | "completada"
+  | "rechazada"
+  | "cancelada"
+  | "anulada";
 
 export interface Solicitud {
   id_solicitud: string;
-  id_base: string;
-  id_usuario: string; //es remitente o solicitante?
   fecha_solicitada: Date;
-  estado: EstadoSolicitud;
-  prioridad: Prioridad;
-  ubicacion_destino: PuntoGeometria;
   fecha_entrega: Date;
-  fecha_estimada: Date;
+  estado: EstadoSolicitud;
+  prioridad: "baja" | "media" | "alta" | "urgente";
+  ubicacion_destino: {
+    coordinates: [number, number]; // [longitud, latitud]
+  };
+  id_solicitante: string;
+  id_remitente?: string | null;
 }

@@ -6,21 +6,189 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../src/generated/prisma"
-  previewFeatures = ["driverAdapters"]
+  previewFeatures = ["driverAdapters", "postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [postgis]
 }
 
+// ─── USUARIOS Y ROLES (Herencia implementada con relaciones 1:1) ─────────────
+
+model Usuario {
+  id_usuario    String   @id // Coincide con el ID generado por Clerk
+  email         String   @unique
+  fechaRegistro DateTime @default(now())
+
+  solicitante   Solicitante?
+  administrador Administrador?
+  remitente     Remitente?
+  historiales   Historial_Estado[]
+  notificaciones Notificacion[]
+}
+
+model Solicitante {
+  id_solicitante String @id
+  nombre         String
+  contacto       String?
+  
+  usuario        Usuario     @relation(fields: [id_solicitante], references: [id_usuario], onDelete: Cascade)
+  solicitudes    Solicitud[]
+}
+
+model Administrador {
+  id_admin              String @id
+  nombre                String
+  permisos_rol          String?
+  
+  usuario               Usuario     @relation(fields: [id_admin], references: [id_usuario], onDelete: Cascade)
+  solicitudes_aprobadas Solicitud[]
+}
+
+model Remitente {
+  id_remitente    String  @id
+  nombre_base     String
+  latitud_base    Float?
+  longitud_base   Float?
+  ubicacion_gis   Unsupported("geometry(Point, 4326)")? // PostGIS nativo
+  capacidad_pista String?
+
+  usuario         Usuario       @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
+  stock           Stock_Base[]
+  solicitudes     Solicitud[]
+  vuelos          Vuelo[]
+  lanzamientos    Lanzamiento[]
+}
+
+// ─── INVENTARIO Y CATÁLOGO ───────────────────────────────────────────────────
+
+model Tipo {
+  id_tipo          String     @id @default(uuid())
+  nombre_categoria String
+  peso_prioridad   Int
+  
+  productos        Producto[]
+}
+
+model Producto {
+  id_producto   String  @id @default(uuid())
+  nombre        String
+  descripcion   String?
+  peso_unitario Float
+  id_tipo       String
+  
+  tipo          Tipo                @relation(fields: [id_tipo], references: [id_tipo])
+  stock_bases   Stock_Base[]
+  detalles      Detalle_Solicitud[]
+}
+
+model Stock_Base {
+  id_stock            String @id @default(uuid())
+  id_remitente        String
+  id_producto         String
+  cantidad_disponible Int    @default(0)
+
+  remitente Remitente @relation(fields: [id_remitente], references: [id_remitente])
+  producto  Producto  @relation(fields: [id_producto], references: [id_producto])
+
+  @@unique([id_remitente, id_producto]) // Evita que una base tenga dos registros del mismo producto
+}
+
+// ─── SOLICITUDES Y TRAZABILIDAD ──────────────────────────────────────────────
+
 model Solicitud {
-  id               String   @id @default(uuid())
-  baseId           String
-  usuarioId        String
-  fechaSolicitada  DateTime
-  estado           String   @default("creada")
+  id_solicitud     String   @id @default(uuid())
+  fecha_creacion   DateTime @default(now())
+  estado_actual    String   @default("creada")
   prioridad        String   @default("media")
-  ubicacionDestino Json
-  fechaEntrega     DateTime
-  fechaEstimada    DateTime
+  latitud_destino  Float
+  longitud_destino Float
+  ubicacion_gis    Unsupported("geometry(Point, 4326)")? // PostGIS nativo
+
+  id_solicitante   String
+  id_admin         String?
+  id_remitente     String?
+
+  solicitante        Solicitante         @relation(fields: [id_solicitante], references: [id_solicitante])
+  admin_aprobador    Administrador?      @relation(fields: [id_admin], references: [id_admin])
+  remitente_asignado Remitente?          @relation(fields: [id_remitente], references: [id_remitente])
+
+  detalles           Detalle_Solicitud[]
+  historial_estados  Historial_Estado[]
+  notificaciones     Notificacion[]
+  lanzamientos       Lanzamiento[]
+}
+
+model Detalle_Solicitud {
+  id_detalle      String @id @default(uuid())
+  id_solicitud    String
+  id_producto     String
+  cantidad_pedida Int
+
+  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  producto  Producto  @relation(fields: [id_producto], references: [id_producto])
+}
+
+model Historial_Estado {
+  id_historial    String   @id @default(uuid())
+  fecha_hora      DateTime @default(now())
+  estado_anterior String?
+  estado_nuevo    String
+  id_solicitud    String
+  id_usuario      String
+
+  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  usuario   Usuario   @relation(fields: [id_usuario], references: [id_usuario])
+}
+
+model Notificacion {
+  id_notificacion    String   @id @default(uuid())
+  mensaje            String
+  fecha_hora         DateTime @default(now())
+  id_solicitud       String
+  id_usuario_destino String
+
+  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  usuario   Usuario   @relation(fields: [id_usuario_destino], references: [id_usuario])
+}
+
+// ─── LOGÍSTICA Y LANZAMIENTOS (VUELOS) ───────────────────────────────────────
+
+model Vuelo {
+  id_vuelo             String @id @default(uuid())
+  matricula_avion      String
+  piloto               String
+  combustible_estimado Float
+  id_remitente         String
+
+  remitente    Remitente     @relation(fields: [id_remitente], references: [id_remitente])
+  lanzamientos Lanzamiento[]
+}
+
+model Lanzamiento {
+  id_lanzamiento     String @id @default(uuid())
+  latitud_calculada  Float
+  longitud_calculada Float
+  punto_carp_gis     Unsupported("geometry(Point, 4326)")?
+  altitud            Float
+  datos_clima_api    Json
+  id_vuelo           String
+  id_solicitud       String
+  id_remitente       String
+
+  vuelo        Vuelo        @relation(fields: [id_vuelo], references: [id_vuelo])
+  solicitud    Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
+  remitente    Remitente    @relation(fields: [id_remitente], references: [id_remitente])
+  contenedores Contenedor[]
+}
+
+model Contenedor {
+  id_contenedor   String @id @default(uuid())
+  tipo_paracaidas String
+  peso_maximo     Float
+  estado_mecanico String
+  id_lanzamiento  String
+
+  lanzamiento Lanzamiento @relation(fields: [id_lanzamiento], references: [id_lanzamiento])
 }

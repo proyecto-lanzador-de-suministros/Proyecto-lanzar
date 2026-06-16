@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
+import Logo from "@/app/components/ui/Logo";
 
 // Paleta del mockup: sidebar navy #1B2A4A, acento amber #F5A623, nav activo #1565C0
 
@@ -112,15 +113,10 @@ export default function AdminLayout({
         {/* Logo */}
         <div className="px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            {/* Icono avión simplificado */}
-            <div className="w-8 h-8 bg-[#F5A623] rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            </div>
+            <Logo className="w-10 h-10 flex-shrink-0" />
             <div>
               <span className="text-white font-bold text-base leading-none">
-                Aero<span className="text-[#F5A623]">Envíos</span>
+                Launcher<span className="text-[#F5A623]">App</span>
               </span>
             </div>
           </div>

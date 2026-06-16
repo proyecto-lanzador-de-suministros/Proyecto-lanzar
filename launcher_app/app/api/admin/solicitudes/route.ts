@@ -1,25 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { listarSolicitudesAdmin } from "../../../../src/container";
-import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { listarSolicitudesAdmin } from "@/src/container";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    // Agregamos await aquí:
-    const { sessionClaims } = await auth();
-
-    // Seguridad: Valida el rol de admin en el token de Clerk
-    if (sessionClaims?.metadata?.rol !== 'admin') {
-      return NextResponse.json({ error: "Acceso denegado. Rol de administrador requerido." }, { status: 403 });
-    }
-
-    const searchParams = req.nextUrl.searchParams;
-    const estado = searchParams.get("estado") || undefined;
-
-    const solicitudes = await listarSolicitudesAdmin.ejecutar(estado);
-
-    return NextResponse.json(solicitudes, { status: 200 });
-  } catch (error) {
-    console.error("Error al obtener solicitudes:", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+    // Usamos el caso de uso que tu equipo ya dejó inyectado
+    const solicitudes = await listarSolicitudesAdmin.ejecutar();
+    return NextResponse.json(solicitudes);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
