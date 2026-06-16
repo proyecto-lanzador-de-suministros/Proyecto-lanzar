@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { aprobarCuentaUseCase, eliminarCuentaUseCase, listarUsuariosUseCase } from "../container";
+import { EliminarConSolicitudesActivasError } from "../modules/usuarios/domain/use-cases/EliminarCuenta.usecase";
 
 export async function aprobarCuentaAction(usuarioId: string) {
   try {
     await aprobarCuentaUseCase.ejecutar(usuarioId);
-    revalidatePath("/admin/usuarios"); // Refresca la vista en el frontend
+    revalidatePath("/admin/usuarios");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -25,12 +26,31 @@ export async function obtenerRemitentesAprobadosAction() {
   }
 }
 
-export async function eliminarCuentaAction(usuarioId: string) {
+/**
+ * Elimina una cuenta de usuario (CU-05).
+ *
+ * Devuelve `requiresConfirmation: true` si el usuario tiene solicitudes activas,
+ * para que el frontend pueda mostrar la confirmación adicional requerida por CU-05.
+ * En ese caso, llamar de nuevo con `forzarConActivas=true`.
+ */
+export async function eliminarCuentaAction(
+  usuarioId: string,
+  forzarConActivas = false,
+) {
   try {
-    await eliminarCuentaUseCase.ejecutar(usuarioId);
+    await eliminarCuentaUseCase.ejecutar(usuarioId, forzarConActivas);
     revalidatePath("/admin/usuarios");
     return { success: true };
   } catch (error: any) {
+    if (error instanceof EliminarConSolicitudesActivasError) {
+      // El frontend debe mostrar un diálogo de confirmación adicional
+      return {
+        success: false,
+        requiresConfirmation: true,
+        cantidadActivas: error.cantidadActivas,
+        error: error.message,
+      };
+    }
     return { success: false, error: error.message };
   }
 }

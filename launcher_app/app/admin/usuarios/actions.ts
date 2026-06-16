@@ -2,46 +2,51 @@
 
 import { clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-
-// Importamos la instancia que ya tiene configurado el adaptador Neon
 import { prisma } from "@/src/infrastructure/db/prisma.client";
+import { aprobarCuentaUseCase } from "@/src/container";
 
+/**
+ * Aprueba una cuenta de usuario (CU-02).
+ *
+ * Esta action maneja únicamente lo que no puede hacer el caso de uso del dominio:
+ * crear el perfil específico por rol en Postgres (Remitente, Solicitante, Administrador),
+ * que requiere datos de Clerk (nombre, email) que el dominio no conoce.
+ *
+ * La actualización de estado en Postgres y la sincronización con Clerk
+ * la delega al caso de uso AprobarCuentaUseCase.
+ */
 export async function aprobarUsuario(userId: string, rol: string) {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Usuario sin nombre";
+  const email = user.emailAddresses[0]?.emailAddress || "sin-email";
 
-  // 1. Sincronizar con PostgreSQL (usamos una transacción para consistencia estricta RNF16)
+  // 1. Crear el registro base del usuario y el perfil por rol en Postgres
+  //    (esto es infraestructura específica de Clerk que el dominio no puede hacer)
   await prisma.$transaction(async (tx) => {
-    // Upsert: Insertamos el usuario (o lo actualizamos si por alguna razón ya existía)
     await tx.usuario.upsert({
       where: { id_usuario: userId },
-      update: { email: user.emailAddresses[0]?.emailAddress || "sin-email" },
-      create: {
-        id_usuario: userId,
-        email: user.emailAddresses[0]?.emailAddress || "sin-email",
-      },
+      update: {},
+      create: { id_usuario: userId, email },
     });
 
-    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Usuario sin nombre";
-
-    // Insertamos en la tabla Remitente según tu Diagrama ER
     if (rol === "remitente") {
       await tx.remitente.upsert({
         where: { id_remitente: userId },
-        update: {}, // Si ya existe, no sobreescribimos su capacidad_pista o coordenadas
+        update: {},
         create: {
           id_remitente: userId,
           nombre_base: `Base Logística ${fullName}`,
+          latitud_base: 0,
+          longitud_base: 0,
+          capacidad_pista: "pendiente",
         },
       });
     } else if (rol === "solicitante") {
       await tx.solicitante.upsert({
         where: { id_solicitante: userId },
         update: {},
-        create: {
-          id_solicitante: userId,
-          nombre: fullName,
-        },
+        create: { id_solicitante: userId, nombre: fullName, contacto: email },
       });
     } else if (rol === "administrador" || rol === "admin") {
       await tx.administrador.upsert({
@@ -50,19 +55,15 @@ export async function aprobarUsuario(userId: string, rol: string) {
         create: {
           id_admin: userId,
           nombre: fullName,
+          usuario: email,
+          permisos_rol: "admin",
         },
       });
     }
   });
 
-  // 2. Actualizar el metadato en Clerk para que la sesión del usuario lo reconozca como habilitado
-  await client.users.updateUserMetadata(userId, {
-    publicMetadata: {
-      ...user.publicMetadata,
-      status: "aprobada",
-    },
-  });
+  // 2. Aprobar en dominio + sincronizar con Clerk (delegado al caso de uso)
+  await aprobarCuentaUseCase.ejecutar(userId);
 
-  // 3. Refrescar automáticamente la interfaz del administrador
   revalidatePath("/admin/usuarios");
 }
