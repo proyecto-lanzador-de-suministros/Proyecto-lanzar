@@ -16,10 +16,10 @@ export async function PATCH(
     const solicitud = await solicitudesRepo.buscarPorId(id);
     if (!solicitud) return NextResponse.json({ error: "Solicitud no encontrada" }, { status: 404 });
     
-    solicitud.estado = nuevoEstado;
+    solicitud.avanzarEstado(nuevoEstado); // Regla de negocio estricta del dominio
     await solicitudesRepo.guardar(solicitud);
 
-    return NextResponse.json(solicitud);
+    return NextResponse.json({ id: solicitud.id, estado: solicitud.estado });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

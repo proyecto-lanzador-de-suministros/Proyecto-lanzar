@@ -6,15 +6,20 @@ export class MockSolicitudesRepository implements ForManagingSolicitudes {
   private solicitudes: Solicitud[] = [];
 
   async guardar(solicitud: Solicitud): Promise<void> {
-    this.solicitudes.push(solicitud);
+    const index = this.solicitudes.findIndex((s) => s.id === solicitud.id);
+    if (index >= 0) {
+      this.solicitudes[index] = solicitud;
+    } else {
+      this.solicitudes.push(solicitud);
+    }
   }
 
   async buscarPorId(id: string): Promise<Solicitud | null> {
-    return this.solicitudes.find((s) => s.id_solicitud === id) ?? null;
+    return this.solicitudes.find((s) => s.id === id) ?? null;
   }
 
   async listarPorSolicitante(userId: string): Promise<Solicitud[]> {
-    return this.solicitudes.filter((s) => s.id_solicitante === userId);
+    return this.solicitudes.filter((s) => s.solicitanteId === userId);
   }
 
   async listarTodas(estadoFiltro?: string): Promise<Solicitud[]> {
