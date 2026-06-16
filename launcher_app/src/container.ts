@@ -1,4 +1,5 @@
 import { ClerkAuthAdapter } from "./modules/auth/infrastructure/adapters/ClerkAuthAdapter";
+import { ClerkSyncAdapter } from "./modules/auth/infrastructure/adapters/ClerkSyncAdapter";
 import { IniciarSesion } from "./modules/auth/domain/use-cases/IniciarSesion.usecase";
 import { CerrarSesion } from "./modules/auth/domain/use-cases/CerrarSesion.usecase";
 import { CrearSolicitud } from "./modules/solicitudes/domain/use-cases/CrearSolicitud.usecase";
@@ -11,24 +12,55 @@ import { PrismaSolicitudesRepository } from "./modules/solicitudes/infrastructur
 import { AnularSolicitudUseCase } from "./modules/solicitudes/domain/use-cases/AnularSolicitud.usecase";
 import { AsignarRemitenteUseCase } from "./modules/solicitudes/domain/use-cases/AsignarRemitente.usecase";
 import { ConsultarSolicitudUseCase } from "./modules/solicitudes/domain/use-cases/ConsultarSolicitud.usecase";
+import { PrismaHistorialRepository } from "./modules/historial/infrastructure/adapters/PrismaHistorialRepository";
+import { NotificationServiceAdapter } from "./modules/notificaciones/infrastructure/adapters/NotificationServiceAdapter";
 
-// Adaptadores y Casos de uso de Auth (Compartido / Otros roles)
-export const authRepository = new ClerkAuthAdapter();
-export const iniciarSesionUseCase = new IniciarSesion(authRepository);
-export const cerrarSesionUseCase = new CerrarSesion(authRepository);
+// ── Infraestructura compartida ──────────────────────────────────────────────
 
+export const authAdapter = new ClerkAuthAdapter();
+export const clerkSyncAdapter = new ClerkSyncAdapter();
+
+export const solicitudRepository = new PrismaSolicitudesRepository();
 export const usuarioRepository = new PrismaUsuarioRepository();
+export const historialRepository = new PrismaHistorialRepository();
 
-// Casos de uso de Usuarios
-export const aprobarCuentaUseCase = new AprobarCuentaUseCase(usuarioRepository);
-export const eliminarCuentaUseCase = new EliminarCuentaUseCase(usuarioRepository);
+// TODO: Reemplazar por la implementación real cuando NotificationServiceAdapter esté completo.
+const notificationAdapter = new NotificationServiceAdapter();
+
+// ── Auth ────────────────────────────────────────────────────────────────────
+
+export const iniciarSesionUseCase = new IniciarSesion(authAdapter);
+export const cerrarSesionUseCase = new CerrarSesion(authAdapter);
+
+// ── Usuarios ────────────────────────────────────────────────────────────────
+
+export const aprobarCuentaUseCase = new AprobarCuentaUseCase(
+  usuarioRepository,
+  clerkSyncAdapter, // Sincroniza Postgres + Clerk en una sola operación desde el dominio
+);
+
+export const eliminarCuentaUseCase = new EliminarCuentaUseCase(
+  usuarioRepository,
+  solicitudRepository, // Para verificar solicitudes activas (CU-05)
+);
+
 export const listarUsuariosUseCase = new ListarUsuariosUseCase(usuarioRepository);
 
-// Repositorios de Solicitudes
-export const solicitudRepository = new PrismaSolicitudesRepository();
+// ── Solicitudes ─────────────────────────────────────────────────────────────
 
 export const crearSolicitudUseCase = new CrearSolicitud(solicitudRepository);
 export const listarSolicitudesAdminUseCase = new ListarSolicitudesAdminUseCase(solicitudRepository);
-export const anularSolicitudUseCase = new AnularSolicitudUseCase(solicitudRepository);
-export const asignarRemitenteUseCase = new AsignarRemitenteUseCase(solicitudRepository);
 export const consultarSolicitudUseCase = new ConsultarSolicitudUseCase(solicitudRepository);
+
+export const anularSolicitudUseCase = new AnularSolicitudUseCase(
+  solicitudRepository,
+  notificationAdapter,
+  historialRepository,
+);
+
+export const asignarRemitenteUseCase = new AsignarRemitenteUseCase(
+  solicitudRepository,
+  usuarioRepository,
+  notificationAdapter,
+  historialRepository,
+);
