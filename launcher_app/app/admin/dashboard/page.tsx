@@ -5,12 +5,13 @@ import type {
   Solicitud,
   EstadoSolicitud,
 } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import { anularSolicitudAction, asignarRemitenteAction } from "@/src/actions/solicitudes.actions";
+import { obtenerRemitentesAprobadosAction } from "@/src/actions/usuarios.actions";
 
 // ─── Paleta del mockup ────────────────────────────────────────────────────────
 // Navy #1B2A4A | Amber #F5A623 | Blue #1565C0 | Gray light #F4F6F9
 // Info #2196F3 | Success #4CAF50 | Warning #FF9800 | Danger #F44336
 // Text primary #1A1A2E | Text secondary #6B7280
-
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const ETIQUETAS_ESTADO: Record<EstadoSolicitud, string> = {
@@ -168,6 +169,8 @@ function GraficaDona({ solicitudes }: { solicitudes: Solicitud[] }) {
         ))}
       </div>
     </div>
+      </div>
+    </div>
   );
 }
 
@@ -298,6 +301,8 @@ export default function AdminDashboard() {
   const [nuevoEstado, setNuevoEstado] = useState<EstadoSolicitud | "">("");
   const [guardando, setGuardando] = useState(false);
   const [errorModal, setErrorModal] = useState<string | null>(null);
+  const [remitentesAprobados, setRemitentesAprobados] = useState<{id: string, nombre: string}[]>([]);
+  const [remitenteSeleccionado, setRemitenteSeleccionado] = useState("");
 
   const fetchSolicitudes = async () => {
     setLoading(true);
@@ -316,7 +321,12 @@ export default function AdminDashboard() {
     }
   };
 
-  useEffect(() => { fetchSolicitudes(); }, []);
+  useEffect(() => {
+    fetchSolicitudes();
+    obtenerRemitentesAprobadosAction().then(res => {
+      if(res.success && res.data) setRemitentesAprobados(res.data);
+    });
+  }, []);
 
   // Stats derivadas
   const total = solicitudes.length;
@@ -336,11 +346,43 @@ export default function AdminDashboard() {
     setModalSolicitud(sol);
     setNuevoEstado("");
     setErrorModal(null);
+    setRemitenteSeleccionado("");
   };
   const cerrarModal = () => {
     setModalSolicitud(null);
     setNuevoEstado("");
     setErrorModal(null);
+  };
+
+  const handleAsignarRemitente = async () => {
+    if (!modalSolicitud || !remitenteSeleccionado) return;
+    setGuardando(true);
+    const formData = new FormData();
+    formData.append("remitenteId", remitenteSeleccionado);
+    const res = await asignarRemitenteAction(modalSolicitud.id_solicitud, formData);
+    if (res.success) {
+      fetchSolicitudes();
+      cerrarModal();
+    } else {
+      setErrorModal(res.error || "Error al asignar");
+    }
+    setGuardando(false);
+  };
+
+  const handleAnular = async () => {
+    if (!modalSolicitud) return;
+    if (!confirm("¿Estás seguro de que deseas anular esta solicitud?")) return;
+    setGuardando(true);
+    const formData = new FormData();
+    formData.append("motivo", "Anulada por administrador");
+    const res = await anularSolicitudAction(modalSolicitud.id_solicitud, formData);
+    if (res.success) {
+      fetchSolicitudes();
+      cerrarModal();
+    } else {
+      setErrorModal(res.error || "Error al anular");
+    }
+    setGuardando(false);
   };
 
   const guardarCambioEstado = async () => {
@@ -777,6 +819,33 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+        {(!(modalSolicitud as any).id_remitente && (modalSolicitud.estado === "creada" || modalSolicitud.estado === "aprobada")) && (
+          <div className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
+            <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
+              Asignar a base remitente:
+            </label>
+            <div className="flex gap-2">
+              <select
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0] bg-white"
+                value={remitenteSeleccionado}
+                onChange={(e) => setRemitenteSeleccionado(e.target.value)}
+              >
+                <option value="">Seleccionar base...</option>
+                {remitentesAprobados.map(r => (
+                  <option key={r.id} value={r.id}>{r.nombre}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleAsignarRemitente}
+                disabled={!remitenteSeleccionado || guardando}
+                className="px-4 py-2 bg-[#1565C0] text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+              >
+                Asignar
+              </button>
+            </div>
+          </div>
+        )}
+
             <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
               Cambiar estado a:
             </label>
@@ -811,6 +880,16 @@ export default function AdminDashboard() {
               >
                 {guardando ? "Guardando..." : "Confirmar cambio"}
               </button>
+          
+          {modalSolicitud.estado !== "completada" && modalSolicitud.estado !== "anulada" && modalSolicitud.estado !== "cancelada" && (
+            <button
+              onClick={handleAnular}
+              disabled={guardando}
+              className="px-4 py-2.5 rounded-lg border border-red-200 text-red-600 bg-red-50 text-sm font-semibold hover:bg-red-600 hover:text-white transition disabled:opacity-50"
+            >
+              Anular Solicitud
+            </button>
+          )}
             </div>
           </div>
         </div>
