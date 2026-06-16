@@ -1,74 +1,84 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../src/generated/prisma"
-  previewFeatures = ["driverAdapters", "postgresqlExtensions"]
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider   = "postgresql"
-  extensions = [postgis]
+  provider = "postgresql"
 }
 
-// ─── USUARIOS Y ROLES (Herencia implementada con relaciones 1:1) ─────────────
+// ==========================================
+// Usuarios y Roles (Herencia) - CU-01 a CU-05
+// ==========================================
 
 model Usuario {
-  id_usuario    String   @id // Coincide con el ID generado por Clerk
-  email         String   @unique
-  fechaRegistro DateTime @default(now())
+  id_usuario String  @id @default(uuid()) // Será el ID provisto por Clerk (ADR-006)
+  contrasena String? // Opcional ya que la autenticación se delega a Clerk
+  estado_cuenta String @default("PENDIENTE") // PENDIENTE, APROBADA, RECHAZADA
 
+  // Relaciones de herencia (1 a 1)
   solicitante   Solicitante?
-  administrador Administrador?
+  administrador Administrador? @relation(fields: [administradorId_admin], references: [id_admin])
   remitente     Remitente?
-  historiales   Historial_Estado[]
-  notificaciones Notificacion[]
+
+  // Trazabilidad y Notificaciones
+  historiales_estado    Historial_Estado[]
+  notificaciones        Notificacion[]
+  administradorId_admin String?
+  administradorUsuarios AdministradorUsuario[]
 }
 
 model Solicitante {
   id_solicitante String @id
   nombre         String
-  contacto       String?
-  
-  usuario        Usuario     @relation(fields: [id_solicitante], references: [id_usuario], onDelete: Cascade)
-  solicitudes    Solicitud[]
+  contacto       String
+
+  usuario     Usuario     @relation(fields: [id_solicitante], references: [id_usuario], onDelete: Cascade)
+  solicitudes Solicitud[]
 }
 
 model Administrador {
-  id_admin              String @id
-  nombre                String
-  permisos_rol          String?
-  
-  usuario               Usuario     @relation(fields: [id_admin], references: [id_usuario], onDelete: Cascade)
-  solicitudes_aprobadas Solicitud[]
+  id_admin     String @id
+  nombre       String
+  usuario      String // Nombre de usuario en el sistema
+  permisos_rol String
+
+  usuario_rel AdministradorUsuario @relation(fields: [id_admin], references: [id_usuario], onDelete: Cascade)
+  solicitudes Solicitud[]
+  usuarios    Usuario[]
+}
+
+// Definimos la relación de Administrador explicitamente para evitar ambigüedades en Prisma
+model AdministradorUsuario {
+  id_usuario    String         @id
+  administrador Administrador?
+  usuario       Usuario        @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 }
 
 model Remitente {
-  id_remitente    String  @id
+  id_remitente    String @id
   nombre_base     String
-  latitud_base    Float?
-  longitud_base   Float?
-  ubicacion_gis   Unsupported("geometry(Point, 4326)")? // PostGIS nativo
-  capacidad_pista String?
+  latitud_base    Float
+  longitud_base   Float
+  capacidad_pista String
 
-  usuario         Usuario       @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
-  stock           Stock_Base[]
-  solicitudes     Solicitud[]
-  vuelos          Vuelo[]
-  lanzamientos    Lanzamiento[]
+  usuario      Usuario       @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
+  stock_bases  Stock_Base[]
+  solicitudes  Solicitud[]
+  vuelos       Vuelo[]
+  lanzamientos Lanzamiento[]
 }
 
-// ─── INVENTARIO Y CATÁLOGO ───────────────────────────────────────────────────
+// ==========================================
+// Catálogo e Inventario - CU-17, CU-18
+// ==========================================
 
 model Tipo {
-  id_tipo          String     @id @default(uuid())
+  id_tipo          String @id @default(uuid())
   nombre_categoria String
   peso_prioridad   Int
-  
-  productos        Producto[]
+
+  productos Producto[]
 }
 
 model Producto {
@@ -77,47 +87,45 @@ model Producto {
   descripcion   String?
   peso_unitario Float
   id_tipo       String
-  
-  tipo          Tipo                @relation(fields: [id_tipo], references: [id_tipo])
-  stock_bases   Stock_Base[]
-  detalles      Detalle_Solicitud[]
+
+  tipo               Tipo                @relation(fields: [id_tipo], references: [id_tipo])
+  stocks             Stock_Base[]
+  detalles_solicitud Detalle_Solicitud[]
 }
 
 model Stock_Base {
   id_stock            String @id @default(uuid())
   id_remitente        String
   id_producto         String
-  cantidad_disponible Int    @default(0)
+  cantidad_disponible Int
 
   remitente Remitente @relation(fields: [id_remitente], references: [id_remitente])
   producto  Producto  @relation(fields: [id_producto], references: [id_producto])
-
-  @@unique([id_remitente, id_producto]) // Evita que una base tenga dos registros del mismo producto
 }
 
-// ─── SOLICITUDES Y TRAZABILIDAD ──────────────────────────────────────────────
+// ==========================================
+// Solicitudes y Logística - CU-08 a CU-20
+// ==========================================
 
 model Solicitud {
   id_solicitud     String   @id @default(uuid())
   fecha_creacion   DateTime @default(now())
-  estado_actual    String   @default("creada")
-  prioridad        String   @default("media")
+  estado_actual    String
+  prioridad        String
   latitud_destino  Float
   longitud_destino Float
-  ubicacion_gis    Unsupported("geometry(Point, 4326)")? // PostGIS nativo
-
   id_solicitante   String
-  id_admin         String?
-  id_remitente     String?
+  id_admin         String? // Nullable porque se asigna al aprobar (CU-09)
+  id_remitente     String? // Nullable porque se asigna al aprobar (CU-09)
 
-  solicitante        Solicitante         @relation(fields: [id_solicitante], references: [id_solicitante])
-  admin_aprobador    Administrador?      @relation(fields: [id_admin], references: [id_admin])
-  remitente_asignado Remitente?          @relation(fields: [id_remitente], references: [id_remitente])
+  solicitante Solicitante    @relation(fields: [id_solicitante], references: [id_solicitante])
+  admin       Administrador? @relation(fields: [id_admin], references: [id_admin])
+  remitente   Remitente?     @relation(fields: [id_remitente], references: [id_remitente])
 
-  detalles           Detalle_Solicitud[]
-  historial_estados  Historial_Estado[]
-  notificaciones     Notificacion[]
-  lanzamientos       Lanzamiento[]
+  detalles       Detalle_Solicitud[]
+  historiales    Historial_Estado[]
+  notificaciones Notificacion[]
+  lanzamientos   Lanzamiento[]
 }
 
 model Detalle_Solicitud {
@@ -133,7 +141,7 @@ model Detalle_Solicitud {
 model Historial_Estado {
   id_historial    String   @id @default(uuid())
   fecha_hora      DateTime @default(now())
-  estado_anterior String?
+  estado_anterior String
   estado_nuevo    String
   id_solicitud    String
   id_usuario      String
@@ -149,11 +157,13 @@ model Notificacion {
   id_solicitud       String
   id_usuario_destino String
 
-  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
-  usuario   Usuario   @relation(fields: [id_usuario_destino], references: [id_usuario])
+  solicitud       Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  usuario_destino Usuario   @relation(fields: [id_usuario_destino], references: [id_usuario], onDelete: Cascade)
 }
 
-// ─── LOGÍSTICA Y LANZAMIENTOS (VUELOS) ───────────────────────────────────────
+// ==========================================
+// Entregas Físicas (ADR-007)
+// ==========================================
 
 model Vuelo {
   id_vuelo             String @id @default(uuid())
@@ -170,9 +180,8 @@ model Lanzamiento {
   id_lanzamiento     String @id @default(uuid())
   latitud_calculada  Float
   longitud_calculada Float
-  punto_carp_gis     Unsupported("geometry(Point, 4326)")?
   altitud            Float
-  datos_clima_api    Json
+  datos_clima_api    Json // Aprovechamos JSON en PostgreSQL (ADR-002)
   id_vuelo           String
   id_solicitud       String
   id_remitente       String
@@ -190,5 +199,5 @@ model Contenedor {
   estado_mecanico String
   id_lanzamiento  String
 
-  lanzamiento Lanzamiento @relation(fields: [id_lanzamiento], references: [id_lanzamiento])
+  lanzamiento Lanzamiento @relation(fields: [id_lanzamiento], references: [id_lanzamiento], onDelete: Cascade)
 }

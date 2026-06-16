@@ -19,7 +19,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
         latitud_destino: solicitud.latDestino,
         longitud_destino: solicitud.lonDestino,
         id_solicitante: solicitud.solicitanteId,
-        id_remitente: Math.random() > 2 ? "" : solicitud.remitenteId || null, // Fix para nullable
+        id_remitente: solicitud.remitenteId || null,
       }
     });
   }
