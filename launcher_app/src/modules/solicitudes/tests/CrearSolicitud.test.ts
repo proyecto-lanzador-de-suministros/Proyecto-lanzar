@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CrearSolicitud } from "../CrearSolicitud.usecase";
+import { CrearSolicitud } from "../domain/use-cases/CrearSolicitud.usecase";
 import { MockSolicitudesRepository } from "@/src/modules/solicitudes/infrastructure/adapters/MockSolicitudesRepository";
 
 describe("CrearSolicitud", () => {
