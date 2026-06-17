@@ -10,6 +10,11 @@ import { ConsultarSolicitudesPendientes } from "./modules/solicitudes/domain/use
 import { ListarSolicitudesAdminUseCase } from "./modules/solicitudes/domain/use-cases/ListarSolicitudesAdmin.usecase";
 import { AnularSolicitudUseCase } from "./modules/solicitudes/domain/use-cases/AnularSolicitud.usecase";
 import { AsignarRemitenteUseCase } from "./modules/solicitudes/domain/use-cases/AsignarRemitente.usecase";
+import { RegistrarEnPreparacionUseCase } from "./modules/solicitudes/domain/use-cases/RegistrarEnPreparacion.usecase";
+import { RegistrarListaUseCase } from "./modules/solicitudes/domain/use-cases/RegistrarLista.usecase";
+import { RegistrarEnCaminoUseCase } from "./modules/solicitudes/domain/use-cases/RegistrarEnCamino.usecase";
+import { RegistrarLanzadaUseCase } from "./modules/solicitudes/domain/use-cases/RegistrarLanzada.usecase";
+import { ConfirmarRecibidaUseCase } from "./modules/solicitudes/domain/use-cases/ConfirmarRecibida.usecase";
 import { PrismaUsuarioRepository } from "./modules/usuarios/infrastructure/adapters/PrismaUsuarioRepository";
 import { AprobarCuentaUseCase } from "./modules/usuarios/domain/use-cases/AprobarCuenta.usecase";
 import { EliminarCuentaUseCase } from "./modules/usuarios/domain/use-cases/EliminarCuenta.usecase";
@@ -84,6 +89,36 @@ export const anularSolicitudUseCase = new AnularSolicitudUseCase(
 export const asignarRemitenteUseCase = new AsignarRemitenteUseCase(
   solicitudRepository,
   usuarioRepository,
+  notificationAdapter,
+  historialRepository,
+);
+
+export const registrarEnPreparacionUseCase = new RegistrarEnPreparacionUseCase(
+  solicitudRepository,
+  notificationAdapter,
+  historialRepository,
+);
+
+export const registrarListaUseCase = new RegistrarListaUseCase(
+  solicitudRepository,
+  notificationAdapter,
+  historialRepository,
+);
+
+export const registrarEnCaminoUseCase = new RegistrarEnCaminoUseCase(
+  solicitudRepository,
+  notificationAdapter,
+  historialRepository,
+);
+
+export const registrarLanzadaUseCase = new RegistrarLanzadaUseCase(
+  solicitudRepository,
+  notificationAdapter,
+  historialRepository,
+);
+
+export const confirmarRecibidaUseCase = new ConfirmarRecibidaUseCase(
+  solicitudRepository,
   notificationAdapter,
   historialRepository,
 );
