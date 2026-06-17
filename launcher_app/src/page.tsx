@@ -44,7 +44,7 @@ export default async function UsuariosAdminPage() {
                       </button>
                     </form>
                   )}
-                  <form action={eliminarCuentaAction.bind(null, usuario.id) as (formData: FormData) => void}>
+                  <form action={aprobarCuentaAction.bind(null, usuario.id) as unknown as (formData: FormData) => void}>
                     <button type="submit" className="text-sm bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded shadow-sm transition-colors">
                       Eliminar
                     </button>

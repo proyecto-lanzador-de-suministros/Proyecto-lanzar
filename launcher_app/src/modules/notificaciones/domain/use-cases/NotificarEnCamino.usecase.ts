@@ -1,3 +1,4 @@
+import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { ForNotifying } from "../ports/forNotifying.port";
 
 export class NotificarEnCamino {
@@ -7,7 +8,7 @@ export class NotificarEnCamino {
     await this.notifier.notificar({
       destinatario: solicitanteId,
       solicitudId,
-      estado: "en_camino",
+      estado: EstadoSolicitud.EnCamino,
     });
   }
 }

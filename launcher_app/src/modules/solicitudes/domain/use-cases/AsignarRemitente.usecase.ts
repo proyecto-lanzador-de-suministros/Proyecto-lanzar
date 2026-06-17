@@ -63,7 +63,7 @@ export class AsignarRemitenteUseCase {
 
     // 6. Notificar al solicitante y al remitente (CU-09, paso 5)
     await this.notifier.notificar({
-      destinatario: solicitud.solicitanteId,
+      destinatario: solicitud.id_usuario,
       solicitudId,
       estado: solicitud.estado,
     });

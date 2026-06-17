@@ -1,3 +1,4 @@
+import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { ForNotifying } from "../ports/forNotifying.port";
 
 export class NotificarRecepcion {
@@ -7,7 +8,7 @@ export class NotificarRecepcion {
     await this.notifier.notificar({
       destinatario: remitenteId,
       solicitudId,
-      estado: "completada",
+      estado: EstadoSolicitud.Completada,
     });
   }
 }

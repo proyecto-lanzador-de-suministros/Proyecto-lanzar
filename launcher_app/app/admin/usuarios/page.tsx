@@ -6,6 +6,8 @@ import React from "react";
 import { aprobarUsuario } from "./actions";
 import { eliminarCuentaAction } from "@/src/actions/usuarios.actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminUsuariosPage() {
   // Fuente de verdad única: PostgreSQL vía el caso de uso del dominio.
   // La página de Clerk (actions.ts) ya sincroniza ambas fuentes al aprobar.

@@ -1,4 +1,5 @@
 import { ForNotifying } from "../ports/forNotifying.port";
+import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 
 export class NotificarAsignacion {
   constructor(private readonly notifier: ForNotifying) {}
@@ -11,12 +12,12 @@ export class NotificarAsignacion {
     await this.notifier.notificar({
       destinatario: solicitanteId,
       solicitudId,
-      estado: "asignada",
+      estado: EstadoSolicitud.Asignada,
     });
     await this.notifier.notificar({
       destinatario: remitenteId,
       solicitudId,
-      estado: "asignada",
+      estado: EstadoSolicitud.Asignada,
     });
   }
 }

@@ -43,7 +43,7 @@ export class AnularSolicitudUseCase {
 
     // Notificar al solicitante (CU-11, postcondición 3)
     await this.notifier.notificar({
-      destinatario: solicitud.solicitanteId,
+      destinatario: solicitud.id_usuario,
       solicitudId,
       estado: solicitud.estado,
     });

@@ -27,7 +27,7 @@ export async function aprobarUsuario(userId: string, rol: string) {
     await tx.usuario.upsert({
       where: { id_usuario: userId },
       update: {},
-      create: { id_usuario: userId, email },
+      create: { id_usuario: userId },//saque el email para que funcione el build
     });
 
     if (rol === "remitente") {

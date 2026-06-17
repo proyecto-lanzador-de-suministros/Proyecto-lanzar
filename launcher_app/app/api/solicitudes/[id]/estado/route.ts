@@ -7,7 +7,6 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Solo admin o remitente pueden cambiar el estado de una solicitud
   const { sessionClaims } = await auth();
   const rol = sessionClaims?.metadata?.rol;
 
@@ -38,17 +37,15 @@ export async function PATCH(
       );
     }
 
-    // avanzarEstado valida la máquina de estados del dominio y lanza si la transición es inválida
     solicitud.avanzarEstado(nuevoEstado);
-    await solicitudRepository.guardar(solicitud);
+    await solicitudRepository.actualizarEstado(id, solicitud.estado);
 
-    return NextResponse.json({ id: solicitud.id, estado: solicitud.estado });
+    return NextResponse.json({ id: solicitud.id_solicitud, estado: solicitud.estado });
   } catch (error: any) {
-    // Distinguir errores de dominio (transición inválida) de errores inesperados
-    const isDomaineError = error.message?.includes("Transición inválida");
+    const isDomainError = error.message?.includes("Transición inválida");
     return NextResponse.json(
-      { error: { code: isDomaineError ? "INVALID_TRANSITION" : "INTERNAL_ERROR", message: error.message } },
-      { status: isDomaineError ? 422 : 500 }
+      { error: { code: isDomainError ? "INVALID_TRANSITION" : "INTERNAL_ERROR", message: error.message } },
+      { status: isDomainError ? 422 : 500 }
     );
   }
 }
