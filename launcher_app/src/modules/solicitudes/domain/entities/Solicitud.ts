@@ -41,10 +41,12 @@ const ESTADOS_NO_ANULABLES = new Set([
 ]);
 
 // Transiciones válidas del ciclo de vida
-const TRANSICIONES_VALIDAS: Partial<Record<EstadoSolicitud, EstadoSolicitud[]>> = {
+const TRANSICIONES_VALIDAS: Partial<
+  Record<EstadoSolicitud, EstadoSolicitud[]>
+> = {
   [EstadoSolicitud.Creada]: [
-    EstadoSolicitud.Asignada,   // CU-09: stock suficiente
-    EstadoSolicitud.Rechazada,  // CU-09: stock insuficiente
+    EstadoSolicitud.Asignada, // CU-09: stock suficiente
+    EstadoSolicitud.Rechazada, // CU-09: stock insuficiente
     EstadoSolicitud.Cancelada,
   ],
   [EstadoSolicitud.Asignada]: [
@@ -56,10 +58,7 @@ const TRANSICIONES_VALIDAS: Partial<Record<EstadoSolicitud, EstadoSolicitud[]>> 
     EstadoSolicitud.Lista,
     EstadoSolicitud.Anulada,
   ],
-  [EstadoSolicitud.Lista]: [
-    EstadoSolicitud.EnCamino,
-    EstadoSolicitud.Anulada,
-  ],
+  [EstadoSolicitud.Lista]: [EstadoSolicitud.EnCamino, EstadoSolicitud.Anulada],
   [EstadoSolicitud.EnCamino]: [
     EstadoSolicitud.Lanzada,
     EstadoSolicitud.Anulada,
@@ -110,7 +109,7 @@ export class Solicitud {
     for (const p of params.productos) {
       if (p.cantidad <= 0) {
         throw new Error(
-          `La cantidad del producto ${p.productoId} debe ser mayor a cero.`
+          `La cantidad del producto ${p.productoId} debe ser mayor a cero.`,
         );
       }
     }
@@ -130,22 +129,48 @@ export class Solicitud {
   }
 
   // ── Getters ─────────────────────────────────────────────────────────────
-  get id_solicitud() { return this.props.id_solicitud; }
-  get id_usuario() { return this.props.id_usuario; }
-  get id_base() { return this.props.id_base; }
-  get ubicacion_destino() { return this.props.ubicacion_destino; }
-  get prioridad() { return this.props.prioridad; }
-  get productos() { return this.props.productos; }
-  get estado() { return this.props.estado; }
-  get fecha_solicitada() { return this.props.fecha_solicitada; }
-  get fecha_estimada() { return this.props.fecha_estimada; }
-  get fecha_entrega() { return this.props.fecha_entrega; }
-  get motivoCancelacion() { return this.props.motivoCancelacion; }
-  get motivoAnulacion() { return this.props.motivoAnulacion; }
-  get fechaActualizacion() { return this.props.fechaActualizacion; }
+  get id_solicitud() {
+    return this.props.id_solicitud;
+  }
+  get id_usuario() {
+    return this.props.id_usuario;
+  }
+  get id_base() {
+    return this.props.id_base;
+  }
+  get ubicacion_destino() {
+    return this.props.ubicacion_destino;
+  }
+  get prioridad() {
+    return this.props.prioridad;
+  }
+  get productos() {
+    return this.props.productos;
+  }
+  get estado() {
+    return this.props.estado;
+  }
+  get fecha_solicitada() {
+    return this.props.fecha_solicitada;
+  }
+  get fecha_estimada() {
+    return this.props.fecha_estimada;
+  }
+  get fecha_entrega() {
+    return this.props.fecha_entrega;
+  }
+  get motivoCancelacion() {
+    return this.props.motivoCancelacion;
+  }
+  get motivoAnulacion() {
+    return this.props.motivoAnulacion;
+  }
+  get fechaActualizacion() {
+    return this.props.fechaActualizacion;
+  }
 
   // ── Métodos de negocio ──────────────────────────────────────────────────
-
+  //!!!! TODO : porqué se mapea id_remitente -> id_base ??? (AsignarRemitente.usecase.ts)
   /** CU-09: stock OK → asigna base directamente (Creada → Asignada) */
   asignar(id_base: string): void {
     this.props.id_base = id_base;
@@ -161,7 +186,7 @@ export class Solicitud {
   cancelar(motivo?: string): void {
     if (!ESTADOS_CANCELABLES.has(this.props.estado)) {
       throw new Error(
-        `No se puede cancelar una solicitud en estado "${this.props.estado}".`
+        `No se puede cancelar una solicitud en estado "${this.props.estado}".`,
       );
     }
     this.props.motivoCancelacion = motivo;
@@ -172,7 +197,7 @@ export class Solicitud {
   anular(motivo: string): void {
     if (ESTADOS_NO_ANULABLES.has(this.props.estado)) {
       throw new Error(
-        `No se puede anular una solicitud en estado "${this.props.estado}".`
+        `No se puede anular una solicitud en estado "${this.props.estado}".`,
       );
     }
     this.props.motivoAnulacion = motivo;
@@ -215,7 +240,7 @@ export class Solicitud {
 
     if (!permitidos.includes(nuevoEstado)) {
       throw new Error(
-        `Transición inválida: "${this.props.estado}" → "${nuevoEstado}".`
+        `Transición inválida: "${this.props.estado}" → "${nuevoEstado}".`,
       );
     }
 

@@ -20,7 +20,11 @@ export class AsignarRemitenteUseCase {
    * @param remitenteId  UUID del remitente a asignar.
    * @param actorId      ID del admin que ejecuta la asignación (para el historial).
    */
-  async ejecutar(solicitudId: string, remitenteId: string, actorId: string): Promise<void> {
+  async ejecutar(
+    solicitudId: string,
+    remitenteId: string,
+    actorId: string,
+  ): Promise<void> {
     // 1. Verificar que el remitente existe y está aprobado
     const remitente = await this.usuarioRepository.buscarPorId(remitenteId);
 
@@ -29,12 +33,14 @@ export class AsignarRemitenteUseCase {
     }
 
     if (remitente.rol !== "REMITENTE") {
-      throw new Error(`El usuario ${remitenteId} no tiene el rol de Remitente.`);
+      throw new Error(
+        `El usuario ${remitenteId} no tiene el rol de Remitente.`,
+      );
     }
 
     if (remitente.estadoCuenta !== "APROBADA") {
       throw new Error(
-        `El remitente ${remitente.nombre ?? remitenteId} no está aprobado (estado: ${remitente.estadoCuenta}).`
+        `El remitente ${remitente.nombre ?? remitenteId} no está aprobado (estado: ${remitente.estadoCuenta}).`,
       );
     }
 
@@ -46,7 +52,7 @@ export class AsignarRemitenteUseCase {
     }
 
     const estadoAnterior = solicitud.estado;
-
+    ////!!!! TODO : porqué se mapea id_remitente -> id_base ??? (solicitud.asignar(base_id))
     // 3. Asignar — la entidad valida la transición (Creada → Asignada)
     solicitud.asignar(remitenteId);
 
