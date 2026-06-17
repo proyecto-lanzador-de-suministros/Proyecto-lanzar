@@ -9,7 +9,7 @@ import { Solicitud, EstadoSolicitud } from "../entities/Solicitud";
 export class ObtenerSolicitudesUseCase {
   constructor(private readonly repository: ForManagingSolicitudes) {}
 
-  async execute(estadoFiltro?: EstadoSolicitud): Promise<Solicitud[]> {
+  async ejecutar(estadoFiltro?: EstadoSolicitud): Promise<Solicitud[]> {
     return this.repository.listarTodas(estadoFiltro);
   }
 }
