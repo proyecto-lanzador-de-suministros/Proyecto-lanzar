@@ -23,6 +23,7 @@ import { PrismaSolicitudesRepository } from "./modules/solicitudes/infrastructur
 import { PrismaStockRepository } from "./modules/stock/infrastructure/adapters/PrismaStockRepository";
 import { PrismaHistorialRepository } from "./modules/historial/infrastructure/adapters/PrismaHistorialRepository";
 import { NotificationServiceAdapter } from "./modules/notificaciones/infrastructure/adapters/NotificationServiceAdapter";
+import { NotificarSolicitudCreada } from "./modules/notificaciones/domain/use-cases/NotificarSolicitudCreada.usecase";
 
 // ── Infraestructura compartida ──────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ export const historialRepository = new PrismaHistorialRepository();
 export const stockRepository = new PrismaStockRepository();
 
 const notificationAdapter = new NotificationServiceAdapter();
+const notificarSolicitudCreada = new NotificarSolicitudCreada(notificationAdapter);
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
@@ -65,6 +67,7 @@ export const controlarSolicitudUseCase = new ControlarSolicitud(
 export const crearSolicitudUseCase = new CrearSolicitud(
   solicitudRepository,
   controlarSolicitudUseCase,
+  notificarSolicitudCreada,
 );
 
 export const cancelarSolicitudUseCase = new CancelarSolicitud(

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CrearSolicitud } from "../domain/use-cases/CrearSolicitud.usecase";
 import { ControlarSolicitud } from "../domain/use-cases/ControlarSolicitud.usecase";
+import { NotificarSolicitudCreada } from "@/src/modules/notificaciones/domain/use-cases/NotificarSolicitudCreada.usecase";
 import { PrismaSolicitudesRepository } from "../infrastructure/adapters/PrismaSolicitudRepository";
 import {
   PrioridadSolicitud,
@@ -33,15 +34,18 @@ const prismaMock = prisma as unknown as {
 describe("CrearSolicitud", () => {
   let repo: PrismaSolicitudesRepository;
   let controlarSolicitudMock: { ejecutar: ReturnType<typeof vi.fn> };
+  let notificarCreadaMock: { ejecutar: ReturnType<typeof vi.fn> };
   let useCase: CrearSolicitud;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repo = new PrismaSolicitudesRepository();
     controlarSolicitudMock = { ejecutar: vi.fn() };
+    notificarCreadaMock = { ejecutar: vi.fn() };
     useCase = new CrearSolicitud(
       repo,
       controlarSolicitudMock as unknown as ControlarSolicitud,
+      notificarCreadaMock as unknown as NotificarSolicitudCreada,
     );
   });
 
