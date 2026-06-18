@@ -7,6 +7,7 @@
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { Solicitud } from "../entities/Solicitud";
 import { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
+import { NotificarCancelacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarCancelacion.usecase";
 
 export interface CancelarSolicitudInput {
   id_solicitud: string;
@@ -19,7 +20,8 @@ export class CancelarSolicitud {
   constructor(
     private readonly repo: ForManagingSolicitudes,
     private readonly stock: ForManagingStock,
-  ) {}
+    private readonly notificarCancelacion: NotificarCancelacion,
+) {}
 
   async ejecutar(input: CancelarSolicitudInput): Promise<Solicitud> {
     // 1. Buscar la solicitud
@@ -51,6 +53,16 @@ export class CancelarSolicitud {
       solicitud.estado,
       { motivoCancelacion: input.motivo },
     );
+
+    // 6. Notificar al solicitante — best-effort
+    try {
+      await this.notificarCancelacion.ejecutar(
+        solicitud.id_solicitud,
+        solicitud.id_usuario,
+      );
+    } catch {
+      // fire-and-forget
+    }
 
     return solicitud;
   }
