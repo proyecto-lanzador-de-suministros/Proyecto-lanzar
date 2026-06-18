@@ -71,6 +71,11 @@ describe("CrearSolicitud", () => {
 
     expect(resultado.solicitud.estado).toBe(EstadoSolicitud.Creada);
     expect(resultado.solicitud.id_solicitud).toBeDefined();
+    expect(notificarCreadaMock.ejecutar).toHaveBeenCalledOnce();
+    expect(notificarCreadaMock.ejecutar).toHaveBeenCalledWith(
+      resultado.solicitud.id_solicitud,
+      "user-1",
+    );
   });
 
   it("persiste la solicitud en Prisma antes de delegar a ControlarSolicitud", async () => {
@@ -105,6 +110,7 @@ describe("CrearSolicitud", () => {
     expect(controlarSolicitudMock.ejecutar).toHaveBeenCalledWith(
       expect.objectContaining({ id_usuario: "user-1" }),
     );
+    expect(notificarCreadaMock.ejecutar).toHaveBeenCalledOnce();
   });
 
   it("retorna el resultado de ControlarSolicitud (asignada: false con stockFaltante)", async () => {

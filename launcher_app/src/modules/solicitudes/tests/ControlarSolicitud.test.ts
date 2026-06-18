@@ -64,6 +64,9 @@ describe("ControlarSolicitud", () => {
     );
   });
 
+  it.todo("notifica NotificarAsignacion al solicitante cuando hay stock");
+  it.todo("notifica NotificarRechazo al solicitante cuando no hay stock");
+
   it("no asigna id_base en actualizarEstado cuando el stock rechaza", async () => {
     stockMock.verificarYReservar.mockResolvedValue({
       disponible: false,
