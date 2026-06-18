@@ -1,15 +1,29 @@
-// app/components/dashboard/CoverageMap.tsx
-export default function CoverageMap() {
-  return (
-    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
-      <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-4">
-        Mapa de zona de cobertura
-      </h2>
-      <div className="rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 h-64 flex items-center justify-center">
-        <p className="text-sm text-slate-400 dark:text-slate-500">
-          Poner mapa aquí
-        </p>
+"use client";
+
+import dynamic from "next/dynamic";
+
+const CoverageMapContent = dynamic(
+  () => import("./CoverageMapContent"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-700"
+        style={{ minHeight: "380px" }}
+      >
+        <span className="text-slate-400 dark:text-slate-500 font-semibold text-sm">
+          Cargando mapa de cobertura...
+        </span>
       </div>
-    </section>
-  );
+    ),
+  }
+);
+
+interface CoverageMapProps {
+  onSelectPoint?: (lat: number, lng: number) => void;
+  selectedPoint?: { lat: number; lng: number } | null;
+}
+
+export default function CoverageMap({ onSelectPoint, selectedPoint }: CoverageMapProps) {
+  return <CoverageMapContent onSelectPoint={onSelectPoint} selectedPoint={selectedPoint ?? null} />;
 }

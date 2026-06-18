@@ -2,7 +2,7 @@
 
 import { UserProfile } from "@clerk/nextjs";
 
-export default function AdminProfilePage() {
+export default function SolicitanteProfilePage() {
   return (
     <div className="min-h-screen bg-[#f4f7f6] p-6 md:p-10 font-sans">
       <div className="max-w-5xl mx-auto">
@@ -11,7 +11,7 @@ export default function AdminProfilePage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#1e293b] tracking-tight">Mi Perfil</h1>
           <p className="text-[#64748b] mt-1 text-sm md:text-base">
-            Gestiona tu información personal y credenciales de acceso (Administrador).
+            Gestiona tu información personal y credenciales de acceso (Solicitante).
           </p>
         </div>
 
@@ -21,7 +21,6 @@ export default function AdminProfilePage() {
             routing="hash"
             appearance={{
               elements: {
-                // Personalizamos un poco los colores de Clerk para que combinen con la app
                 card: "shadow-sm border border-gray-200 rounded-2xl",
                 navbar: "bg-gray-50 rounded-l-2xl",
                 navbarButton: "text-gray-600 hover:text-[#f97316]",

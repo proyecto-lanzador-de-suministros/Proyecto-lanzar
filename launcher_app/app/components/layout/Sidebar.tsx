@@ -2,7 +2,7 @@ import Link from "next/link";
 import Logo from "@/app/components/ui/Logo";
 import { SidebarConfig } from "@/app/components/layout/types";
 
-const navItems = [
+const DEFAULT_NAV_ITEMS = [
   { label: "Inicio", href: "/", badge: 0 },
   { label: "Mis solicitudes", href: "/solicitudes", badge: 0 },
   { label: "Solicitudes asignadas", href: "/asignadas", badge: 3 },
@@ -13,7 +13,16 @@ const navItems = [
   { label: "Ayuda", href: "/ayuda", badge: 0 },
 ];
 
-export default function Sidebar({ activeHref = "/" }: SidebarConfig) {
+const SOLICITANTE_NAV_ITEMS = [
+  { label: "Inicio", href: "/solicitante/dashboard", badge: 0 },
+  { label: "Mis solicitudes", href: "/solicitante/missolicitudes", badge: 0 },
+  { label: "Notificaciones", href: "/solicitante/notificaciones", badge: 0 },
+  { label: "Perfil", href: "/solicitante/perfil", badge: 0 },
+  { label: "Ayuda", href: "/solicitante/ayuda", badge: 0 },
+];
+
+export default function Sidebar({ activeHref = "/", role }: SidebarConfig) {
+  const items = role === "solicitante" ? SOLICITANTE_NAV_ITEMS : DEFAULT_NAV_ITEMS;
   return (
     <aside className="w-56 min-h-screen bg-surface-dark flex flex-col gap-2 p-3 shrink-0">
       <div className="flex items-center gap-2 px-2 pb-6">
@@ -24,7 +33,7 @@ export default function Sidebar({ activeHref = "/" }: SidebarConfig) {
         </span>
       </div>
       <nav className="flex flex-col gap-0.5 flex-1">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const isActive = item.href === activeHref;
           return (
             <Link
@@ -54,9 +63,12 @@ export default function Sidebar({ activeHref = "/" }: SidebarConfig) {
         <p className="text-white/55 text-xs m-0 leading-snug">
           Nuestro equipo está para ayudarte.
         </p>
-        <button className="mt-2 w-full py-2 px-3 rounded-lg border border-white/30 bg-transparent text-white text-[13px] cursor-pointer hover:bg-white/10 transition-colors">
+        <Link
+          href={role === "solicitante" ? "/solicitante/ayuda" : "/ayuda"}
+          className="mt-2 w-full py-2 px-3 rounded-lg border border-white/30 bg-transparent text-white text-[13px] text-center cursor-pointer hover:bg-white/10 transition-colors no-underline block"
+        >
           Contactar soporte
-        </button>
+        </Link>
       </div>
     </aside>
   );

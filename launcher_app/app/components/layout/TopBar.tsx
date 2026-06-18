@@ -1,6 +1,8 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { TopBarConfig } from "./types";
 
 export default function TopBar({
@@ -9,6 +11,14 @@ export default function TopBar({
   notificationCount,
 }: TopBarConfig) {
   const { user } = useUser();
+  const { signOut } = useClerk();
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fullName = user?.fullName ?? "Usuario";
   const initials = fullName
@@ -18,6 +28,10 @@ export default function TopBar({
     .join("")
     .toUpperCase();
 
+  const handleBellClick = () => {
+    router.push(`/${role.toLowerCase()}/notificaciones`);
+  };
+
   return (
     <header className="flex items-center justify-between px-8 py-1.5 bg-bg-card border-b border-slate-200 dark:border-slate-700">
       <div>
@@ -26,8 +40,11 @@ export default function TopBar({
         </h1>
         <p className="text-sm text-text-secondary mt-0.5">{subtitle}</p>
       </div>
-      <div className="flex items-center gap-1">
-        <button className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={handleBellClick}
+          className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
@@ -49,30 +66,84 @@ export default function TopBar({
             </span>
           )}
         </button>
-        <div className="flex items-center gap-3 cursor-pointer">
-          <div className="w-10 h-10 rounded-full bg-interactive flex items-center justify-center shrink-0">
-            <span className="text-white text-sm font-semibold">{initials}</span>
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-text-primary leading-tight">
-              {fullName}
-            </p>
-            <p className="text-xs text-text-secondary">{role}</p>
-          </div>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-text-secondary hidden sm:block"
+
+        {/* Menu desplegable de Perfil */}
+        <div className="relative">
+          <div
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity"
           >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0 bg-interactive border border-slate-200 dark:border-slate-700">
+              {mounted && user?.imageUrl ? (
+                <img
+                  src={user.imageUrl}
+                  alt={fullName}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span className="text-white text-sm font-semibold">{initials}</span>
+              )}
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-sm font-semibold text-text-primary leading-tight">
+                {fullName}
+              </p>
+              <p className="text-xs text-text-secondary">{role}</p>
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-text-secondary hidden sm:block"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 text-xs">
+              {role.toLowerCase() === "solicitante" && (
+                <>
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      router.push("/solicitante/perfil");
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
+                  >
+                    👤 Mi Perfil
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      router.push("/solicitante/ayuda");
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
+                  >
+                    ❓ Ayuda
+                  </button>
+                  <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                </>
+              )}
+              <button
+                onClick={async () => {
+                  setMenuOpen(false);
+                  await signOut();
+                  router.push("/sign-in");
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 font-semibold cursor-pointer"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

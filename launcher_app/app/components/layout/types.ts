@@ -1,5 +1,6 @@
 export interface SidebarConfig {
   activeHref?: string;
+  role?: string;
 }
 
 export interface TopBarConfig {
