@@ -33,7 +33,7 @@ export default function TopBar({
   };
 
   return (
-    <header className="flex items-center justify-between px-4 md:px-8 py-3 md:py-1.5 bg-[#1565C0] md:bg-bg-card border-b border-white/10 md:border-slate-200 dark:md:border-slate-700">
+    <header className="flex items-center justify-between px-4 md:px-8 pt-9 pb-3 md:py-1.5 bg-surface-dark md:bg-bg-card border-b border-white/10 md:border-slate-200 dark:md:border-slate-700">
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-white md:text-text-primary">
           ¡Hola, {fullName}!
