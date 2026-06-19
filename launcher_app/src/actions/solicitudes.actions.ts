@@ -498,3 +498,26 @@ async function ensureTestDataSeeded() {
     });
   }
 }
+
+/**
+ * Lista todos los productos disponibles en el catálogo.
+ */
+export async function obtenerProductosAction() {
+  const { userId } = await auth();
+  if (!userId) return { success: false, error: "No autenticado." };
+
+  try {
+    const productos = await prisma.producto.findMany({
+      orderBy: { nombre: "asc" },
+      select: {
+        id_producto: true,
+        nombre: true,
+        descripcion: true,
+        peso_unitario: true,
+      },
+    });
+    return { success: true, data: productos };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
