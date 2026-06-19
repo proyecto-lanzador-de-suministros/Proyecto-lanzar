@@ -33,17 +33,17 @@ export default function TopBar({
   };
 
   return (
-    <header className="flex items-center justify-between px-8 py-1.5 bg-bg-card border-b border-slate-200 dark:border-slate-700">
+    <header className="flex items-center justify-between px-4 md:px-8 py-3 md:py-1.5 bg-[#1565C0] md:bg-bg-card border-b border-white/10 md:border-slate-200 dark:md:border-slate-700">
       <div>
-        <h1 className="text-2xl font-bold text-text-primary">
+        <h1 className="text-xl md:text-2xl font-bold text-white md:text-text-primary">
           ¡Hola, {fullName}!
         </h1>
-        <p className="text-sm text-text-secondary mt-0.5">{subtitle}</p>
+        <p className="text-xs md:text-sm text-white/80 md:text-text-secondary mt-0.5">{subtitle}</p>
       </div>
       <div className="flex items-center gap-4">
         <button
           onClick={handleBellClick}
-          className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          className="relative p-2 rounded-lg hover:bg-white/10 md:hover:bg-slate-100 dark:md:hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -55,7 +55,7 @@ export default function TopBar({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-text-secondary"
+            className="text-white md:text-text-secondary"
           >
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -73,7 +73,7 @@ export default function TopBar({
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity"
           >
-            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0 bg-interactive border border-slate-200 dark:border-slate-700">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0 bg-interactive border border-white/20 md:border-slate-200 dark:md:border-slate-700">
               {mounted && user?.imageUrl ? (
                 <img
                   src={user.imageUrl}
@@ -86,10 +86,10 @@ export default function TopBar({
               )}
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-semibold text-text-primary leading-tight">
+              <p className="text-sm font-semibold text-white md:text-text-primary leading-tight">
                 {fullName}
               </p>
-              <p className="text-xs text-text-secondary">{role}</p>
+              <p className="text-xs text-white/70 md:text-text-secondary">{role}</p>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -101,7 +101,7 @@ export default function TopBar({
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-text-secondary hidden sm:block"
+              className="text-white md:text-text-secondary hidden sm:block"
             >
               <polyline points="6 9 12 15 18 9" />
             </svg>
