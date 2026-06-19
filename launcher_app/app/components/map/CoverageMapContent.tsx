@@ -103,7 +103,7 @@ export default function CoverageMapContent({
   return (
     <div
       ref={mapContainerRef}
-      className="w-full h-full rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+      className="w-full h-full rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden relative z-0"
       style={{ minHeight: "380px" }}
     />
   );

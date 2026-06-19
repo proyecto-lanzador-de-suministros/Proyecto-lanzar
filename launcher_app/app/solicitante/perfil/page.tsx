@@ -16,7 +16,7 @@ export default function SolicitanteProfilePage() {
         </div>
 
         {/* Contenedor del componente de Clerk */}
-        <div className="flex justify-start">
+        <div className="flex justify-center">
           <UserProfile 
             routing="hash"
             appearance={{

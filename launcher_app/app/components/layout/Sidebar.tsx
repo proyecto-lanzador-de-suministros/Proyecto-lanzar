@@ -23,8 +23,9 @@ const SOLICITANTE_NAV_ITEMS = [
 
 export default function Sidebar({ activeHref = "/", role }: SidebarConfig) {
   const items = role === "solicitante" ? SOLICITANTE_NAV_ITEMS : DEFAULT_NAV_ITEMS;
+  const isSolicitante = role === "solicitante";
   return (
-    <aside className="w-56 min-h-screen bg-surface-dark flex flex-col gap-2 p-3 shrink-0">
+    <aside className={`${isSolicitante ? "hidden md:flex" : "flex"} w-56 min-h-screen bg-surface-dark flex flex-col gap-2 p-3 shrink-0`}>
       <div className="flex items-center gap-2 px-2 pb-6">
         <Logo className="w-9 h-9 shrink-0" />
         <span className="text-xl font-bold tracking-tight">
