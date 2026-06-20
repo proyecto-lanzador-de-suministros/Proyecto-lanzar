@@ -1,10 +1,18 @@
 "use server";
 
-import { clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 import { aprobarCuentaUseCase } from "@/src/container";
 import type { Prisma } from "../../../src/generated/prisma";
+
+async function verificarAdmin() {
+  const { userId, sessionClaims } = await auth();
+  if (!userId || sessionClaims?.metadata?.rol !== "admin") {
+    return { ok: false as const, error: "No autorizado. Se requiere rol admin." };
+  }
+  return { ok: true as const };
+}
 
 /**
  * Aprueba una cuenta de usuario (CU-02).
@@ -17,6 +25,9 @@ import type { Prisma } from "../../../src/generated/prisma";
  * la delega al caso de uso AprobarCuentaUseCase.
  */
 export async function aprobarUsuario(userId: string, rol: string) {
+  const chequeo = await verificarAdmin();
+  if (!chequeo.ok) throw new Error(chequeo.error);
+
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Usuario sin nombre";
@@ -75,6 +86,9 @@ export async function aprobarUsuario(userId: string, rol: string) {
  * de login desde Clerk). Solo lectura.
  */
 export async function obtenerDetalleCuentaAction(usuarioId: string, rolNormalizado: string) {
+  const chequeo = await verificarAdmin();
+  if (!chequeo.ok) return { success: false, error: chequeo.error };
+
   const client = await clerkClient();
 
   try {
@@ -120,6 +134,9 @@ export async function editarInfoCuentaAction(
   rolNormalizado: string,
   datos: { nombre?: string; contacto?: string; permisos_rol?: string },
 ) {
+  const chequeo = await verificarAdmin();
+  if (!chequeo.ok) return { success: false, error: chequeo.error };
+
   if (datos.nombre !== undefined && datos.nombre.trim() === "") {
     return { success: false, error: "El nombre no puede estar vacío." };
   }
@@ -160,6 +177,9 @@ export async function editarInfoCuentaAction(
  * para cualquier cuenta, sin pasar por el flujo de "olvidé mi contraseña".
  */
 export async function resetearPasswordAction(usuarioId: string, nuevaPassword: string) {
+  const chequeo = await verificarAdmin();
+  if (!chequeo.ok) return { success: false, error: chequeo.error };
+
   if (nuevaPassword.length < 8) {
     return { success: false, error: "La contraseña debe tener al menos 8 caracteres." };
   }
@@ -175,13 +195,13 @@ export async function resetearPasswordAction(usuarioId: string, nuevaPassword: s
 
 /**
  * CU-03 (email): el admin cambia el email de acceso de cualquier cuenta.
- *
- * ⚠️ Verificar contra la versión instalada de @clerk/backend: este método
- * (emailAddresses.createEmailAddress) puede no existir o tener otra firma
- * según la versión del SDK. Si falla, la alternativa manual es cambiar el
- * email directamente desde el Dashboard de Clerk.
+ * Verificado contra la documentación de Clerk: emailAddresses.createEmailAddress
+ * es un wrapper estable de POST /email_addresses del Backend API.
  */
 export async function actualizarEmailLoginAction(usuarioId: string, nuevoEmail: string) {
+  const chequeo = await verificarAdmin();
+  if (!chequeo.ok) return { success: false, error: chequeo.error };
+
   if (!nuevoEmail.includes("@")) {
     return { success: false, error: "Ingresá un email válido." };
   }
@@ -198,9 +218,7 @@ export async function actualizarEmailLoginAction(usuarioId: string, nuevoEmail: 
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error.message ??
-        "No se pudo actualizar el email. Verificá que tu versión del Clerk Backend SDK soporte emailAddresses.createEmailAddress.",
+      error: error.message ?? "No se pudo actualizar el email.",
     };
   }
 }

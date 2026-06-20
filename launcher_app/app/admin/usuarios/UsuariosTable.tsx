@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Avatar from "@/app/components/ui/Avatar";
 import Badge from "@/app/components/ui/Badge";
 import { aprobarUsuario } from "./actions";
-import { eliminarCuentaAction } from "@/src/actions/usuarios.actions";
+import { eliminarCuentaAction, rechazarCuentaAction } from "@/src/actions/usuarios.actions";
 import ModalEditarCuenta from "./ModalEditarCuenta";
 
 interface UsuarioPlain {
@@ -22,6 +22,7 @@ type ModalState =
   | { tipo: "ninguno" }
   | { tipo: "confirmar-eliminar"; usuario: UsuarioPlain }
   | { tipo: "confirmar-eliminar-con-activas"; usuario: UsuarioPlain; cantidadActivas: number }
+  | { tipo: "confirmar-rechazar"; usuario: UsuarioPlain }
   | { tipo: "editar-cuenta"; usuario: UsuarioPlain };
 
 export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
@@ -60,6 +61,11 @@ export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
     setModal({ tipo: "confirmar-eliminar", usuario });
   }
 
+  function abrirConfirmacionRechazar(usuario: UsuarioPlain) {
+    limpiarError(usuario.id);
+    setModal({ tipo: "confirmar-rechazar", usuario });
+  }
+
   function abrirEdicionCuenta(usuario: UsuarioPlain) {
     limpiarError(usuario.id);
     setModal({ tipo: "editar-cuenta", usuario });
@@ -67,6 +73,21 @@ export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
 
   function cerrarModal() {
     setModal({ tipo: "ninguno" });
+  }
+
+  function ejecutarRechazo(usuario: UsuarioPlain) {
+    setAccionandoId(usuario.id);
+    startTransition(async () => {
+      const res = await rechazarCuentaAction(usuario.id);
+      if (!res.success) {
+        setErroresPorUsuario((prev) => ({
+          ...prev,
+          [usuario.id]: res.error ?? "Error al rechazar la cuenta.",
+        }));
+      }
+      cerrarModal();
+      setAccionandoId(null);
+    });
   }
 
   function ejecutarEliminacion(usuario: UsuarioPlain, forzarConActivas: boolean) {
@@ -190,14 +211,24 @@ export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
                       <div className="flex flex-col items-end gap-1.5">
                         <div className="flex items-center justify-end gap-2">
                           {estadoNormalizado === "pendiente" && (
-                            <button
-                              type="button"
-                              disabled={enCurso}
-                              onClick={() => handleAprobar(usuario.id, rolNormalizado)}
-                              className="bg-[#1565C0] text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {enCurso ? "Aprobando..." : "Aprobar"}
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                disabled={enCurso}
+                                onClick={() => handleAprobar(usuario.id, rolNormalizado)}
+                                className="bg-[#1565C0] text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {enCurso ? "Aprobando..." : "Aprobar"}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={enCurso}
+                                onClick={() => abrirConfirmacionRechazar(usuario)}
+                                className="text-amber-700 border border-amber-200 bg-amber-50 hover:bg-amber-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Rechazar
+                              </button>
+                            </>
                           )}
                           <button
                             type="button"
@@ -269,6 +300,26 @@ export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
           loading={isPending}
           onCancel={cerrarModal}
           onConfirm={() => ejecutarEliminacion(modal.usuario, true)}
+        />
+      )}
+
+      {/* Modal: confirmación de rechazo de cuenta (CU-02, Caso A) */}
+      {modal.tipo === "confirmar-rechazar" && (
+        <ConfirmModal
+          titulo="Rechazar cuenta"
+          mensaje={
+            <>
+              ¿Confirmás que querés rechazar la cuenta de{" "}
+              <strong>{modal.usuario.nombre ?? modal.usuario.id}</strong>? La
+              cuenta quedará marcada como <strong>Rechazada</strong> — el
+              registro no se elimina, a diferencia de "Eliminar".
+            </>
+          }
+          confirmLabel="Sí, rechazar"
+          confirmVariant="danger"
+          loading={isPending}
+          onCancel={cerrarModal}
+          onConfirm={() => ejecutarRechazo(modal.usuario)}
         />
       )}
 

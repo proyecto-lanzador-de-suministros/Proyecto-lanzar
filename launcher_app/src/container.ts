@@ -18,6 +18,7 @@ import { ConfirmarRecibidaUseCase } from "./modules/solicitudes/domain/use-cases
 import { ConsultarDetalleSolicitudAdminUseCase } from "./modules/solicitudes/domain/use-cases/ConsultarDetalleSolicitudAdmin.usecase";
 import { PrismaUsuarioRepository } from "./modules/usuarios/infrastructure/adapters/PrismaUsuarioRepository";
 import { AprobarCuentaUseCase } from "./modules/usuarios/domain/use-cases/AprobarCuenta.usecase";
+import { RechazarCuentaUseCase } from "./modules/usuarios/domain/use-cases/RechazarCuenta.usecase";
 import { EliminarCuentaUseCase } from "./modules/usuarios/domain/use-cases/EliminarCuenta.usecase";
 import { ListarUsuariosUseCase } from "./modules/usuarios/domain/use-cases/ListarUsuarios.usecase";
 import { PrismaSolicitudesRepository } from "./modules/solicitudes/infrastructure/adapters/PrismaSolicitudRepository";
@@ -50,6 +51,11 @@ export const cerrarSesionUseCase = new CerrarSesion(authAdapter);
 // ── Usuarios ────────────────────────────────────────────────────────────────
 
 export const aprobarCuentaUseCase = new AprobarCuentaUseCase(
+  usuarioRepository,
+  clerkSyncAdapter,
+);
+
+export const rechazarCuentaUseCase = new RechazarCuentaUseCase(
   usuarioRepository,
   clerkSyncAdapter,
 );
