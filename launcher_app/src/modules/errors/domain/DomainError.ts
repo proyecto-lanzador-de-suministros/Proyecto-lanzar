@@ -14,7 +14,6 @@ export type DomainErrorCode =
   | "CUENTA_NO_APROBADA"
   | "FALTA_ID_BASE"
   | "REMITENTE_NO_SELECCIONADO"
-  | "STOCK_INSUFICIENTE"; // si decidís implementarlo (hallazgo #4)
 
 export class DomainError extends Error {
   constructor(

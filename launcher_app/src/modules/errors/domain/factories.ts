@@ -89,11 +89,4 @@ export const Errores = {
       "REMITENTE_NO_SELECCIONADO",
       "Debe seleccionar un remitente válido.",
     ),
-
-  stockInsuficiente: (productosFaltantes?: string[]) =>
-    new DomainError(
-      "STOCK_INSUFICIENTE",
-      "No hay inventario suficiente para los productos solicitados.",
-      { productosFaltantes },
-    ),
 };
