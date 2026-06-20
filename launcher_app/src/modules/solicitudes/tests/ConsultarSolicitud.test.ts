@@ -78,7 +78,7 @@ describe("ConsultarSolicitud", () => {
         rol: "remitente",
         id_base: "base-007",
       }),
-    ).rejects.toThrow("no está asignada");
+    ).rejects.toThrow("No tenés permiso");
   });
 
   it("lanza error si la solicitud no existe", async () => {

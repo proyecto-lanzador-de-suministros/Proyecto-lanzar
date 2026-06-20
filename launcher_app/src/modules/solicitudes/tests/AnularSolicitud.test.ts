@@ -9,6 +9,7 @@ describe("AnularSolicitudUseCase", () => {
   let repoMock: {
     buscarPorId: ReturnType<typeof vi.fn>;
     guardar: ReturnType<typeof vi.fn>;
+    actualizar: ReturnType<typeof vi.fn>;
   };
   let notifierMock: { notificar: ReturnType<typeof vi.fn> };
   let historialMock: { registrar: ReturnType<typeof vi.fn> };
@@ -16,7 +17,7 @@ describe("AnularSolicitudUseCase", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    repoMock = { buscarPorId: vi.fn(), guardar: vi.fn() };
+    repoMock = { buscarPorId: vi.fn(), guardar: vi.fn(), actualizar: vi.fn() };
     notifierMock = { notificar: vi.fn() };
     historialMock = { registrar: vi.fn() };
     useCase = new AnularSolicitudUseCase(
@@ -42,8 +43,8 @@ describe("AnularSolicitudUseCase", () => {
 
     await useCase.ejecutar("sol-001", "Incumplimiento de normas", "admin-001");
 
-    expect(repoMock.guardar).toHaveBeenCalled();
-    const solicitudGuardada = repoMock.guardar.mock.calls[0][0] as Solicitud;
+    expect(repoMock.actualizar).toHaveBeenCalled();
+    const solicitudGuardada = repoMock.actualizar.mock.calls[0][0] as Solicitud;
     expect(solicitudGuardada.estado).toBe(EstadoSolicitud.Anulada);
     expect(solicitudGuardada.motivoAnulacion).toBe("Incumplimiento de normas");
 

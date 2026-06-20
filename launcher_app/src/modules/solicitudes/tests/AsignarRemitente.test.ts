@@ -11,6 +11,7 @@ describe("AsignarRemitenteUseCase", () => {
   let solicitudRepoMock: {
     buscarPorId: ReturnType<typeof vi.fn>;
     guardar: ReturnType<typeof vi.fn>;
+    actualizar: ReturnType<typeof vi.fn>;
   };
   let usuarioRepoMock: { buscarPorId: ReturnType<typeof vi.fn> };
   let notifierMock: { notificar: ReturnType<typeof vi.fn> };
@@ -19,7 +20,7 @@ describe("AsignarRemitenteUseCase", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    solicitudRepoMock = { buscarPorId: vi.fn(), guardar: vi.fn() };
+    solicitudRepoMock = { buscarPorId: vi.fn(), guardar: vi.fn(), actualizar: vi.fn() };
     usuarioRepoMock = { buscarPorId: vi.fn() };
     notifierMock = { notificar: vi.fn() };
     historialMock = { registrar: vi.fn() };
@@ -50,7 +51,7 @@ describe("AsignarRemitenteUseCase", () => {
 
     await useCase.ejecutar("sol-001", "rem-001", "admin-001");
 
-    const solicitudGuardada = solicitudRepoMock.guardar.mock.calls[0][0] as Solicitud;
+    const solicitudGuardada = solicitudRepoMock.actualizar.mock.calls[0][0] as Solicitud;
     expect(solicitudGuardada.estado).toBe(EstadoSolicitud.Asignada);
     expect(solicitudGuardada.id_base).toBe("rem-001");
 

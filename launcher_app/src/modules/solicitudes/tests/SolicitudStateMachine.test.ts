@@ -38,6 +38,7 @@ function createMocks() {
       buscarPorId: vi.fn(),
       actualizarEstado: vi.fn(),
       guardar: vi.fn(),
+      actualizar: vi.fn(),
       listarPendientes: vi.fn(),
       listarTodas: vi.fn(),
       listarPorSolicitante: vi.fn(),
@@ -418,7 +419,7 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
       ])("anula desde %s exitosamente", async (desde) => {
         mocks.repo.buscarPorId.mockResolvedValue(solicitudEn(desde));
         await expect(anularUC.ejecutar("sol-001", "motivo", "admin-001")).resolves.toBeUndefined();
-        const guardada = mocks.repo.guardar.mock.calls[0][0] as Solicitud;
+        const guardada = mocks.repo.actualizar.mock.calls[0][0] as Solicitud;
         expect(guardada.estado).toBe(EstadoSolicitud.Anulada);
       });
 
