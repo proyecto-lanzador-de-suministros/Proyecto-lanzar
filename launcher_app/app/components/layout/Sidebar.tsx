@@ -21,8 +21,17 @@ const SOLICITANTE_NAV_ITEMS = [
   { label: "Ayuda", href: "/solicitante/ayuda", badge: 0 },
 ];
 
+const REMITENTE_NAV_ITEMS = [
+  { label: "Inicio", href: "/remitente/dashboard", badge: 0 },
+  { label: "Solicitudes", href: "/remitente/solicitudes", badge: 0 },
+  { label: "Mi stock", href: "/remitente/stock", badge: 0 },
+  { label: "Notificaciones", href: "/remitente/notificaciones", badge: 0 },
+  { label: "Perfil", href: "/remitente/perfil", badge: 0 },
+  { label: "Ayuda", href: "/remitente/ayuda", badge: 0 },
+];
+
 export default function Sidebar({ activeHref = "/", role }: SidebarConfig) {
-  const items = role === "solicitante" ? SOLICITANTE_NAV_ITEMS : DEFAULT_NAV_ITEMS;
+  const items = role === "solicitante" ? SOLICITANTE_NAV_ITEMS : role === "remitente" ? REMITENTE_NAV_ITEMS : DEFAULT_NAV_ITEMS;
   const isSolicitante = role === "solicitante";
   return (
     <aside className={`${isSolicitante ? "hidden md:flex" : "flex"} w-56 min-h-screen bg-surface-dark flex flex-col gap-2 p-3 shrink-0`}>
@@ -65,7 +74,7 @@ export default function Sidebar({ activeHref = "/", role }: SidebarConfig) {
           Nuestro equipo está para ayudarte.
         </p>
         <Link
-          href={role === "solicitante" ? "/solicitante/ayuda" : "/ayuda"}
+          href={role === "solicitante" ? "/solicitante/ayuda" : role === "remitente" ? "/remitente/ayuda" : "/ayuda"}
           className="mt-2 w-full py-2 px-3 rounded-lg border border-white/30 bg-transparent text-white text-[13px] text-center cursor-pointer hover:bg-white/10 transition-colors no-underline block"
         >
           Contactar soporte

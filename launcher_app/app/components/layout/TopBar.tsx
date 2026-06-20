@@ -109,12 +109,12 @@ export default function TopBar({
 
           {menuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 text-xs">
-              {role.toLowerCase() === "solicitante" && (
+              {(role.toLowerCase() === "solicitante" || role.toLowerCase() === "remitente") && (
                 <>
                   <button
                     onClick={() => {
                       setMenuOpen(false);
-                      router.push("/solicitante/perfil");
+                      router.push(`/${role.toLowerCase()}/perfil`);
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
                   >
@@ -123,7 +123,7 @@ export default function TopBar({
                   <button
                     onClick={() => {
                       setMenuOpen(false);
-                      router.push("/solicitante/ayuda");
+                      router.push(`/${role.toLowerCase()}/ayuda`);
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
                   >

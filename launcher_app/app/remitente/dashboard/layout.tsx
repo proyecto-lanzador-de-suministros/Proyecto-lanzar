@@ -1,21 +1,9 @@
 // app/remitente/dashboard/layout.tsx
-import DashboardShell from "@/app/components/layout/DashboardShell";
-
-export default function RemitenteLayout({
+// Layout anidado debajo de app/remitente/layout.tsx (sin DashboardShell para evitar doble envoltura)
+export default function RemitenteDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <DashboardShell
-      sidebar={{ activeHref: "/remitente/dashboard" }}
-      topBar={{
-        role: "Remitente",
-        subtitle: "Este es tu panel. Como remitente",
-        notificationCount: 2,
-      }}
-    >
-      {children}
-    </DashboardShell>
-  );
+  return <>{children}</>;
 }
