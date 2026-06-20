@@ -76,6 +76,85 @@ describe("PATCH /api/solicitudes/[id]/estado", () => {
     expect(body.error.code).toBe("NOT_FOUND");
   });
 
+  it("retorna 403 si un remitente intenta cambiar una solicitud que no le pertenece", async () => {
+    const idUsuarioSolicitante = crypto.randomUUID();
+    const idUsuarioRemitente = crypto.randomUUID();
+    const idUsuarioOtroRemitente = crypto.randomUUID();
+    const idSolicitud = crypto.randomUUID();
+
+    await prisma.usuario.create({
+      data: {
+        id_usuario: idUsuarioSolicitante,
+        estado_cuenta: "APROBADA",
+        solicitante: {
+          create: {
+            id_solicitante: idUsuarioSolicitante,
+            nombre: "Test",
+            contacto: "t@t.com",
+          },
+        },
+      },
+    });
+
+    await prisma.usuario.create({
+      data: {
+        id_usuario: idUsuarioRemitente,
+        estado_cuenta: "APROBADA",
+        remitente: {
+          create: {
+            id_remitente: idUsuarioRemitente,
+            nombre_base: "Base A",
+            latitud_base: -34.6,
+            longitud_base: -58.4,
+            capacidad_pista: "Alta",
+          },
+        },
+      },
+    });
+
+    await prisma.usuario.create({
+      data: {
+        id_usuario: idUsuarioOtroRemitente,
+        estado_cuenta: "APROBADA",
+        remitente: {
+          create: {
+            id_remitente: idUsuarioOtroRemitente,
+            nombre_base: "Base B",
+            latitud_base: -34.7,
+            longitud_base: -58.5,
+            capacidad_pista: "Media",
+          },
+        },
+      },
+    });
+
+    await prisma.solicitud.create({
+      data: {
+        id_solicitud: idSolicitud,
+        estado_actual: "Creada",
+        prioridad: "Media",
+        latitud_destino: -38.7,
+        longitud_destino: -62.27,
+        id_solicitante: idUsuarioSolicitante,
+        id_remitente: idUsuarioRemitente,
+      },
+    });
+
+    mockAuth.mockResolvedValue({
+      userId: idUsuarioOtroRemitente,
+      sessionClaims: { metadata: { rol: "remitente" } },
+    });
+
+    const res = await PATCH(
+      crearRequest(idSolicitud, { nuevoEstado: "Asignada" }),
+      crearParams(idSolicitud),
+    );
+
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error.code).toBe("FORBIDDEN");
+  });
+
   it("actualiza el estado de una solicitud como admin", async () => {
     const idUsuario = crypto.randomUUID();
     const idSolicitud = crypto.randomUUID();
@@ -114,5 +193,54 @@ describe("PATCH /api/solicitudes/[id]/estado", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.estado).toBe("Cancelada");
+  });
+
+  it("registra historial cuando la transición cae al flujo genérico", async () => {
+    const idUsuario = crypto.randomUUID();
+    const idSolicitud = crypto.randomUUID();
+
+    await prisma.usuario.create({
+      data: {
+        id_usuario: idUsuario,
+        estado_cuenta: "APROBADA",
+        solicitante: {
+          create: { id_solicitante: idUsuario, nombre: "Test", contacto: "t@t.com" },
+        },
+      },
+    });
+
+    await prisma.solicitud.create({
+      data: {
+        id_solicitud: idSolicitud,
+        estado_actual: "Creada",
+        prioridad: "Media",
+        latitud_destino: -38.7,
+        longitud_destino: -62.27,
+        id_solicitante: idUsuario,
+      },
+    });
+
+    mockAuth.mockResolvedValue({
+      userId: "admin-1",
+      sessionClaims: { metadata: { rol: "admin" } },
+    });
+
+    const res = await PATCH(
+      crearRequest(idSolicitud, { nuevoEstado: "Cancelada" }),
+      crearParams(idSolicitud),
+    );
+
+    expect(res.status).toBe(200);
+
+    const historial = await prisma.historial_Estado.findMany({
+      where: { id_solicitud: idSolicitud },
+    });
+
+    expect(historial).toHaveLength(1);
+    expect(historial[0]).toMatchObject({
+      estado_anterior: "Creada",
+      estado_nuevo: "Cancelada",
+      id_usuario: "admin-1",
+    });
   });
 });

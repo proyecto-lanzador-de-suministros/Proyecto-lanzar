@@ -63,6 +63,7 @@ export async function registrarEnPreparacionAction(solicitudId: string) {
       rol: rol as "remitente" | "admin",
     });
 
+    revalidatePath("/admin/dashboard");
     revalidatePath("/remitente/dashboard");
     return { success: true };
   } catch (error: any) {
@@ -88,6 +89,7 @@ export async function registrarListaAction(solicitudId: string) {
       rol: rol as "remitente" | "admin",
     });
 
+    revalidatePath("/admin/dashboard");
     revalidatePath("/remitente/dashboard");
     return { success: true };
   } catch (error: any) {
@@ -113,6 +115,7 @@ export async function registrarEnCaminoAction(solicitudId: string) {
       rol: rol as "remitente" | "admin",
     });
 
+    revalidatePath("/admin/dashboard");
     revalidatePath("/remitente/dashboard");
     return { success: true };
   } catch (error: any) {
@@ -138,6 +141,7 @@ export async function registrarLanzadaAction(solicitudId: string) {
       rol: rol as "remitente" | "admin",
     });
 
+    revalidatePath("/admin/dashboard");
     revalidatePath("/remitente/dashboard");
     return { success: true };
   } catch (error: any) {
@@ -163,6 +167,7 @@ export async function confirmarRecibidaAction(solicitudId: string) {
       rol: rol as "solicitante" | "admin",
     });
 
+    revalidatePath("/admin/dashboard");
     revalidatePath("/solicitante/dashboard");
     return { success: true };
   } catch (error: any) {
