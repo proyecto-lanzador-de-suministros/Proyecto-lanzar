@@ -1,0 +1,362 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import {
+  consultarStockBaseAction,
+  actualizarStockAction,
+  listarBasesParaStockAction,
+  listarCatalogoProductosAction,
+} from "@/src/actions/stock.actions";
+
+interface StockItemJSON {
+  productoId: string;
+  nombreProducto: string;
+  cantidad_disponible: number;
+  cantidad_reservada: number;
+}
+
+interface BaseOption {
+  id: string;
+  nombre: string;
+}
+
+interface ProductoOption {
+  id_producto: string;
+  nombre: string;
+}
+
+export default function AdminStockPage() {
+  const [bases, setBases] = useState<BaseOption[]>([]);
+  const [baseSeleccionada, setBaseSeleccionada] = useState("");
+  const [stock, setStock] = useState<StockItemJSON[]>([]);
+  const [catalogo, setCatalogo] = useState<ProductoOption[]>([]);
+
+  const [loadingBases, setLoadingBases] = useState(true);
+  const [loadingStock, setLoadingStock] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Edición inline: productoId -> valor del input
+  const [edicionAbsoluta, setEdicionAbsoluta] = useState<Record<string, string>>({});
+  const [edicionDelta, setEdicionDelta] = useState<Record<string, string>>({});
+  const [guardandoProductoId, setGuardandoProductoId] = useState<string | null>(null);
+  const [errorPorProducto, setErrorPorProducto] = useState<Record<string, string>>({});
+
+  // Agregar producto nuevo al stock de la base
+  const [productoAAgregar, setProductoAAgregar] = useState("");
+  const [cantidadAAgregar, setCantidadAAgregar] = useState("");
+
+  useEffect(() => {
+    listarBasesParaStockAction().then((res) => {
+      if (res.success && res.data) setBases(res.data);
+      else setError(res.error ?? "No se pudieron cargar las bases.");
+      setLoadingBases(false);
+    });
+    listarCatalogoProductosAction().then((res) => {
+      if (res.success && res.data) setCatalogo(res.data);
+    });
+  }, []);
+
+  const cargarStock = async (id_base: string) => {
+    setLoadingStock(true);
+    setError(null);
+    const res = await consultarStockBaseAction(id_base);
+    if (res.success && res.data) {
+      setStock(res.data);
+      // Reset de ediciones pendientes al cambiar de base
+      setEdicionAbsoluta({});
+      setEdicionDelta({});
+      setErrorPorProducto({});
+    } else {
+      setError(res.error ?? "No se pudo cargar el stock.");
+      setStock([]);
+    }
+    setLoadingStock(false);
+  };
+
+  const handleSeleccionarBase = (id_base: string) => {
+    setBaseSeleccionada(id_base);
+    if (id_base) cargarStock(id_base);
+    else setStock([]);
+  };
+
+  const handleGuardarAbsoluto = async (productoId: string) => {
+    const valorStr = edicionAbsoluta[productoId];
+    const valor = Number(valorStr);
+
+    if (valorStr === undefined || valorStr.trim() === "" || !Number.isFinite(valor) || valor < 0) {
+      setErrorPorProducto((prev) => ({ ...prev, [productoId]: "Ingresá un número positivo." }));
+      return;
+    }
+
+    setGuardandoProductoId(productoId);
+    setErrorPorProducto((prev) => {
+      const copia = { ...prev };
+      delete copia[productoId];
+      return copia;
+    });
+
+    const res = await actualizarStockAction(baseSeleccionada, productoId, "absoluto", valor);
+
+    if (res.success) {
+      await cargarStock(baseSeleccionada);
+    } else {
+      setErrorPorProducto((prev) => ({ ...prev, [productoId]: res.error ?? "Error al actualizar." }));
+    }
+    setGuardandoProductoId(null);
+  };
+
+  const handleAplicarDelta = async (productoId: string, signo: 1 | -1) => {
+    const valorStr = edicionDelta[productoId];
+    const valorBase = Number(valorStr);
+
+    if (valorStr === undefined || valorStr.trim() === "" || !Number.isFinite(valorBase) || valorBase <= 0) {
+      setErrorPorProducto((prev) => ({ ...prev, [productoId]: "Ingresá un número positivo para sumar o restar." }));
+      return;
+    }
+
+    setGuardandoProductoId(productoId);
+    setErrorPorProducto((prev) => {
+      const copia = { ...prev };
+      delete copia[productoId];
+      return copia;
+    });
+
+    const res = await actualizarStockAction(baseSeleccionada, productoId, "delta", valorBase * signo);
+
+    if (res.success) {
+      await cargarStock(baseSeleccionada);
+      setEdicionDelta((prev) => ({ ...prev, [productoId]: "" }));
+    } else {
+      setErrorPorProducto((prev) => ({ ...prev, [productoId]: res.error ?? "Error al actualizar." }));
+    }
+    setGuardandoProductoId(null);
+  };
+
+  const handleAgregarProducto = async () => {
+    if (!productoAAgregar) return;
+    const valor = Number(cantidadAAgregar);
+
+    if (!Number.isFinite(valor) || valor < 0) {
+      setError("Ingresá una cantidad inicial positiva para el nuevo producto.");
+      return;
+    }
+
+    setGuardandoProductoId(productoAAgregar);
+    const res = await actualizarStockAction(baseSeleccionada, productoAAgregar, "absoluto", valor);
+
+    if (res.success) {
+      await cargarStock(baseSeleccionada);
+      setProductoAAgregar("");
+      setCantidadAAgregar("");
+    } else {
+      setError(res.error ?? "No se pudo agregar el producto.");
+    }
+    setGuardandoProductoId(null);
+  };
+
+  // Productos del catálogo que la base todavía NO tiene cargados en stock
+  const productosDisponiblesParaAgregar = catalogo.filter(
+    (p) => !stock.some((s) => s.productoId === p.id_producto),
+  );
+
+  return (
+    <div className="flex-1 bg-[#F4F6F9] overflow-y-auto">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-8 py-5">
+        <h1 className="text-2xl font-bold text-[#1A1A2E]">Gestión de stock</h1>
+        <p className="text-sm text-[#6B7280] mt-0.5">
+          Consultá y actualizá el inventario de cualquier base remitente.
+        </p>
+      </div>
+
+      <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
+        {/* Selector de base */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
+            Seleccioná una base remitente
+          </label>
+          {loadingBases ? (
+            <div className="animate-pulse h-10 bg-gray-100 rounded-lg w-full max-w-sm" />
+          ) : (
+            <select
+              className="w-full max-w-sm border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1565C0] bg-white"
+              value={baseSeleccionada}
+              onChange={(e) => handleSeleccionarBase(e.target.value)}
+            >
+              <option value="">Seleccionar base...</option>
+              {bases.map((b) => (
+                <option key={b.id} value={b.id}>{b.nombre}</option>
+              ))}
+            </select>
+          )}
+          {bases.length === 0 && !loadingBases && (
+            <p className="text-xs text-[#6B7280] mt-2">No hay bases remitentes registradas todavía.</p>
+          )}
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Tabla de stock */}
+        {baseSeleccionada && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100">
+              <h2 className="text-base font-semibold text-[#1A1A2E]">Inventario</h2>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                Editá el valor absoluto o sumá/restá unidades. Los cambios se guardan al instante.
+              </p>
+            </div>
+
+            {loadingStock ? (
+              <div className="p-10 flex justify-center items-center gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F5A623]" />
+                <span className="text-sm text-[#6B7280]">Cargando stock...</span>
+              </div>
+            ) : stock.length === 0 ? (
+              <div className="p-10 text-center">
+                <p className="text-sm font-medium text-[#1A1A2E]">
+                  Esta base no tiene stock registrado todavía.
+                </p>
+                <p className="text-xs text-[#6B7280] mt-1">
+                  Agregá un producto desde el formulario de abajo para comenzar.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-[#F8FAFC] text-[#6B7280] text-xs uppercase tracking-wider border-b border-gray-100">
+                      <th className="px-6 py-3 font-semibold">Producto</th>
+                      <th className="px-6 py-3 font-semibold">Disponible</th>
+                      <th className="px-6 py-3 font-semibold">Fijar valor</th>
+                      <th className="px-6 py-3 font-semibold">Sumar / Restar</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-sm">
+                    {stock.map((item) => {
+                      const enCurso = guardandoProductoId === item.productoId;
+                      const errorItem = errorPorProducto[item.productoId];
+                      return (
+                        <tr key={item.productoId} className="hover:bg-[#F8FAFC] transition-colors align-top">
+                          <td className="px-6 py-4 font-medium text-[#1A1A2E]">
+                            {item.nombreProducto}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-lg font-bold text-[#1A1A2E]">
+                              {item.cantidad_disponible}
+                            </span>
+                            <span className="text-xs text-[#6B7280] ml-1">unidades</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={0}
+                                placeholder={String(item.cantidad_disponible)}
+                                value={edicionAbsoluta[item.productoId] ?? ""}
+                                onChange={(e) =>
+                                  setEdicionAbsoluta((prev) => ({ ...prev, [item.productoId]: e.target.value }))
+                                }
+                                className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm outline-none focus:border-[#1565C0]"
+                              />
+                              <button
+                                onClick={() => handleGuardarAbsoluto(item.productoId)}
+                                disabled={enCurso}
+                                className="text-[#1565C0] bg-blue-50 hover:bg-[#1565C0] hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                              >
+                                {enCurso ? "..." : "Fijar"}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={0}
+                                placeholder="cantidad"
+                                value={edicionDelta[item.productoId] ?? ""}
+                                onChange={(e) =>
+                                  setEdicionDelta((prev) => ({ ...prev, [item.productoId]: e.target.value }))
+                                }
+                                className="w-20 border border-gray-200 rounded-lg px-2 py-1.5 text-sm outline-none focus:border-[#1565C0]"
+                              />
+                              <button
+                                onClick={() => handleAplicarDelta(item.productoId, 1)}
+                                disabled={enCurso}
+                                title="Sumar al stock"
+                                className="text-[#4CAF50] bg-green-50 hover:bg-[#4CAF50] hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                              >
+                                +
+                              </button>
+                              <button
+                                onClick={() => handleAplicarDelta(item.productoId, -1)}
+                                disabled={enCurso}
+                                title="Restar del stock"
+                                className="text-[#F44336] bg-red-50 hover:bg-[#F44336] hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                              >
+                                −
+                              </button>
+                            </div>
+                          </td>
+                          {errorItem && (
+                            <td colSpan={4} className="px-6 pb-3 -mt-2">
+                              <p className="text-[11px] text-red-600">{errorItem}</p>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Agregar producto nuevo al stock de la base */}
+        {baseSeleccionada && productosDisponiblesParaAgregar.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-base font-semibold text-[#1A1A2E] mb-3">
+              Agregar producto al inventario de esta base
+            </h2>
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="flex-1 min-w-[200px]">
+                <label className="block text-xs text-[#6B7280] mb-1.5">Producto</label>
+                <select
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0] bg-white"
+                  value={productoAAgregar}
+                  onChange={(e) => setProductoAAgregar(e.target.value)}
+                >
+                  <option value="">Seleccionar producto...</option>
+                  {productosDisponiblesParaAgregar.map((p) => (
+                    <option key={p.id_producto} value={p.id_producto}>{p.nombre}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="w-32">
+                <label className="block text-xs text-[#6B7280] mb-1.5">Cantidad inicial</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={cantidadAAgregar}
+                  onChange={(e) => setCantidadAAgregar(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0]"
+                />
+              </div>
+              <button
+                onClick={handleAgregarProducto}
+                disabled={!productoAAgregar || guardandoProductoId === productoAAgregar}
+                className="bg-[#1565C0] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

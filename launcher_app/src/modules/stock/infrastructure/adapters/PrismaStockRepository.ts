@@ -4,7 +4,7 @@
 // Garantiza consistencia con transacciones ACID (ADR-002).
 // ============================================================
 
-import { ForManagingStock, VerificarYReservarInput, VerificarYReservarOutput, LiberarReservaInput } from "../../domain/ports/forManagingStock.port";
+import { ForManagingStock, VerificarYReservarInput, VerificarYReservarOutput, LiberarReservaInput, StockItem } from "../../domain/ports/forManagingStock.port";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 
 export class PrismaStockRepository implements ForManagingStock {
@@ -65,19 +65,48 @@ export class PrismaStockRepository implements ForManagingStock {
   }
 
   /**
-   * Consulta el stock disponible de una base para el remitente.
+   * CU-17: Consulta el stock disponible de una base, incluyendo el nombre
+   * del producto para que la UI no tenga que resolver IDs por separado.
    */
-  async consultarPorBase(id_base: string) {
+  async consultarPorBase(id_base: string): Promise<StockItem[]> {
     const rows = await prisma.stock_Base.findMany({
       where: { id_remitente: id_base },
       include: { producto: true },
+      orderBy: { producto: { nombre: "asc" } },
     });
 
     return rows.map((row) => ({
       productoId: row.id_producto,
+      nombreProducto: row.producto.nombre,
       cantidad_disponible: row.cantidad_disponible,
       cantidad_reservada: 0, // el schema actual no tiene cantidad_reservada
     }));
+  }
+
+  /**
+   * CU-18: Fija la cantidad disponible de un producto en una base.
+   * Si no existe el registro de Stock_Base para esa combinación
+   * (ej. primera carga de stock), lo crea.
+   */
+  async actualizarCantidad(id_base: string, productoId: string, nuevaCantidad: number): Promise<void> {
+    const existente = await prisma.stock_Base.findFirst({
+      where: { id_remitente: id_base, id_producto: productoId },
+    });
+
+    if (existente) {
+      await prisma.stock_Base.update({
+        where: { id_stock: existente.id_stock },
+        data: { cantidad_disponible: nuevaCantidad },
+      });
+    } else {
+      await prisma.stock_Base.create({
+        data: {
+          id_remitente: id_base,
+          id_producto: productoId,
+          cantidad_disponible: nuevaCantidad,
+        },
+      });
+    }
   }
 
   // ── Helpers privados ────────────────────────────────────────────────────

@@ -22,6 +22,8 @@ import { EliminarCuentaUseCase } from "./modules/usuarios/domain/use-cases/Elimi
 import { ListarUsuariosUseCase } from "./modules/usuarios/domain/use-cases/ListarUsuarios.usecase";
 import { PrismaSolicitudesRepository } from "./modules/solicitudes/infrastructure/adapters/PrismaSolicitudRepository";
 import { PrismaStockRepository } from "./modules/stock/infrastructure/adapters/PrismaStockRepository";
+import { ConsultarStockUseCase } from "./modules/stock/domain/use-cases/ConsultarStock.usecase";
+import { ActualizarStockUseCase } from "./modules/stock/domain/use-cases/ActualizarStock.usecase";
 import { PrismaHistorialRepository } from "./modules/historial/infrastructure/adapters/PrismaHistorialRepository";
 import { NotificationServiceAdapter } from "./modules/notificaciones/infrastructure/adapters/NotificationServiceAdapter";
 import { NotificarSolicitudCreada } from "./modules/notificaciones/domain/use-cases/NotificarSolicitudCreada.usecase";
@@ -135,3 +137,9 @@ export const consultarDetalleSolicitudAdminUseCase = new ConsultarDetalleSolicit
   solicitudRepository,
   historialRepository,
 );
+
+// ── Stock ───────────────────────────────────────────────────────────────────
+
+export const consultarStockUseCase = new ConsultarStockUseCase(stockRepository);
+
+export const actualizarStockUseCase = new ActualizarStockUseCase(stockRepository);
