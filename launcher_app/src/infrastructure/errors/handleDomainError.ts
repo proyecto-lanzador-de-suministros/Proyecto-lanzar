@@ -20,12 +20,11 @@ export function handleDomainError(err: unknown): ErrorResponse {
     };
   }
 
-  const message =
-    err instanceof Error ? err.message : "Error interno del servidor.";
+  console.error("[handleDomainError] Error no manejado:", err);
 
   return {
     code: "ERROR_INTERNO",
-    message,
+    message: "Error interno del servidor.",
     httpStatus: 500,
   };
 }
