@@ -16,7 +16,6 @@ export async function crearSolicitudFixture(
       estado_cuenta: "APROBADA",
       solicitante: {
         create: {
-          id_solicitante: idUsuario,
           nombre: "Solicitante Test",
           contacto: "test@test.com",
         },
@@ -51,7 +50,6 @@ export async function seedBaseRemitente(prisma: PrismaClient, overrides?: {
       estado_cuenta: overrides?.estado_cuenta ?? "APROBADA",
       remitente: {
         create: {
-          id_remitente: id,
           nombre_base: overrides?.nombre_base ?? "Base Test",
           latitud_base: -38.7183,
           longitud_base: -62.2663,
