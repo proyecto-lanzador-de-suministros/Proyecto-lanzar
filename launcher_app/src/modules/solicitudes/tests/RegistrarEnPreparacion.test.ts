@@ -86,7 +86,7 @@ describe("RegistrarEnPreparacionUseCase", () => {
         actorId: "rem-001",
         rol: "remitente",
       }),
-    ).rejects.toThrow("No tenés permiso");
+    ).rejects.toMatchObject({ code: "PERMISO_DENEGADO" });
   });
 
   it("lanza error si la solicitud no existe", async () => {
@@ -98,7 +98,7 @@ describe("RegistrarEnPreparacionUseCase", () => {
         actorId: "rem-001",
         rol: "remitente",
       }),
-    ).rejects.toThrow("no encontrada");
+    ).rejects.toMatchObject({ code: "SOLICITUD_NO_ENCONTRADA" });
   });
 
   it("lanza error si la transición de estado es inválida (ej. ya está en camino)", async () => {
@@ -111,6 +111,6 @@ describe("RegistrarEnPreparacionUseCase", () => {
         actorId: "rem-001",
         rol: "remitente",
       }),
-    ).rejects.toThrow("Transición inválida");
+    ).rejects.toMatchObject({ code: "TRANSICION_INVALIDA" });
   });
 });

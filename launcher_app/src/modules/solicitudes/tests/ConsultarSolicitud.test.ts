@@ -63,7 +63,7 @@ describe("ConsultarSolicitud", () => {
         id_usuario: "usr-001",
         rol: "solicitante",
       }),
-    ).rejects.toThrow("No tenés permiso");
+    ).rejects.toMatchObject({ code: "PERMISO_DENEGADO" });
   });
 
   it("remitente puede consultar solicitud asignada a su base", async () => {
@@ -78,7 +78,7 @@ describe("ConsultarSolicitud", () => {
         rol: "remitente",
         id_base: "base-007",
       }),
-    ).rejects.toThrow("No tenés permiso");
+    ).rejects.toMatchObject({ code: "PERMISO_DENEGADO" });
   });
 
   it("lanza error si la solicitud no existe", async () => {
@@ -90,6 +90,6 @@ describe("ConsultarSolicitud", () => {
         id_usuario: "admin-001",
         rol: "admin",
       }),
-    ).rejects.toThrow("no encontrada");
+    ).rejects.toMatchObject({ code: "SOLICITUD_NO_ENCONTRADA" });
   });
 });

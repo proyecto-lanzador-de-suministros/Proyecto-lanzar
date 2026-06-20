@@ -80,7 +80,7 @@ describe("AsignarRemitenteUseCase", () => {
 
     await expect(
       useCase.ejecutar("sol-001", "rem-001", "admin-001"),
-    ).rejects.toThrow("no encontrado");
+    ).rejects.toMatchObject({ code: "REMITENTE_NO_ENCONTRADO" });
   });
 
   it("lanza error si el usuario no tiene rol REMITENTE", async () => {
@@ -90,7 +90,7 @@ describe("AsignarRemitenteUseCase", () => {
 
     await expect(
       useCase.ejecutar("sol-001", "usr-001", "admin-001"),
-    ).rejects.toThrow("no tiene el rol");
+    ).rejects.toMatchObject({ code: "ROL_INVALIDO" });
   });
 
   it("lanza error si el remitente no está aprobado", async () => {
@@ -100,7 +100,7 @@ describe("AsignarRemitenteUseCase", () => {
 
     await expect(
       useCase.ejecutar("sol-001", "rem-001", "admin-001"),
-    ).rejects.toThrow("no está aprobado");
+    ).rejects.toMatchObject({ code: "CUENTA_NO_APROBADA" });
   });
 
   it("lanza error si la solicitud no existe", async () => {
@@ -111,6 +111,6 @@ describe("AsignarRemitenteUseCase", () => {
 
     await expect(
       useCase.ejecutar("sol-001", "rem-001", "admin-001"),
-    ).rejects.toThrow("no encontrada");
+    ).rejects.toMatchObject({ code: "SOLICITUD_NO_ENCONTRADA" });
   });
 });

@@ -68,7 +68,7 @@ describe("AnularSolicitudUseCase", () => {
 
     await expect(
       useCase.ejecutar("no-existe", "motivo", "admin-001"),
-    ).rejects.toThrow("no encontrada");
+    ).rejects.toMatchObject({ code: "SOLICITUD_NO_ENCONTRADA" });
   });
 
   it("lanza error si la solicitud ya está completada", async () => {
@@ -78,7 +78,7 @@ describe("AnularSolicitudUseCase", () => {
 
     await expect(
       useCase.ejecutar("sol-001", "motivo", "admin-001"),
-    ).rejects.toThrow("No se puede anular");
+    ).rejects.toMatchObject({ code: "ESTADO_NO_ANULABLE" });
   });
 
   it("lanza error si la solicitud ya está cancelada", async () => {
@@ -88,7 +88,7 @@ describe("AnularSolicitudUseCase", () => {
 
     await expect(
       useCase.ejecutar("sol-001", "motivo", "admin-001"),
-    ).rejects.toThrow("No se puede anular");
+    ).rejects.toMatchObject({ code: "ESTADO_NO_ANULABLE" });
   });
 
   it("lanza error si la solicitud ya está anulada", async () => {
@@ -98,6 +98,6 @@ describe("AnularSolicitudUseCase", () => {
 
     await expect(
       useCase.ejecutar("sol-001", "motivo", "admin-001"),
-    ).rejects.toThrow("No se puede anular");
+    ).rejects.toMatchObject({ code: "ESTADO_NO_ANULABLE" });
   });
 });

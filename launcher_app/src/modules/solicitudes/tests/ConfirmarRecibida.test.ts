@@ -86,7 +86,7 @@ describe("ConfirmarRecibidaUseCase", () => {
         actorId: "usr-001",
         rol: "solicitante",
       }),
-    ).rejects.toThrow("No tenés permiso");
+    ).rejects.toMatchObject({ code: "PERMISO_DENEGADO" });
   });
 
   it("lanza error si la transición de estado es inválida", async () => {
@@ -99,6 +99,6 @@ describe("ConfirmarRecibidaUseCase", () => {
         actorId: "usr-001",
         rol: "solicitante",
       }),
-    ).rejects.toThrow("Transición inválida");
+    ).rejects.toMatchObject({ code: "TRANSICION_INVALIDA" });
   });
 });

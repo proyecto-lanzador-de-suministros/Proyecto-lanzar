@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Solicitud, EstadoSolicitud, PrioridadSolicitud } from "../domain/entities/Solicitud";
+import { DomainError } from "@/src/modules/errors/domain/DomainError";
 import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
 import type { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
@@ -56,8 +57,8 @@ function createMocks() {
   };
 }
 
-function permisoError(): RegExp {
-  return /(No tenés permiso|No autorizado)/;
+function permisoError() {
+  return { code: "PERMISO_DENEGADO" };
 }
 
 // =============================================================================
@@ -147,7 +148,7 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
       [EstadoSolicitud.EnCamino, EstadoSolicitud.Completada],
     ])("%s -/-> %s lanza error", (desde, destino) => {
       const s = solicitudEn(desde);
-      expect(() => s.avanzarEstado(destino)).toThrow("Transición inválida");
+      expect(() => s.avanzarEstado(destino)).toThrow(DomainError);
     });
   });
 
@@ -168,7 +169,7 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
       [EstadoSolicitud.Lanzada, EstadoSolicitud.Lista],
     ])("%s -/-> %s lanza error", (desde, destino) => {
       const s = solicitudEn(desde);
-      expect(() => s.avanzarEstado(destino)).toThrow("Transición inválida");
+      expect(() => s.avanzarEstado(destino)).toThrow(DomainError);
     });
   });
 
@@ -179,17 +180,17 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
   describe("Destinos exclusivos no accesibles", () => {
     it("Asignada no puede ir a Rechazada (solo desde Creada)", () => {
       const s = solicitudEn(EstadoSolicitud.Asignada);
-      expect(() => s.avanzarEstado(EstadoSolicitud.Rechazada)).toThrow("Transición inválida");
+      expect(() => s.avanzarEstado(EstadoSolicitud.Rechazada)).toThrow(DomainError);
     });
 
     it("EnPreparacion no puede ir a Cancelada (solo desde Creada/Asignada)", () => {
       const s = solicitudEn(EstadoSolicitud.EnPreparacion);
-      expect(() => s.cancelar()).toThrow("No se puede cancelar");
+      expect(() => s.cancelar()).toThrow(DomainError);
     });
 
     it("Lista no puede ir a Cancelada", () => {
       const s = solicitudEn(EstadoSolicitud.Lista);
-      expect(() => s.cancelar()).toThrow("No se puede cancelar");
+      expect(() => s.cancelar()).toThrow(DomainError);
     });
   });
 
@@ -207,20 +208,19 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
 
     it.each(terminales)("%s no permite avanzarEstado()", (terminal) => {
       const s = solicitudEn(terminal);
-      expect(() => s.avanzarEstado(EstadoSolicitud.Creada)).toThrow("Transición inválida");
-      expect(() => s.avanzarEstado(EstadoSolicitud.Asignada)).toThrow("Transición inválida");
-      expect(() => s.avanzarEstado(EstadoSolicitud.EnPreparacion)).toThrow("Transición inválida");
+      expect(() => s.avanzarEstado(EstadoSolicitud.Creada)).toThrow(DomainError);
+      expect(() => s.avanzarEstado(EstadoSolicitud.Asignada)).toThrow(DomainError);
+      expect(() => s.avanzarEstado(EstadoSolicitud.EnPreparacion)).toThrow(DomainError);
     });
 
     it.each(terminales)("%s no permite cancelar()", (terminal) => {
       const s = solicitudEn(terminal);
-      expect(() => s.cancelar()).toThrow(/No se puede cancelar/);
+      expect(() => s.cancelar()).toThrow(DomainError);
     });
 
     it.each(terminales)("%s no permite anular()", (terminal) => {
       const s = solicitudEn(terminal);
-      // Rechazada no está en ESTADOS_NO_ANULABLES, pero transicionarA() la bloquea
-      expect(() => s.anular("motivo")).toThrow(/No se puede anular|Transición inválida/);
+      expect(() => s.anular("motivo")).toThrow(DomainError);
     });
 
     it("estaFinalizada() retorna true para todos los terminales", () => {
@@ -308,14 +308,14 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
         );
         await expect(
           cancelarUC.ejecutar({ id_solicitud: "sol-001", id_usuario: "usr-001", rol: "solicitante" }),
-        ).rejects.toThrow(permisoError());
+        ).rejects.toMatchObject(permisoError());
       });
 
       it("Remitente no autorizado (no está en la tabla canónica)", async () => {
         mocks.repo.buscarPorId.mockResolvedValue(solicitudEn(EstadoSolicitud.Creada));
         await expect(
           cancelarUC.ejecutar({ id_solicitud: "sol-001", id_usuario: "rem-001", rol: "solicitante" }),
-        ).rejects.toThrow(permisoError());
+        ).rejects.toMatchObject(permisoError());
       });
     });
 
@@ -338,7 +338,7 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
         );
         await expect(
           preparacionUC.ejecutar({ solicitudId: "sol-001", actorId: "rem-001", rol: "remitente" }),
-        ).rejects.toThrow(permisoError());
+        ).rejects.toMatchObject(permisoError());
       });
     });
 
@@ -403,7 +403,7 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
         );
         await expect(
           completarUC.ejecutar({ solicitudId: "sol-001", actorId: "usr-001", rol: "solicitante" }),
-        ).rejects.toThrow(permisoError());
+        ).rejects.toMatchObject(permisoError());
       });
     });
 
@@ -426,7 +426,7 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
       it("No permite anular desde estados terminales", async () => {
         for (const terminal of [EstadoSolicitud.Completada, EstadoSolicitud.Cancelada, EstadoSolicitud.Anulada]) {
           mocks.repo.buscarPorId.mockResolvedValue(solicitudEn(terminal));
-          await expect(anularUC.ejecutar("sol-001", "motivo", "admin-001")).rejects.toThrow();
+          await expect(anularUC.ejecutar("sol-001", "motivo", "admin-001")).rejects.toMatchObject({ code: "ESTADO_NO_ANULABLE" });
         }
       });
 

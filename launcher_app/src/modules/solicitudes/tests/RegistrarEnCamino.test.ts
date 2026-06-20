@@ -86,7 +86,7 @@ describe("RegistrarEnCaminoUseCase", () => {
         actorId: "rem-001",
         rol: "remitente",
       }),
-    ).rejects.toThrow("No tenés permiso");
+    ).rejects.toMatchObject({ code: "PERMISO_DENEGADO" });
   });
 
   it("lanza error si la transición de estado es inválida", async () => {
@@ -99,6 +99,6 @@ describe("RegistrarEnCaminoUseCase", () => {
         actorId: "rem-001",
         rol: "remitente",
       }),
-    ).rejects.toThrow("Transición inválida");
+    ).rejects.toMatchObject({ code: "TRANSICION_INVALIDA" });
   });
 });

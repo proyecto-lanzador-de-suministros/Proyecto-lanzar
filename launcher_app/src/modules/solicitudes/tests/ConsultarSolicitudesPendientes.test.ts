@@ -54,6 +54,6 @@ describe("ConsultarSolicitudesPendientes", () => {
   it("lanza error si remitente no proporciona id_base", async () => {
     await expect(
       useCase.ejecutar({ rol: "remitente" }),
-    ).rejects.toThrow("Se requiere id_base");
+    ).rejects.toMatchObject({ code: "FALTA_ID_BASE" });
   });
 });

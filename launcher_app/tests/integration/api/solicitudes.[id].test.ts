@@ -1,4 +1,3 @@
-//solicitudes.[id].test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/src/container", () => ({
@@ -12,6 +11,8 @@ import {
   EstadoSolicitud,
   PrioridadSolicitud,
 } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import { DomainError } from "@/src/modules/errors/domain/DomainError";
+import { ERROR_CODE_TO_STATUS } from "@/src/modules/errors/domain/errorCodeToStatus";
 
 const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
 const mockEjecutar =
@@ -75,7 +76,7 @@ describe("GET /api/solicitudes/[id]", () => {
       sessionClaims: { metadata: { rol: "solicitante" } },
     });
     mockEjecutar.mockRejectedValue(
-      new Error("No tenés permiso para consultar esta solicitud."),
+      new DomainError("PERMISO_DENEGADO", "No tenés permiso para consultar esta solicitud."),
     );
 
     const res = await GET(
@@ -83,9 +84,9 @@ describe("GET /api/solicitudes/[id]", () => {
       crearParams("solicitud-123"),
     );
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(ERROR_CODE_TO_STATUS.PERMISO_DENEGADO);
     const body = await res.json();
-    expect(body.error.code).toBe("FORBIDDEN");
+    expect(body.error.code).toBe("PERMISO_DENEGADO");
   });
 
   it("retorna 404 si la solicitud no existe", async () => {
@@ -93,16 +94,18 @@ describe("GET /api/solicitudes/[id]", () => {
       userId: "user-1",
       sessionClaims: { metadata: { rol: "solicitante" } },
     });
-    mockEjecutar.mockRejectedValue(new Error("Solicitud no encontrada."));
+    mockEjecutar.mockRejectedValue(
+      new DomainError("SOLICITUD_NO_ENCONTRADA", "Solicitud no encontrada."),
+    );
 
     const res = await GET(
       crearRequest("inexistente"),
       crearParams("inexistente"),
     );
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(ERROR_CODE_TO_STATUS.SOLICITUD_NO_ENCONTRADA);
     const body = await res.json();
-    expect(body.error.code).toBe("NOT_FOUND");
+    expect(body.error.code).toBe("SOLICITUD_NO_ENCONTRADA");
   });
 
   it("retorna 200 si admin accede a cualquier solicitud", async () => {
@@ -131,6 +134,6 @@ describe("GET /api/solicitudes/[id]", () => {
 
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.error.code).toBe("INTERNAL_ERROR");
+    expect(body.error.code).toBe("ERROR_INTERNO");
   });
 });

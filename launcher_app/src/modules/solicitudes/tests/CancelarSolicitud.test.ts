@@ -90,7 +90,7 @@ describe("CancelarSolicitud", () => {
 
     await expect(
       useCase.ejecutar({ id_solicitud: "no-existe", id_usuario: "usr-001", rol: "admin" }),
-    ).rejects.toThrow("no encontrada");
+    ).rejects.toMatchObject({ code: "SOLICITUD_NO_ENCONTRADA" });
   });
 
   it("lanza error si solicitante intenta cancelar solicitud ajena", async () => {
@@ -100,7 +100,7 @@ describe("CancelarSolicitud", () => {
 
     await expect(
       useCase.ejecutar({ id_solicitud: "sol-001", id_usuario: "usr-001", rol: "solicitante" }),
-    ).rejects.toThrow("No tenés permiso");
+    ).rejects.toMatchObject({ code: "PERMISO_DENEGADO" });
   });
 
   it("admin puede cancelar cualquier solicitud", async () => {
