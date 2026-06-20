@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { solicitudRepository } from "@/src/container";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import { handleDomainError } from "@/src/infrastructure/errors/handleDomainError";
 
 export async function PATCH(
   request: Request,
@@ -41,11 +42,11 @@ export async function PATCH(
     await solicitudRepository.actualizarEstado(id, solicitud.estado);
 
     return NextResponse.json({ id: solicitud.id_solicitud, estado: solicitud.estado });
-  } catch (error: any) {
-    const isDomainError = error.message?.includes("Transición inválida");
+  } catch (error: unknown) {
+    const { code, message, httpStatus } = handleDomainError(error);
     return NextResponse.json(
-      { error: { code: isDomainError ? "INVALID_TRANSITION" : "INTERNAL_ERROR", message: error.message } },
-      { status: isDomainError ? 422 : 500 }
+      { error: { code, message } },
+      { status: httpStatus }
     );
   }
 }
