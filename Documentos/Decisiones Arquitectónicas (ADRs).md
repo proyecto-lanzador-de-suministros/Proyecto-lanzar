@@ -18,7 +18,7 @@ El sistema requiere gestionar solicitudes de usuarios, control de inventario y e
 | :---- | :---- | :---- |
 | Microservicios (ej. Servicio de Usuarios, Servicio de Cálculo, Servicio de Stock) | Escalabilidad independiente (ej. escalar solo el calculador de trayectorias si hay muchas peticiones). | Exceso de complejidad operativa para un volumen estimado de solo 10 solicitudes concurrentes (RNF2). Añade latencia de red entre servicios que podría poner en riesgo el RNF1. |
 | Funciones Serverless (AWS Lambda / Vercel Functions) | Escalado automático a cero y bajo costo inicial. Ideal para picos de tráfico esporádicos. | El "Cold start" (tiempo de arranque) puede superar los 3 segundos (violando el RNF1). Dificulta mantener conexiones persistentes estables con la base de datos relacional. |
-| **Monolito Modular** | Baja complejidad de despliegue, llamadas a funciones en memoria (cero latencia de red interna) y clara separación lógica. | A medida que crecen las integraciones externas (clima, mapas, notificaciones), los módulos tienden a acoplarse directamente a SDKs y librerías concretas, dificultando el testing y el reemplazo de proveedores (RNF18)  |
+| Monolito Modular | Baja complejidad de despliegue, llamadas a funciones en memoria (cero latencia de red interna) y clara separación lógica. | A medida que crecen las integraciones externas (clima, mapas, notificaciones), los módulos tienden a acoplarse directamente a SDKs y librerías concretas, dificultando el testing y el reemplazo de proveedores (RNF18)  |
 | **Monolito Modular \+ Arquitectura Hexagonal (Elegida)** | Despliegue simple combinado con aislamiento explícito del dominio respecto a servicios externos |  |
 
 ### **3\. Decisión tomada**
@@ -48,7 +48,7 @@ Bajo esta organización, cada servicio externo queda encapsulado en su propio ad
 | Despliegue simple y rápido en un único contenedor o servidor independiente. | Si el módulo de "Calculador de Trayectoria" consume demasiada CPU por la carga matemática, afectará el rendimiento global del servidor (incluyendo el módulo de autenticación). |
 | Facilita mantener la consistencia transaccional estricta (ACID) al compartir la misma conexión a la base de datos común. | Escalar el sistema ante picos puntuales implica duplicar todo el monolito en infraestructura, no solo la sección bajo estrés. |
 | El dominio puede testearse sin dependencias externas reales (mocks de adaptadores) | Requiere disciplina del equipo para respetar los límites entre dominio e infraestructura |
-| Reemplazar un proveedor externo (clima, notificaciones, mapas) implica modificar únicamente su adaptador, sin tocar casos de uso ni entidades | Curva de aprendizaje inicial mayor respecto a un monolito sin estructura interna explícita |
+| Reemplazar un proveedor externo (clima, notificaciones, mapas) implica modificar únicamente su adaptador, sin tocar casos de uso ni entidades | Curva de aprendizaje inicial mayor respecto a un monolito sin estructura interna explícita. El equipo se puede apoyar en documentación interna para mitigar la curva. |
 | Los límites explícitos entre módulos facilitan distribuir el trabajo entre integrantes del equipo | \- |
 
 ## **ADR-002: Persistencia de Datos**
@@ -172,18 +172,19 @@ El sistema debe realizar el cálculo de trayectorias físicas de caída libre co
 
 ### **3\. Decisión tomada**
 
-**Se decide:** Implementar una capa de caché de alto rendimiento en memoria utilizando Redis, almacenando las respuestas climáticas estructuradas bajo llaves geo-indexadas por un tiempo máximo de expiración (TTL) de 15 minutos.  
+**Se decide:** Implementar una capa de caché de alto rendimiento en memoria utilizando Redis, almacenando las respuestas climáticas estructuradas bajo llaves geo-indexadas por un tiempo máximo de expiración (TTL) de 7 minutos.  
 **Fundamentación:**
 
 * Desacopla el flujo de cómputo del rendimiento del proveedor de clima, garantizando respuestas inmediatas de caché ("cache hit") que aseguran cumplir holgadamente el umbral de 3 segundos del RNF1.  
 * Presenta una óptima coherencia y sinergia de arquitectura, reutilizando de forma directa la instancia de servidor de Redis requerida obligatoriamente para las colas asíncronas de notificaciones (\*\*ver ADR-003\*\*), evitando costos o componentes extras de infraestructura.  
-* Provee resiliencia (RNF4): ante caídas de la API de clima, el sistema puede seguir operando cálculos válidos usando el último estado del caché.
+* Provee resiliencia (RNF4): ante caídas de la API de clima, el sistema puede seguir operando cálculos válidos usando el último estado del caché.  
+* Se establece un TTL estricto de 7 minutos porque representa el intervalo mínimo de actualización de la API de clima externa. Este valor equilibra la precisión de los datos para la seguridad operativa y la optimización de las cuotas de peticiones. 
 
 ### **4\. Consecuencias**
 
 | Consecuencias positivas | Trade-offs / costos |
 | :---- | :---- |
-| Latencia de lectura de datos drásticamente reducida y optimización en los costos de consumo de servicios web externos. | Riesgo menor de asimetría de información: si ocurre un evento climático severo súbito dentro de la ventana de los 15 minutos de la caché, el sistema usará datos previos hasta que expire la llave. |
+| Latencia de lectura de datos drásticamente reducida y optimización en los costos de consumo de servicios web externos. | Riesgo menor de asimetría de información: si ocurre un evento climático severo súbito dentro de la ventana de los 7 minutos de la caché, el sistema usará datos previos hasta que expire la llave. |
 | Aislamiento total del Monolito Modular frente a la intermitencia de redes públicas externas. | Aumenta la complejidad lógica del backend en Node.js, obligando a codificar el flujo tradicional de validación de caché ("Cache-Aside Pattern": verificar existencia, leer, retornar o en su defecto consultar origen y escribir en Redis). |
 
 ## **ADR-006: Autenticación y Seguridad**
@@ -224,7 +225,7 @@ Se decide: **Delegar la autenticación, autorización y gestión integral de usu
 
 | ID | Título | Estado | Fecha |
 | :---- | :---- | :---- | :---- |
-| ADR-007 | Estrategia de gestión de sesiones y autenticación de usuarios | Aceptada | 04/06/2026 |
+| ADR-007 | Estrategia de procesamiento para cálculo de trayectoria | Aceptada | 04/06/2026 |
 
 ### **1\. Contexto**
 
@@ -240,7 +241,7 @@ El sistema debe calcular las coordenadas exactas de lanzamiento de un paquete de
 
 ### **3\. Decisión tomada**
 
-**e decide:** Implementar el pipeline del cálculo de trayectoria mediante un enfoque orientado a eventos (*Event-driven*) de ejecución síncrona. El procesamiento se disparará en el momento exacto en que el Remitente cambie el estado del envío a "En preparación", y la petición HTTP se mantendrá abierta hasta que el cálculo finalice.
+**Se decide:** Implementar el pipeline del cálculo de trayectoria mediante un enfoque orientado a eventos (*Event-driven*) de ejecución síncrona. El procesamiento se disparará en el momento exacto en que el Remitente cambie el estado del envío a "En preparación", y la petición HTTP se mantendrá abierta hasta que el cálculo finalice.
 
 **Fundamentación:**
 
