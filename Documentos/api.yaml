@@ -81,18 +81,16 @@ paths:
               $ref: '#/components/schemas/NuevaSolicitudRequest'
       responses:
         '201':
-          description: Solicitud creada exitosamente
+          description: Solicitud creada (el estado indica si fue aprobada o rechazada por stock)
           headers:
             Location:
               description: URL de la nueva solicitud
               schema:
                 type: string
-        '409':
-          description: Conflicto - Stock insuficiente en bases cercanas
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/CrearSolicitudResponse'
 
     get:
       summary: Listar solicitudes (filtrables por estado)
@@ -423,15 +421,29 @@ components:
           type: string
           format: uuid
 
+    CrearSolicitudResponse:
+      type: object
+      properties:
+        solicitud:
+          $ref: '#/components/schemas/Solicitud'
+        asignada:
+          type: boolean
+          description: Indica si se pudo asignar un remitente automáticamente
+        stockFaltante:
+          type: array
+          items:
+            type: string
+          description: IDs de productos sin stock suficiente (solo si asignada es false)
+
     Error:
       type: object
       properties:
         code:
           type: string
-          example: INSUFFICIENT_STOCK
+          example: TRANSICION_INVALIDA
         message:
           type: string
-          example: La base operativa no cuenta con el inventario requerido.
+          example: No se puede cancelar una solicitud en estado "Lanzada".
         details:
           type: array
           items:
