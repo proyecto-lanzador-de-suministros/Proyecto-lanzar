@@ -6,9 +6,14 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
-const testUrl = process.env.DATABASE_URL_TEST;
-if (testUrl) {
-  const adapter = new PrismaPg({ connectionString: testUrl });
-  const testClient = new PrismaClient({ adapter });
-  (globalThis as any).__TEST_PRISMA_CLIENT = testClient;
-}
+// Los tests de integración usan Testcontainers (Postgres plano), no Neon serverless.
+// Reemplazamos el adapter del singleton para que apunte al contenedor de test.
+vi.mock("@/src/infrastructure/db/prisma.client", async () => {
+  const { PrismaPg } = await import("@prisma/adapter-pg");
+  const { PrismaClient } = await import("@/src/generated/prisma");
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL_TEST!,
+  });
+  const prisma = new PrismaClient({ adapter });
+  return { prisma };
+});
