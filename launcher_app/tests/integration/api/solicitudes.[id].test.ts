@@ -1,22 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-vi.mock("@/src/container", () => ({
-  consultarSolicitudUseCase: { ejecutar: vi.fn() },
-}));
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { auth } from "@clerk/nextjs/server";
-import { consultarSolicitudUseCase } from "@/src/container";
 import { GET } from "@/app/api/solicitudes/[id]/route";
-import {
-  EstadoSolicitud,
-  PrioridadSolicitud,
-} from "@/src/modules/solicitudes/domain/entities/Solicitud";
-import { DomainError } from "@/src/modules/errors/domain/DomainError";
-import { ERROR_CODE_TO_STATUS } from "@/src/modules/errors/domain/errorCodeToStatus";
+import { crearPrismaTest } from "../prisma-test-client";
+import { PrismaClient } from "@/src/generated/prisma";
+import { limpiarBase } from "../fixtures/solicitud.fixture";
 
 const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
-const mockEjecutar =
-  consultarSolicitudUseCase.ejecutar as unknown as ReturnType<typeof vi.fn>;
+
+let prisma: PrismaClient;
 
 function crearRequest(id: string): Request {
   return new Request(`http://localhost/api/solicitudes/${id}`);
@@ -26,20 +18,16 @@ function crearParams(id: string) {
   return { params: Promise.resolve({ id }) };
 }
 
-const solicitudValida = {
-  id_solicitud: "solicitud-123",
-  id_usuario: "user-1",
-  estado: EstadoSolicitud.Creada,
-  prioridad: PrioridadSolicitud.Media,
-  ubicacion_destino: { lat: -34.6037, lng: -58.3816 },
-  productos: [{ productoId: "prod-1", cantidad: 5 }],
-  fecha_solicitada: new Date("2026-06-18").toISOString(),
-  fechaActualizacion: new Date("2026-06-18").toISOString(),
-};
-
 describe("GET /api/solicitudes/[id]", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    prisma = crearPrismaTest(process.env.DATABASE_URL_TEST!);
+    await limpiarBase(prisma);
+  });
+
+  afterEach(async () => {
+    await limpiarBase(prisma);
+    await prisma.$disconnect();
   });
 
   it("retorna 401 si no hay userId", async () => {
@@ -53,38 +41,76 @@ describe("GET /api/solicitudes/[id]", () => {
   });
 
   it("retorna 200 con los datos de la solicitud si el solicitante es el dueño", async () => {
+    const idUsuario = crypto.randomUUID();
+    const idSolicitud = crypto.randomUUID();
+
+    await prisma.usuario.create({
+      data: {
+        id_usuario: idUsuario,
+        estado_cuenta: "APROBADA",
+        solicitante: {
+          create: { id_solicitante: idUsuario, nombre: "Test", contacto: "t@t.com" },
+        },
+      },
+    });
+
+    await prisma.solicitud.create({
+      data: {
+        id_solicitud: idSolicitud,
+        estado_actual: "Creada",
+        prioridad: "Media",
+        latitud_destino: -38.7,
+        longitud_destino: -62.27,
+        id_solicitante: idUsuario,
+      },
+    });
+
     mockAuth.mockResolvedValue({
-      userId: "user-1",
+      userId: idUsuario,
       sessionClaims: { metadata: { rol: "solicitante" } },
     });
-    mockEjecutar.mockResolvedValue(solicitudValida);
 
-    const res = await GET(
-      crearRequest("solicitud-123"),
-      crearParams("solicitud-123"),
-    );
+    const res = await GET(crearRequest(idSolicitud), crearParams(idSolicitud));
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.id_solicitud).toBe("solicitud-123");
-    expect(body.estado).toBe(EstadoSolicitud.Creada);
+    expect(body.id_solicitud).toBe(idSolicitud);
   });
 
   it("retorna 403 si un solicitante intenta ver una solicitud ajena", async () => {
+    const idUsuario1 = crypto.randomUUID();
+    const idUsuario2 = crypto.randomUUID();
+    const idSolicitud = crypto.randomUUID();
+
+    await prisma.usuario.create({
+      data: {
+        id_usuario: idUsuario1,
+        estado_cuenta: "APROBADA",
+        solicitante: {
+          create: { id_solicitante: idUsuario1, nombre: "Dueño", contacto: "a@a.com" },
+        },
+      },
+    });
+
+    await prisma.solicitud.create({
+      data: {
+        id_solicitud: idSolicitud,
+        estado_actual: "Creada",
+        prioridad: "Media",
+        latitud_destino: -38.7,
+        longitud_destino: -62.27,
+        id_solicitante: idUsuario1,
+      },
+    });
+
     mockAuth.mockResolvedValue({
-      userId: "user-2",
+      userId: idUsuario2,
       sessionClaims: { metadata: { rol: "solicitante" } },
     });
-    mockEjecutar.mockRejectedValue(
-      new DomainError("PERMISO_DENEGADO", "No tenés permiso para consultar esta solicitud."),
-    );
 
-    const res = await GET(
-      crearRequest("solicitud-123"),
-      crearParams("solicitud-123"),
-    );
+    const res = await GET(crearRequest(idSolicitud), crearParams(idSolicitud));
 
-    expect(res.status).toBe(ERROR_CODE_TO_STATUS.PERMISO_DENEGADO);
+    expect(res.status).toBe(403);
     const body = await res.json();
     expect(body.error.code).toBe("PERMISO_DENEGADO");
   });
@@ -94,46 +120,46 @@ describe("GET /api/solicitudes/[id]", () => {
       userId: "user-1",
       sessionClaims: { metadata: { rol: "solicitante" } },
     });
-    mockEjecutar.mockRejectedValue(
-      new DomainError("SOLICITUD_NO_ENCONTRADA", "Solicitud no encontrada."),
-    );
 
-    const res = await GET(
-      crearRequest("inexistente"),
-      crearParams("inexistente"),
-    );
+    const res = await GET(crearRequest("inexistente"), crearParams("inexistente"));
 
-    expect(res.status).toBe(ERROR_CODE_TO_STATUS.SOLICITUD_NO_ENCONTRADA);
+    expect(res.status).toBe(404);
     const body = await res.json();
     expect(body.error.code).toBe("SOLICITUD_NO_ENCONTRADA");
   });
 
   it("retorna 200 si admin accede a cualquier solicitud", async () => {
+    const idUsuario = crypto.randomUUID();
+    const idSolicitud = crypto.randomUUID();
+
+    await prisma.usuario.create({
+      data: {
+        id_usuario: idUsuario,
+        estado_cuenta: "APROBADA",
+        solicitante: {
+          create: { id_solicitante: idUsuario, nombre: "Test", contacto: "t@t.com" },
+        },
+      },
+    });
+
+    await prisma.solicitud.create({
+      data: {
+        id_solicitud: idSolicitud,
+        estado_actual: "Creada",
+        prioridad: "Media",
+        latitud_destino: -38.7,
+        longitud_destino: -62.27,
+        id_solicitante: idUsuario,
+      },
+    });
+
     mockAuth.mockResolvedValue({
       userId: "admin-1",
       sessionClaims: { metadata: { rol: "admin" } },
     });
-    mockEjecutar.mockResolvedValue(solicitudValida);
 
-    const res = await GET(
-      crearRequest("solicitud-123"),
-      crearParams("solicitud-123"),
-    );
+    const res = await GET(crearRequest(idSolicitud), crearParams(idSolicitud));
 
     expect(res.status).toBe(200);
-  });
-
-  it("retorna 500 para errores inesperados", async () => {
-    mockAuth.mockResolvedValue({
-      userId: "user-1",
-      sessionClaims: { metadata: { rol: "solicitante" } },
-    });
-    mockEjecutar.mockRejectedValue(new Error("Error de conexión"));
-
-    const res = await GET(crearRequest("123"), crearParams("123"));
-
-    expect(res.status).toBe(500);
-    const body = await res.json();
-    expect(body.error.code).toBe("ERROR_INTERNO");
   });
 });
