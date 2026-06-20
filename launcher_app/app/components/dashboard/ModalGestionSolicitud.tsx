@@ -1,7 +1,7 @@
-// Modal para gestionar una solicitud puntual: asignar remitente, cambiar estado, cancelar o anular.
+// Modal para gestionar una solicitud puntual: asignar remitente, avanzar estado, cancelar o anular.
 import React, { useState } from "react";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
-import { ETIQUETAS_ESTADO, ESTADOS_PERMITIDOS, getPrioridadColor, getStatusColor } from "./constants";
+import { ETIQUETAS_ESTADO, TRANSICION_SIGUIENTE, getPrioridadColor, getStatusColor } from "./constants";
 import { RemitenteOption, SolicitudJSON } from "./types";
 
 interface ModalGestionSolicitudProps {
@@ -11,7 +11,7 @@ interface ModalGestionSolicitudProps {
   onAsignarRemitente: (remitenteId: string) => Promise<{ success: boolean; error?: string }>;
   onAnular: () => Promise<{ success: boolean; error?: string }>;
   onCancelar: (motivo?: string) => Promise<{ success: boolean; error?: string }>;
-  onCambiarEstado: (nuevoEstado: EstadoSolicitud) => Promise<{ success: boolean; error?: string }>;
+  onAvanzarEstado: () => Promise<{ success: boolean; error?: string }>;
 }
 
 // Estados desde los que el admin puede cancelar (CU-10): estados tempranos.
@@ -24,9 +24,8 @@ export default function ModalGestionSolicitud({
   onAsignarRemitente,
   onAnular,
   onCancelar,
-  onCambiarEstado,
+  onAvanzarEstado,
 }: ModalGestionSolicitudProps) {
-  const [nuevoEstado, setNuevoEstado] = useState<EstadoSolicitud | "">("");
   const [remitenteSeleccionado, setRemitenteSeleccionado] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [errorModal, setErrorModal] = useState<string | null>(null);
@@ -45,6 +44,12 @@ export default function ModalGestionSolicitud({
     solicitud.estado !== EstadoSolicitud.Cancelada;
 
   const puedeCancelar = ESTADOS_CANCELABLES.has(solicitud.estado);
+
+  // Transición de avance disponible para el estado actual (CU-12 a CU-16).
+  // Si todavía no tiene remitente asignado, primero hay que asignarlo:
+  // no se ofrece "avanzar" para no saltear ese paso.
+  const siguienteTransicion = TRANSICION_SIGUIENTE[solicitud.estado];
+  const puedeAvanzarEstado = !!siguienteTransicion && !puedeAsignarRemitente;
 
   const handleAsignarRemitente = async () => {
     if (!remitenteSeleccionado) return;
@@ -82,11 +87,10 @@ export default function ModalGestionSolicitud({
     setGuardando(false);
   };
 
-  const handleGuardarEstado = async () => {
-    if (!nuevoEstado) return;
+  const handleAvanzarEstado = async () => {
     setGuardando(true);
     setErrorModal(null);
-    const res = await onCambiarEstado(nuevoEstado);
+    const res = await onAvanzarEstado();
     if (!res.success) setErrorModal(res.error ?? "No se pudo actualizar el estado.");
     setGuardando(false);
   };
@@ -206,19 +210,28 @@ export default function ModalGestionSolicitud({
           </div>
         ) : (
           <>
-            <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
-              Cambiar estado a:
-            </label>
-            <select
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-[#1A1A2E] outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0] transition mb-4 bg-white"
-              value={nuevoEstado}
-              onChange={(e) => setNuevoEstado(e.target.value as EstadoSolicitud)}
-            >
-              <option value="">Seleccionar estado...</option>
-              {ESTADOS_PERMITIDOS.filter((e) => e !== solicitud.estado).map((estado) => (
-                <option key={estado} value={estado}>{ETIQUETAS_ESTADO[estado]}</option>
-              ))}
-            </select>
+            {puedeAvanzarEstado && siguienteTransicion ? (
+              <div className="mb-5">
+                <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
+                  Siguiente paso del flujo
+                </label>
+                <button
+                  onClick={handleAvanzarEstado}
+                  disabled={guardando}
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#1565C0] text-white text-sm font-semibold hover:bg-[#0D47A1] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {guardando ? "Procesando..." : siguienteTransicion.label}
+                </button>
+              </div>
+            ) : siguienteTransicion && puedeAsignarRemitente ? (
+              <p className="text-xs text-[#6B7280] bg-gray-50 rounded-lg px-3 py-2.5 mb-5">
+                Asigná una base remitente antes de continuar con el flujo de preparación y envío.
+              </p>
+            ) : (
+              <p className="text-sm text-[#6B7280] mb-5">
+                Esta solicitud no tiene una transición de avance disponible.
+              </p>
+            )}
 
             {errorModal && (
               <p className="text-sm text-[#F44336] bg-red-50 rounded-lg px-3 py-2 mb-4">
@@ -226,21 +239,12 @@ export default function ModalGestionSolicitud({
               </p>
             )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-[#6B7280] hover:bg-gray-50 transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleGuardarEstado}
-                disabled={!nuevoEstado || guardando}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-[#1565C0] text-white text-sm font-semibold hover:bg-[#0D47A1] transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {guardando ? "Guardando..." : "Confirmar cambio"}
-              </button>
-            </div>
+            <button
+              onClick={onClose}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-[#6B7280] hover:bg-gray-50 transition"
+            >
+              Cerrar
+            </button>
 
             <div className="flex gap-2 mt-3">
               {puedeCancelar && (

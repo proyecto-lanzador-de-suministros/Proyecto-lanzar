@@ -6,6 +6,11 @@ import {
   anularSolicitudAction,
   asignarRemitenteAction,
   cancelarSolicitudAction,
+  registrarEnPreparacionAction,
+  registrarListaAction,
+  registrarEnCaminoAction,
+  registrarLanzadaAction,
+  confirmarRecibidaAction,
 } from "@/src/actions/solicitudes.actions";
 import { obtenerRemitentesAprobadosAction } from "@/src/actions/usuarios.actions";
 
@@ -94,27 +99,38 @@ export default function AdminDashboard() {
     return res;
   };
 
-  const handleCambiarEstado = async (nuevoEstado: EstadoSolicitud) => {
+  /**
+   * Avanza la solicitud al siguiente estado del flujo (CU-12 a CU-16),
+   * delegando en el caso de uso específico según el estado actual.
+   * A diferencia del viejo PATCH genérico, cada uno de estos casos de uso
+   * registra el cambio en el historial de auditoría y notifica al
+   * solicitante (o remitente, en CU-16) automáticamente.
+   */
+  const handleAvanzarEstado = async () => {
     if (!modalSolicitud) return { success: false, error: "No hay solicitud seleccionada." };
-    try {
-      const res = await fetch(`/api/solicitudes/${modalSolicitud.id}/estado`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nuevoEstado }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error ?? "No se pudo actualizar el estado.");
-      }
+
+    const accionesPorEstado: Partial<
+      Record<EstadoSolicitud, () => Promise<{ success: boolean; error?: string }>>
+    > = {
+      [EstadoSolicitud.Asignada]: () => registrarEnPreparacionAction(modalSolicitud.id),
+      [EstadoSolicitud.EnPreparacion]: () => registrarListaAction(modalSolicitud.id),
+      [EstadoSolicitud.Lista]: () => registrarEnCaminoAction(modalSolicitud.id),
+      [EstadoSolicitud.EnCamino]: () => registrarLanzadaAction(modalSolicitud.id),
+      [EstadoSolicitud.Lanzada]: () => confirmarRecibidaAction(modalSolicitud.id),
+    };
+
+    const ejecutarAccion = accionesPorEstado[modalSolicitud.estado];
+
+    if (!ejecutarAccion) {
+      return { success: false, error: "No hay una transición disponible para el estado actual." };
+    }
+
+    const res = await ejecutarAccion();
+    if (res.success) {
       await fetchSolicitudes();
       cerrarModal();
-      return { success: true };
-    } catch (err: unknown) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : "Error desconocido.",
-      };
     }
+    return res;
   };
 
   return (
@@ -173,7 +189,7 @@ export default function AdminDashboard() {
           onAsignarRemitente={handleAsignarRemitente}
           onAnular={handleAnular}
           onCancelar={handleCancelar}
-          onCambiarEstado={handleCambiarEstado}
+          onAvanzarEstado={handleAvanzarEstado}
         />
       )}
     </div>

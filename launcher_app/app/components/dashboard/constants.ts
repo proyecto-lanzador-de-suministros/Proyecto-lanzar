@@ -24,19 +24,40 @@ export const ETIQUETAS_ESTADO: Record<EstadoSolicitud, string> = {
   [EstadoSolicitud.Anulada]: "Anulada",
 };
 
-// Estados a los que el admin puede forzar un cambio manual desde el modal.
-// Se excluye el estado actual de la solicitud al renderizar el <select>.
-export const ESTADOS_PERMITIDOS: EstadoSolicitud[] = [
-  EstadoSolicitud.Asignada,
-  EstadoSolicitud.EnPreparacion,
-  EstadoSolicitud.Lista,
-  EstadoSolicitud.EnCamino,
-  EstadoSolicitud.Lanzada,
-  EstadoSolicitud.Completada,
-  EstadoSolicitud.Anulada,
-  EstadoSolicitud.Cancelada,
-  EstadoSolicitud.Rechazada,
-];
+/**
+ * Transición de avance "natural" disponible para cada estado, según la
+ * máquina de estados de la entidad Solicitud (TRANSICIONES_VALIDAS).
+ * Cada estado no terminal tiene como máximo UN avance hacia adelante
+ * (Cancelada/Anulada se gestionan con sus propias acciones dedicadas).
+ *
+ * Reemplaza al viejo selector genérico de "cambiar estado", que permitía
+ * elegir transiciones inválidas y no registraba historial ni notificaba
+ * (CU-12 a CU-16 exigen que cada paso quede auditado y notificado).
+ */
+export const TRANSICION_SIGUIENTE: Partial<
+  Record<EstadoSolicitud, { estado: EstadoSolicitud; label: string }>
+> = {
+  [EstadoSolicitud.Asignada]: {
+    estado: EstadoSolicitud.EnPreparacion,
+    label: "Iniciar preparación", // CU-12
+  },
+  [EstadoSolicitud.EnPreparacion]: {
+    estado: EstadoSolicitud.Lista,
+    label: "Marcar como lista", // CU-13
+  },
+  [EstadoSolicitud.Lista]: {
+    estado: EstadoSolicitud.EnCamino,
+    label: "Registrar en camino", // CU-14
+  },
+  [EstadoSolicitud.EnCamino]: {
+    estado: EstadoSolicitud.Lanzada,
+    label: "Registrar lanzamiento", // CU-15
+  },
+  [EstadoSolicitud.Lanzada]: {
+    estado: EstadoSolicitud.Completada,
+    label: "Confirmar recepción", // CU-16
+  },
+};
 
 export function getStatusColor(estado: EstadoSolicitud): string {
   switch (estado) {
