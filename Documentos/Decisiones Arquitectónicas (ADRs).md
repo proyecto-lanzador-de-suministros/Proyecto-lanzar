@@ -150,7 +150,7 @@ El sistema cuenta con una arquitectura distribuida (Nivel 2 del Modelo C4 de Con
 | Consecuencias positivas | Trade-offs / costos |
 | :---- | :---- |
 | Ciclo de Integración Continua (CI/CD) completamente transparente; cada merge a la rama principal se compila y distribuye sin intervención manual. | Pérdida de control de grano fino sobre los parámetros del sistema operativo base y dependencia de precios elásticos según consumo (riesgo limitado de vendor lock-in). |
-| Los reinicios imprevistos de la plataforma no destruirán sesiones activas de usuarios debido a nuestra estrategia de diseño de autenticación (ver ADR-006). | Los entornos PaaS en planes básicos o gratuitos pueden colocar las instancias en estado suspendido ("dormir") tras inactividad, inyectando latencia alta en la primera petición del día. |
+| Los reinicios imprevistos de la plataforma no destruirán sesiones activas de usuarios debido a nuestra estrategia de diseño de autenticación (ver ADR-006). | Los entornos PaaS en planes básicos o gratuitos pueden colocar las instancias en estado suspendido ('dormir') tras inactividad, inyectando latencia alta en la primera petición del día, lo cual podría violar el RNF1. Como mitigación a futuro, se prevé migrar a un plan pago del proveedor PaaS para eliminar esta restricción una vez que el sistema entre en producción real. |
 
 ## **ADR-005: Estrategia de Caché**
 
