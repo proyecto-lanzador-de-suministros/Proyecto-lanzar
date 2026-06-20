@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AnularSolicitudUseCase } from "../domain/use-cases/AnularSolicitud.usecase";
 import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
 import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
-import type { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
+import { NotificarAnulacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarAnulacion.usecase";
 
 describe("AnularSolicitudUseCase", () => {
   let repoMock: {
@@ -22,7 +22,7 @@ describe("AnularSolicitudUseCase", () => {
     historialMock = { registrar: vi.fn() };
     useCase = new AnularSolicitudUseCase(
       repoMock as unknown as ForManagingSolicitudes,
-      notifierMock as unknown as ForNotifying,
+      new NotificarAnulacion(notifierMock as any),
       historialMock as unknown as ForManagingHistorial,
     );
   });

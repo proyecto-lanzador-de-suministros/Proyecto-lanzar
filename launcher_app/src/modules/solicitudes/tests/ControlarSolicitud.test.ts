@@ -3,19 +3,23 @@ import { ControlarSolicitud } from "../domain/use-cases/ControlarSolicitud.useca
 import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
 import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
 import type { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
+import { NotificarRechazo } from "@/src/modules/notificaciones/domain/use-cases/NotificarRechazo.usecase";
 
 describe("ControlarSolicitud", () => {
   let repoMock: { actualizarEstado: ReturnType<typeof vi.fn> };
   let stockMock: { verificarYReservar: ReturnType<typeof vi.fn> };
+  let notifierMock: { notificar: ReturnType<typeof vi.fn> };
   let useCase: ControlarSolicitud;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repoMock = { actualizarEstado: vi.fn() };
     stockMock = { verificarYReservar: vi.fn() };
+    notifierMock = { notificar: vi.fn() };
     useCase = new ControlarSolicitud(
       repoMock as unknown as ForManagingSolicitudes,
       stockMock as unknown as ForManagingStock,
+      new NotificarRechazo(notifierMock as any),
     );
   });
 
@@ -65,7 +69,20 @@ describe("ControlarSolicitud", () => {
   });
 
   it.todo("notifica NotificarAsignacion al solicitante cuando hay stock");
-  it.todo("notifica NotificarRechazo al solicitante cuando no hay stock");
+  it("notifica NotificarRechazo al solicitante cuando no hay stock", async () => {
+    stockMock.verificarYReservar.mockResolvedValue({
+      disponible: false,
+      productosFaltantes: ["prod-001"],
+    });
+
+    await useCase.ejecutar(solicitudDePrueba());
+
+    expect(notifierMock.notificar).toHaveBeenCalledWith({
+      destinatario: "usr-001",
+      solicitudId: "sol-001",
+      estado: EstadoSolicitud.Rechazada,
+    });
+  });
 
   it("no asigna id_base en actualizarEstado cuando el stock rechaza", async () => {
     stockMock.verificarYReservar.mockResolvedValue({

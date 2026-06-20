@@ -2,8 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Solicitud, EstadoSolicitud, PrioridadSolicitud } from "../domain/entities/Solicitud";
 import { DomainError } from "@/src/modules/errors/domain/DomainError";
 import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
-import type { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
+import type { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
+import { NotificarEnPreparacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarEnPreparacion.usecase";
+import { NotificarLista } from "@/src/modules/notificaciones/domain/use-cases/NotificarLista.usecase";
+import { NotificarEnCamino } from "@/src/modules/notificaciones/domain/use-cases/NotificarEnCamino.usecase";
+import { NotificarLanzada } from "@/src/modules/notificaciones/domain/use-cases/NotificarLanzada.usecase";
+import { NotificarRecepcion } from "@/src/modules/notificaciones/domain/use-cases/NotificarRecepcion.usecase";
+import { NotificarAnulacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarAnulacion.usecase";
 import type { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
 
 import { RegistrarEnPreparacionUseCase } from "../domain/use-cases/RegistrarEnPreparacion.usecase";
@@ -281,12 +287,12 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
       vi.clearAllMocks();
       mocks = createMocks();
       cancelarUC = new CancelarSolicitud(mocks.repo, mocks.stock);
-      preparacionUC = new RegistrarEnPreparacionUseCase(mocks.repo, mocks.notifier, mocks.historial);
-      listoUC = new RegistrarListaUseCase(mocks.repo, mocks.notifier, mocks.historial);
-      caminoUC = new RegistrarEnCaminoUseCase(mocks.repo, mocks.notifier, mocks.historial);
-      lanzadaUC = new RegistrarLanzadaUseCase(mocks.repo, mocks.notifier, mocks.historial);
-      completarUC = new ConfirmarRecibidaUseCase(mocks.repo, mocks.notifier, mocks.historial);
-      anularUC = new AnularSolicitudUseCase(mocks.repo, mocks.notifier, mocks.historial);
+      preparacionUC = new RegistrarEnPreparacionUseCase(mocks.repo, new NotificarEnPreparacion(mocks.notifier as any), mocks.historial);
+      listoUC = new RegistrarListaUseCase(mocks.repo, new NotificarLista(mocks.notifier as any), mocks.historial);
+      caminoUC = new RegistrarEnCaminoUseCase(mocks.repo, new NotificarEnCamino(mocks.notifier as any), mocks.historial);
+      lanzadaUC = new RegistrarLanzadaUseCase(mocks.repo, new NotificarLanzada(mocks.notifier as any), mocks.historial);
+      completarUC = new ConfirmarRecibidaUseCase(mocks.repo, new NotificarRecepcion(mocks.notifier as any), mocks.historial);
+      anularUC = new AnularSolicitudUseCase(mocks.repo, new NotificarAnulacion(mocks.notifier as any), mocks.historial);
     });
 
     // ── Creada/Asignada → Cancelada ────────────────────────────────────────

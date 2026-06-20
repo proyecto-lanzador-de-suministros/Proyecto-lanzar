@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ConfirmarRecibidaUseCase } from "../domain/use-cases/ConfirmarRecibida.usecase";
 import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
 import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
-import type { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
+import { NotificarRecepcion } from "@/src/modules/notificaciones/domain/use-cases/NotificarRecepcion.usecase";
 
 describe("ConfirmarRecibidaUseCase", () => {
   let repoMock: {
@@ -21,7 +21,7 @@ describe("ConfirmarRecibidaUseCase", () => {
     historialMock = { registrar: vi.fn() };
     useCase = new ConfirmarRecibidaUseCase(
       repoMock as unknown as ForManagingSolicitudes,
-      notifierMock as unknown as ForNotifying,
+      new NotificarRecepcion(notifierMock as any),
       historialMock as unknown as ForManagingHistorial,
     );
   });

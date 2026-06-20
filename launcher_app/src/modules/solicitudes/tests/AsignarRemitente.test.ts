@@ -4,8 +4,8 @@ import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entiti
 import { Usuario } from "@/src/modules/usuarios/domain/entities/Usuario";
 import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
 import type { ForManagingUsuarios } from "@/src/modules/usuarios/domain/ports/forManagingUsuarios.port";
-import type { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
+import { NotificarAsignacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarAsignacion.usecase";
 
 describe("AsignarRemitenteUseCase", () => {
   let solicitudRepoMock: {
@@ -27,7 +27,7 @@ describe("AsignarRemitenteUseCase", () => {
     useCase = new AsignarRemitenteUseCase(
       solicitudRepoMock as unknown as ForManagingSolicitudes,
       usuarioRepoMock as unknown as ForManagingUsuarios,
-      notifierMock as unknown as ForNotifying,
+      new NotificarAsignacion(notifierMock as any),
       historialMock as unknown as ForManagingHistorial,
     );
   });
