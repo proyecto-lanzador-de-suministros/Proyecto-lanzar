@@ -5,6 +5,7 @@ import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solic
 import {
   anularSolicitudAction,
   asignarRemitenteAction,
+  cancelarSolicitudAction,
 } from "@/src/actions/solicitudes.actions";
 import { obtenerRemitentesAprobadosAction } from "@/src/actions/usuarios.actions";
 
@@ -76,6 +77,16 @@ export default function AdminDashboard() {
     const formData = new FormData();
     formData.append("motivo", "Anulada por administrador");
     const res = await anularSolicitudAction(modalSolicitud.id, formData);
+    if (res.success) {
+      await fetchSolicitudes();
+      cerrarModal();
+    }
+    return res;
+  };
+
+  const handleCancelar = async (motivo?: string) => {
+    if (!modalSolicitud) return { success: false, error: "No hay solicitud seleccionada." };
+    const res = await cancelarSolicitudAction(modalSolicitud.id, motivo);
     if (res.success) {
       await fetchSolicitudes();
       cerrarModal();
@@ -161,6 +172,7 @@ export default function AdminDashboard() {
           onClose={cerrarModal}
           onAsignarRemitente={handleAsignarRemitente}
           onAnular={handleAnular}
+          onCancelar={handleCancelar}
           onCambiarEstado={handleCambiarEstado}
         />
       )}

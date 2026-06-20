@@ -520,4 +520,52 @@ export async function obtenerProductosAction() {
   } catch (error: any) {
     return { success: false, error: error.message };
   }
+
+  
+
+}
+/**
+ * Consulta el detalle completo de una solicitud para el panel admin,
+ * incluyendo el historial de cambios de estado (CU-20).
+ * Solo accesible por admin.
+ */
+export async function consultarDetalleSolicitudAdminAction(solicitudId: string) {
+  const { userId, sessionClaims } = await auth();
+  const rol = sessionClaims?.metadata?.rol;
+
+  if (!userId || rol !== "admin") {
+    return { success: false, error: "No autorizado. Se requiere rol admin." };
+  }
+
+  try {
+    const { consultarDetalleSolicitudAdminUseCase } = await import("../container");
+    const { solicitud, historial } = await consultarDetalleSolicitudAdminUseCase.ejecutar(solicitudId);
+
+    return {
+      success: true,
+      data: {
+        id: solicitud.id_solicitud,
+        solicitanteId: solicitud.id_usuario,
+        remitenteId: solicitud.id_base,
+        ubicacion_destino: solicitud.ubicacion_destino,
+        prioridad: solicitud.prioridad,
+        productos: solicitud.productos,
+        estado: solicitud.estado,
+        motivoCancelacion: solicitud.motivoCancelacion,
+        motivoAnulacion: solicitud.motivoAnulacion,
+        fechaSolicitada: solicitud.fecha_solicitada.toISOString(),
+        fechaActualizacion: solicitud.fechaActualizacion.toISOString(),
+        fechaEntrega: solicitud.fecha_entrega ? solicitud.fecha_entrega.toISOString() : undefined,
+        historial: historial.map((h) => ({
+          id: h.id,
+          actorId: h.actorId,
+          estadoAnterior: h.estadoAnterior,
+          estadoNuevo: h.estadoNuevo,
+          fechaHora: h.fechaHora.toISOString(),
+        })),
+      },
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }

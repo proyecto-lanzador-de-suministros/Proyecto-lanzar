@@ -1,5 +1,6 @@
 // Tabla principal de gestión de solicitudes del dashboard de admin.
 import React from "react";
+import Link from "next/link";
 import { ETIQUETAS_ESTADO, getPrioridadColor, getStatusColor } from "./constants";
 import { SolicitudJSON } from "./types";
 
@@ -89,13 +90,21 @@ export default function TablaSolicitudes({
                       {ETIQUETAS_ESTADO[sol.estado]}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => onGestionar(sol)}
-                      className="text-[#1565C0] bg-blue-50 hover:bg-[#1565C0] hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                    >
-                      Gestionar
-                    </button>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <Link
+                        href={`/admin/solicitudes/${sol.id}`}
+                        className="text-[#6B7280] bg-gray-50 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                      >
+                        Ver detalle
+                      </Link>
+                      <button
+                        onClick={() => onGestionar(sol)}
+                        className="text-[#1565C0] bg-blue-50 hover:bg-[#1565C0] hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                      >
+                        Gestionar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

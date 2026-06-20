@@ -8,10 +8,22 @@ export interface RegistrarHistorialParams {
   motivo?: string;
 }
 
+export interface HistorialEntry {
+  id: string;
+  solicitudId: string;
+  actorId: string;
+  estadoAnterior: EstadoSolicitud;
+  estadoNuevo: EstadoSolicitud;
+  fechaHora: Date;
+}
+
 /**
- * Puerto de salida. Define la interfaz para registrar cambios de estado
+ * Puerto de salida. Define la interfaz para registrar y consultar cambios de estado
  * en el historial de auditoría de solicitudes.
  */
 export interface ForManagingHistorial {
   registrar(params: RegistrarHistorialParams): Promise<void>;
+
+  /** CU-20: lista el historial de cambios de estado de una solicitud, ordenado cronológicamente. */
+  listarPorSolicitud(solicitudId: string): Promise<HistorialEntry[]>;
 }

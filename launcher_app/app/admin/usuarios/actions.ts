@@ -4,6 +4,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 import { aprobarCuentaUseCase } from "@/src/container";
+import type { Prisma } from "../../../src/generated/prisma";
 
 /**
  * Aprueba una cuenta de usuario (CU-02).
@@ -23,7 +24,7 @@ export async function aprobarUsuario(userId: string, rol: string) {
 
   // 1. Crear el registro base del usuario y el perfil por rol en Postgres
   //    (esto es infraestructura específica de Clerk que el dominio no puede hacer)
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     await tx.usuario.upsert({
       where: { id_usuario: userId },
       update: {},

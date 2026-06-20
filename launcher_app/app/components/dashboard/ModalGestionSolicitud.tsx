@@ -1,4 +1,4 @@
-// Modal para gestionar una solicitud puntual: asignar remitente, cambiar estado o anular.
+// Modal para gestionar una solicitud puntual: asignar remitente, cambiar estado, cancelar o anular.
 import React, { useState } from "react";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { ETIQUETAS_ESTADO, ESTADOS_PERMITIDOS, getPrioridadColor, getStatusColor } from "./constants";
@@ -10,8 +10,12 @@ interface ModalGestionSolicitudProps {
   onClose: () => void;
   onAsignarRemitente: (remitenteId: string) => Promise<{ success: boolean; error?: string }>;
   onAnular: () => Promise<{ success: boolean; error?: string }>;
+  onCancelar: (motivo?: string) => Promise<{ success: boolean; error?: string }>;
   onCambiarEstado: (nuevoEstado: EstadoSolicitud) => Promise<{ success: boolean; error?: string }>;
 }
+
+// Estados desde los que el admin puede cancelar (CU-10): estados tempranos.
+const ESTADOS_CANCELABLES = new Set([EstadoSolicitud.Creada, EstadoSolicitud.Asignada]);
 
 export default function ModalGestionSolicitud({
   solicitud,
@@ -19,12 +23,17 @@ export default function ModalGestionSolicitud({
   onClose,
   onAsignarRemitente,
   onAnular,
+  onCancelar,
   onCambiarEstado,
 }: ModalGestionSolicitudProps) {
   const [nuevoEstado, setNuevoEstado] = useState<EstadoSolicitud | "">("");
   const [remitenteSeleccionado, setRemitenteSeleccionado] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [errorModal, setErrorModal] = useState<string | null>(null);
+
+  // Estado del flujo de cancelación (CU-10, paso 2: motivo opcional)
+  const [mostrandoCancelacion, setMostrandoCancelacion] = useState(false);
+  const [motivoCancelacion, setMotivoCancelacion] = useState("");
 
   const puedeAsignarRemitente =
     !solicitud.remitenteId &&
@@ -34,6 +43,8 @@ export default function ModalGestionSolicitud({
     solicitud.estado !== EstadoSolicitud.Completada &&
     solicitud.estado !== EstadoSolicitud.Anulada &&
     solicitud.estado !== EstadoSolicitud.Cancelada;
+
+  const puedeCancelar = ESTADOS_CANCELABLES.has(solicitud.estado);
 
   const handleAsignarRemitente = async () => {
     if (!remitenteSeleccionado) return;
@@ -50,6 +61,24 @@ export default function ModalGestionSolicitud({
     setErrorModal(null);
     const res = await onAnular();
     if (!res.success) setErrorModal(res.error ?? "Error al anular.");
+    setGuardando(false);
+  };
+
+  const handleAbrirCancelacion = () => {
+    setErrorModal(null);
+    setMostrandoCancelacion(true);
+  };
+
+  const handleConfirmarCancelacion = async () => {
+    setGuardando(true);
+    setErrorModal(null);
+    const res = await onCancelar(motivoCancelacion.trim() || undefined);
+    if (!res.success) {
+      setErrorModal(res.error ?? "Error al cancelar la solicitud.");
+    } else {
+      setMostrandoCancelacion(false);
+      setMotivoCancelacion("");
+    }
     setGuardando(false);
   };
 
@@ -142,50 +171,98 @@ export default function ModalGestionSolicitud({
           </div>
         )}
 
-        <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
-          Cambiar estado a:
-        </label>
-        <select
-          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-[#1A1A2E] outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0] transition mb-4 bg-white"
-          value={nuevoEstado}
-          onChange={(e) => setNuevoEstado(e.target.value as EstadoSolicitud)}
-        >
-          <option value="">Seleccionar estado...</option>
-          {ESTADOS_PERMITIDOS.filter((e) => e !== solicitud.estado).map((estado) => (
-            <option key={estado} value={estado}>{ETIQUETAS_ESTADO[estado]}</option>
-          ))}
-        </select>
+        {/* Flujo de cancelación (CU-10): se abre inline, no es un modal anidado */}
+        {mostrandoCancelacion ? (
+          <div className="mb-6 bg-amber-50 p-4 rounded-xl border border-amber-200">
+            <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
+              Motivo de cancelación (opcional):
+            </label>
+            <textarea
+              value={motivoCancelacion}
+              onChange={(e) => setMotivoCancelacion(e.target.value)}
+              placeholder="Ej: el solicitante pidió cancelar por error en el destino..."
+              rows={3}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 bg-white mb-3"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setMostrandoCancelacion(false);
+                  setMotivoCancelacion("");
+                }}
+                disabled={guardando}
+                className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-[#6B7280] hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Volver
+              </button>
+              <button
+                onClick={handleConfirmarCancelacion}
+                disabled={guardando}
+                className="flex-1 px-3 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition disabled:opacity-50"
+              >
+                {guardando ? "Cancelando..." : "Confirmar cancelación"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
+              Cambiar estado a:
+            </label>
+            <select
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-[#1A1A2E] outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0] transition mb-4 bg-white"
+              value={nuevoEstado}
+              onChange={(e) => setNuevoEstado(e.target.value as EstadoSolicitud)}
+            >
+              <option value="">Seleccionar estado...</option>
+              {ESTADOS_PERMITIDOS.filter((e) => e !== solicitud.estado).map((estado) => (
+                <option key={estado} value={estado}>{ETIQUETAS_ESTADO[estado]}</option>
+              ))}
+            </select>
 
-        {errorModal && (
-          <p className="text-sm text-[#F44336] bg-red-50 rounded-lg px-3 py-2 mb-4">
-            {errorModal}
-          </p>
-        )}
+            {errorModal && (
+              <p className="text-sm text-[#F44336] bg-red-50 rounded-lg px-3 py-2 mb-4">
+                {errorModal}
+              </p>
+            )}
 
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-[#6B7280] hover:bg-gray-50 transition"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleGuardarEstado}
-            disabled={!nuevoEstado || guardando}
-            className="flex-1 px-4 py-2.5 rounded-lg bg-[#1565C0] text-white text-sm font-semibold hover:bg-[#0D47A1] transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {guardando ? "Guardando..." : "Confirmar cambio"}
-          </button>
-        </div>
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-[#6B7280] hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleGuardarEstado}
+                disabled={!nuevoEstado || guardando}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-[#1565C0] text-white text-sm font-semibold hover:bg-[#0D47A1] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {guardando ? "Guardando..." : "Confirmar cambio"}
+              </button>
+            </div>
 
-        {puedeAnular && (
-          <button
-            onClick={handleAnular}
-            disabled={guardando}
-            className="mt-3 w-full px-4 py-2.5 rounded-lg border border-red-200 text-red-600 bg-red-50 text-sm font-semibold hover:bg-red-600 hover:text-white transition disabled:opacity-50"
-          >
-            Anular solicitud
-          </button>
+            <div className="flex gap-2 mt-3">
+              {puedeCancelar && (
+                <button
+                  onClick={handleAbrirCancelacion}
+                  disabled={guardando}
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-amber-200 text-amber-700 bg-amber-50 text-sm font-semibold hover:bg-amber-500 hover:text-white transition disabled:opacity-50"
+                >
+                  Cancelar solicitud
+                </button>
+              )}
+              {puedeAnular && (
+                <button
+                  onClick={handleAnular}
+                  disabled={guardando}
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-red-200 text-red-600 bg-red-50 text-sm font-semibold hover:bg-red-600 hover:text-white transition disabled:opacity-50"
+                >
+                  Anular solicitud
+                </button>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

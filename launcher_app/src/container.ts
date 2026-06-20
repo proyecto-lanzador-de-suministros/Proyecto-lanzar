@@ -15,6 +15,7 @@ import { RegistrarListaUseCase } from "./modules/solicitudes/domain/use-cases/Re
 import { RegistrarEnCaminoUseCase } from "./modules/solicitudes/domain/use-cases/RegistrarEnCamino.usecase";
 import { RegistrarLanzadaUseCase } from "./modules/solicitudes/domain/use-cases/RegistrarLanzada.usecase";
 import { ConfirmarRecibidaUseCase } from "./modules/solicitudes/domain/use-cases/ConfirmarRecibida.usecase";
+import { ConsultarDetalleSolicitudAdminUseCase } from "./modules/solicitudes/domain/use-cases/ConsultarDetalleSolicitudAdmin.usecase";
 import { PrismaUsuarioRepository } from "./modules/usuarios/infrastructure/adapters/PrismaUsuarioRepository";
 import { AprobarCuentaUseCase } from "./modules/usuarios/domain/use-cases/AprobarCuenta.usecase";
 import { EliminarCuentaUseCase } from "./modules/usuarios/domain/use-cases/EliminarCuenta.usecase";
@@ -127,5 +128,10 @@ export const registrarLanzadaUseCase = new RegistrarLanzadaUseCase(
 export const confirmarRecibidaUseCase = new ConfirmarRecibidaUseCase(
   solicitudRepository,
   notificationAdapter,
+  historialRepository,
+);
+
+export const consultarDetalleSolicitudAdminUseCase = new ConsultarDetalleSolicitudAdminUseCase(
+  solicitudRepository,
   historialRepository,
 );
