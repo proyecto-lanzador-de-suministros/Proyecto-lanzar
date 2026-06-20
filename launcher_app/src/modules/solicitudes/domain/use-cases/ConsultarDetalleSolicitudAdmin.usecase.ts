@@ -5,6 +5,7 @@
 // solicitud junto con su historial completo de cambios de estado.
 // ============================================================
 
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { ForManagingHistorial, HistorialEntry } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 import { Solicitud } from "../entities/Solicitud";
@@ -24,7 +25,7 @@ export class ConsultarDetalleSolicitudAdminUseCase {
     const solicitud = await this.solicitudRepository.buscarPorId(solicitudId);
 
     if (!solicitud) {
-      throw new Error(`Solicitud ${solicitudId} no encontrada.`);
+      throw Errores.solicitudNoEncontrada(solicitudId);
     }
 
     const historial = await this.historialRepository.listarPorSolicitud(solicitudId);

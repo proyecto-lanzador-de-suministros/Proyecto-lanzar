@@ -1,3 +1,4 @@
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
@@ -21,7 +22,7 @@ export class AnularSolicitudUseCase {
     const solicitud = await this.solicitudRepository.buscarPorId(solicitudId);
 
     if (!solicitud) {
-      throw new Error(`Solicitud con ID ${solicitudId} no encontrada.`);
+      throw Errores.solicitudNoEncontrada(solicitudId);
     }
 
     const estadoAnterior = solicitud.estado;
@@ -30,7 +31,7 @@ export class AnularSolicitudUseCase {
     solicitud.anular(motivo);
 
     // Persistir el nuevo estado
-    await this.solicitudRepository.guardar(solicitud);
+    await this.solicitudRepository.actualizar(solicitud);
 
     // Registrar en el historial de auditoría (CU-11, paso 5)
     await this.historial.registrar({

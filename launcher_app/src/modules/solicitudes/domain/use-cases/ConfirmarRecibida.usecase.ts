@@ -1,3 +1,4 @@
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
@@ -27,12 +28,12 @@ export class ConfirmarRecibidaUseCase {
     const solicitud = await this.solicitudRepository.buscarPorId(solicitudId);
 
     if (!solicitud) {
-      throw new Error(`Solicitud con ID ${solicitudId} no encontrada.`);
+      throw Errores.solicitudNoEncontrada(solicitudId);
     }
 
     // Verificar permisos: si es solicitante, debe ser el dueño de la solicitud
     if (rol === "solicitante" && solicitud.id_usuario !== actorId) {
-      throw new Error("No tenés permiso para confirmar la recepción de esta solicitud.");
+      throw Errores.permisoDenegado("solicitante", rol);
     }
 
     const estadoAnterior = solicitud.estado;

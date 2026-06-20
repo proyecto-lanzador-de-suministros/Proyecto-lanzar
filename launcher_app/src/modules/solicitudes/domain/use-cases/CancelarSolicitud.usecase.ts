@@ -4,6 +4,7 @@
 // Libera el stock reservado si la solicitud tenía base asignada.
 // ============================================================
 
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { Solicitud } from "../entities/Solicitud";
 import { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
@@ -28,12 +29,12 @@ export class CancelarSolicitud {
     const solicitud = await this.repo.buscarPorId(input.id_solicitud);
 
     if (!solicitud) {
-      throw new Error(`Solicitud ${input.id_solicitud} no encontrada.`);
+      throw Errores.solicitudNoEncontrada(input.id_solicitud);
     }
 
     // 2. Verificar pertenencia si es solicitante
     if (input.rol === "solicitante" && solicitud.id_usuario !== input.id_usuario) {
-      throw new Error("No tenés permiso para cancelar esta solicitud.");
+      throw Errores.permisoDenegado("solicitante", input.rol);
     }
 
     // 3. La entidad valida que el estado permita cancelación

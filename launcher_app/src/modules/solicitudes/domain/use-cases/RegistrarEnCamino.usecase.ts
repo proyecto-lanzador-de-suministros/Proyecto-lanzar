@@ -1,3 +1,4 @@
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
@@ -27,12 +28,12 @@ export class RegistrarEnCaminoUseCase {
     const solicitud = await this.solicitudRepository.buscarPorId(solicitudId);
 
     if (!solicitud) {
-      throw new Error(`Solicitud con ID ${solicitudId} no encontrada.`);
+      throw Errores.solicitudNoEncontrada(solicitudId);
     }
 
     // Verificar permisos: si es remitente, debe ser el asignado a la solicitud
     if (rol === "remitente" && solicitud.id_base !== actorId) {
-      throw new Error("No tenés permiso para marcar como en camino esta solicitud.");
+      throw Errores.permisoDenegado("remitente", rol);
     }
 
     const estadoAnterior = solicitud.estado;

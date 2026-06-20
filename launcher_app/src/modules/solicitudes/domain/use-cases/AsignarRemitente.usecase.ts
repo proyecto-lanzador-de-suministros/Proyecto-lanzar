@@ -1,3 +1,4 @@
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { ForManagingUsuarios } from "@/src/modules/usuarios/domain/ports/forManagingUsuarios.port";
 import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
@@ -29,18 +30,17 @@ export class AsignarRemitenteUseCase {
     const remitente = await this.usuarioRepository.buscarPorId(remitenteId);
 
     if (!remitente) {
-      throw new Error(`Remitente con ID ${remitenteId} no encontrado.`);
+      throw Errores.remitenteNoEncontrado(remitenteId);
     }
 
     if (remitente.rol !== "REMITENTE") {
-      throw new Error(
-        `El usuario ${remitenteId} no tiene el rol de Remitente.`,
-      );
+      throw Errores.rolInvalido(remitenteId, "REMITENTE");
     }
 
     if (remitente.estadoCuenta !== "APROBADA") {
-      throw new Error(
-        `El remitente ${remitente.nombre ?? remitenteId} no está aprobado (estado: ${remitente.estadoCuenta}).`,
+      throw Errores.cuentaNoAprobada(
+        remitente.nombre ?? remitenteId,
+        remitente.estadoCuenta,
       );
     }
 
@@ -48,7 +48,7 @@ export class AsignarRemitenteUseCase {
     const solicitud = await this.solicitudRepository.buscarPorId(solicitudId);
 
     if (!solicitud) {
-      throw new Error(`Solicitud con ID ${solicitudId} no encontrada.`);
+      throw Errores.solicitudNoEncontrada(solicitudId);
     }
 
     const estadoAnterior = solicitud.estado;
@@ -57,7 +57,7 @@ export class AsignarRemitenteUseCase {
     solicitud.asignar(remitenteId);
 
     // 4. Persistir
-    await this.solicitudRepository.guardar(solicitud);
+    await this.solicitudRepository.actualizar(solicitud);
 
     // 5. Registrar en el historial de auditoría
     await this.historial.registrar({

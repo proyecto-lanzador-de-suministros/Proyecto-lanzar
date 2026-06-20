@@ -4,6 +4,7 @@
 // Admin: ve todas las pendientes.
 // ============================================================
 
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { Solicitud } from "../entities/Solicitud";
 
@@ -20,7 +21,7 @@ export class ConsultarSolicitudesPendientes {
   ): Promise<Solicitud[]> {
     if (input.rol === "remitente") {
       if (!input.id_base) {
-        throw new Error("Se requiere id_base para consultar pendientes como remitente.");
+        throw Errores.faltaIdBase();
       }
       return this.repo.listarPendientes(input.id_base);
     }

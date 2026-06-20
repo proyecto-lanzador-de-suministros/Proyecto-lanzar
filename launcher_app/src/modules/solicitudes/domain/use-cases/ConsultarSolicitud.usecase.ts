@@ -4,6 +4,7 @@
 // Solicitante: solo las propias. Remitente: las asignadas. Admin: todas.
 // ============================================================
 
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { Solicitud } from "../entities/Solicitud";
 
@@ -21,16 +22,16 @@ export class ConsultarSolicitud {
     const solicitud = await this.repo.buscarPorId(input.id_solicitud);
 
     if (!solicitud) {
-      throw new Error(`Solicitud ${input.id_solicitud} no encontrada.`);
+      throw Errores.solicitudNoEncontrada(input.id_solicitud);
     }
 
     // Verificar acceso según rol
     if (input.rol === "solicitante" && solicitud.id_usuario !== input.id_usuario) {
-      throw new Error("No tenés permiso para consultar esta solicitud.");
+      throw Errores.permisoDenegado("solicitante", input.rol);
     }
 
     if (input.rol === "remitente" && solicitud.id_base !== input.id_base) {
-      throw new Error("Esta solicitud no está asignada a tu base.");
+      throw Errores.permisoDenegado("remitente", input.rol);
     }
 
     return solicitud;

@@ -4,6 +4,7 @@
 //           CU-10 (Cancelar), CU-11 (Anular)
 // ============================================================
 
+import { Errores } from "@/src/modules/errors/domain/factories";
 import type { PuntoGeometria } from "@/src/types/geometria";
 
 export enum EstadoSolicitud {
@@ -103,14 +104,12 @@ export class Solicitud {
     fecha_estimada?: Date;
   }): Solicitud {
     if (params.productos.length === 0) {
-      throw new Error("La solicitud debe incluir al menos un producto.");
+      throw Errores.solicitudSinProductos();
     }
 
     for (const p of params.productos) {
       if (p.cantidad <= 0) {
-        throw new Error(
-          `La cantidad del producto ${p.productoId} debe ser mayor a cero.`,
-        );
+        throw Errores.cantidadProductoInvalida(p.productoId, p.cantidad);
       }
     }
 
@@ -185,9 +184,7 @@ export class Solicitud {
   /** CU-10: solicitante o admin cancela en estados tempranos */
   cancelar(motivo?: string): void {
     if (!ESTADOS_CANCELABLES.has(this.props.estado)) {
-      throw new Error(
-        `No se puede cancelar una solicitud en estado "${this.props.estado}".`,
-      );
+      throw Errores.estadoNoCancelable(this.props.estado);
     }
     this.props.motivoCancelacion = motivo;
     this.transicionarA(EstadoSolicitud.Cancelada);
@@ -196,9 +193,7 @@ export class Solicitud {
   /** CU-11: admin o remitente anula (requiere motivo para auditoría) */
   anular(motivo: string): void {
     if (ESTADOS_NO_ANULABLES.has(this.props.estado)) {
-      throw new Error(
-        `No se puede anular una solicitud en estado "${this.props.estado}".`,
-      );
+      throw Errores.estadoNoAnulable(this.props.estado);
     }
     this.props.motivoAnulacion = motivo;
     this.transicionarA(EstadoSolicitud.Anulada);
@@ -239,9 +234,7 @@ export class Solicitud {
     const permitidos = TRANSICIONES_VALIDAS[this.props.estado] ?? [];
 
     if (!permitidos.includes(nuevoEstado)) {
-      throw new Error(
-        `Transición inválida: "${this.props.estado}" → "${nuevoEstado}".`,
-      );
+      throw Errores.transicionInvalida(this.props.estado, nuevoEstado);
     }
 
     this.props.estado = nuevoEstado;
