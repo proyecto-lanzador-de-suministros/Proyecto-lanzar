@@ -9,5 +9,6 @@ export default defineConfig({
   },
   test: {
     setupFiles: ["./tests/integration/setup.ts"],
+    globalSetup: ["./tests/integration/globalSetup.ts"],
   },
 });
