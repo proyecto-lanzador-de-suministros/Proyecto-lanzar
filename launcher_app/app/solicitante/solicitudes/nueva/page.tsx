@@ -3,15 +3,9 @@
 import React, { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PrioridadSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import { CatalogoProducto } from "@/src/modules/stock/domain/ports/forManagingProductos.port";
 import { crearSolicitudAction, obtenerProductosAction } from "@/src/actions/solicitudes.actions";
 import Button from "@/app/components/ui/Button";
-
-type Producto = {
-  id_producto: string;
-  nombre: string;
-  descripcion: string | null;
-  peso_unitario: number;
-};
 
 type ProductoSeleccionado = {
   productoId: string;
@@ -23,7 +17,7 @@ export default function NuevaSolicitudPage() {
   const [isPending, startTransition] = useTransition();
 
   // Productos del catálogo
-  const [productos, setProductos] = useState<Producto[]>([]);
+  const [productos, setProductos] = useState<CatalogoProducto[]>([]);
   const [loadingProductos, setLoadingProductos] = useState(true);
 
   // Form state
