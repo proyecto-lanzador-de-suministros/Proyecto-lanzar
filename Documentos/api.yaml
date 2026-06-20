@@ -1,72 +1,78 @@
 openapi: 3.0.3
 info:
   title: API Sistema de Entregas por Paracaídas
-  version: 1.0.0
-  description: Contrato REST para el sistema de encomiendas de caída libre.
+  version: 1.1.0
+  description: Contrato REST para el sistema de encomiendas de caída libre. Autenticación delegada a Clerk (ADR-006).
 servers:
   - url: http://localhost:3000/api/v1
     description: Servidor de desarrollo
 
 tags:
-  - name: Autenticación
-    description: Endpoints para login de usuarios
   - name: Solicitudes
-    description: Gestión de pedidos de encomiendas
+    description: Gestión de pedidos de encomiendas y su historial
   - name: Bases
     description: Gestión de bases y stock de los remitentes
+  - name: Vuelos
+    description: Gestión de logística aérea y contenedores
+  - name: Usuarios
+    description: Gestión de cuentas y roles
+
+# Todas las rutas requieren el token de Clerk por defecto
+security:
+  - clerkAuth: []
 
 paths:
   # ==========================================
-  # MÓDULO: AUTENTICACIÓN
+  # MÓDULO: USUARIOS
   # ==========================================
-  /auth/login:
-    post:
-      summary: Iniciar sesión en el sistema
-      tags: [Autenticación]
+  /usuarios:
+    get:
+      summary: Listar usuarios del sistema
+      tags: [Usuarios]
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Usuario'
+
+  /usuarios/{id}/rol:
+    patch:
+      summary: Modificar el rol de un usuario (Solo Admin)
+      tags: [Usuarios]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [email, password]
               properties:
-                email:
+                rol:
                   type: string
-                  format: email
-                password:
-                  type: string
+                  enum: [solicitante, remitente, admin]
       responses:
         '200':
-          description: Login exitoso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    description: JWT para autorización
-                  rol:
-                    type: string
-                    enum: [solicitante, remitente, admin]
-        '401':
-          description: Credenciales inválidas
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Rol actualizado
+        '403':
+          description: No autorizado
 
   # ==========================================
-  # MÓDULO: SOLICITUDES
+  # MÓDULO: SOLICITUDES E HISTORIAL
   # ==========================================
   /solicitudes:
     post:
-      summary: Crear una nueva solicitud de envío
-      description: El solicitante envía las coordenadas y los productos deseados. El sistema valida internamente si hay stock en alguna base antes de crearla.
+      summary: Crear una nueva solicitud de encomienda
       tags: [Solicitudes]
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -75,27 +81,45 @@ paths:
               $ref: '#/components/schemas/NuevaSolicitudRequest'
       responses:
         '201':
-          description: Solicitud creada exitosamente (Hay stock disponible).
+          description: Solicitud creada exitosamente
           headers:
             Location:
-              schema: { type: string }
-              description: URL de la solicitud creada
+              description: URL de la nueva solicitud
+              schema:
+                type: string
         '409':
-          description: Rechazada. No hay stock suficiente en ninguna base para cumplir la solicitud.
+          description: Conflicto - Stock insuficiente en bases cercanas
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
 
+    get:
+      summary: Listar solicitudes (filtrables por estado)
+      tags: [Solicitudes]
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de solicitudes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Solicitud'
+
   /solicitudes/{id}:
     get:
-      summary: Consultar el estado y detalle de una solicitud
+      summary: Obtener el detalle de una solicitud específica
       tags: [Solicitudes]
-      security:
-        - bearerAuth: []
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
           schema:
             type: string
@@ -109,21 +133,14 @@ paths:
                 $ref: '#/components/schemas/Solicitud'
         '404':
           description: Solicitud no encontrada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
   /solicitudes/{id}/estado:
     patch:
       summary: Actualizar el estado de una solicitud
-      description: Utilizado por el Remitente (ej. pasar a "En preparación", "Listo", "Lanzado") o el Solicitante (para "Completada" o "Cancelada").
       tags: [Solicitudes]
-      security:
-        - bearerAuth: []
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
           schema:
             type: string
@@ -138,37 +155,50 @@ paths:
               properties:
                 nuevoEstado:
                   type: string
-                  enum: [Cancelada, En preparación, Listo, En camino, Lanzada, Completada, Anulada]
+                  example: En preparación
       responses:
         '200':
-          description: Estado actualizado exitosamente. Este trigger asíncronamente guarda en Historial-Estado.
+          description: Estado actualizado exitosamente
         '422':
-          description: Transición de estado inválida (ej. pasar de Creada directamente a Lanzada).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Transición de estado inválida
 
-  # ==========================================
-  # MÓDULO: BASES Y STOCK
-  # ==========================================
-  /bases/{id}/stock:
+  /solicitudes/{id}/historial:
     get:
-      summary: Consultar el inventario de una base
-      description: Utilizado por los Remitentes para ver qué productos tienen disponibles en su base.
-      tags: [Bases]
-      security:
-        - bearerAuth: []
+      summary: Obtener el historial de cambios de estado (RNF16)
+      tags: [Solicitudes]
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
           schema:
             type: string
             format: uuid
       responses:
         '200':
-          description: Lista de stock disponible
+          description: Historial de la solicitud
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistorialEstado'
+
+  # ==========================================
+  # MÓDULO: BASES Y STOCK
+  # ==========================================
+  /bases/{id}/stock:
+    get:
+      summary: Consultar inventario disponible en una base
+      tags: [Bases]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de stock de la base
           content:
             application/json:
               schema:
@@ -176,32 +206,107 @@ paths:
                 items:
                   $ref: '#/components/schemas/StockBase'
 
+    put:
+      summary: Actualizar inventario físico de la base
+      tags: [Bases]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  productoId:
+                    type: string
+                  cantidadAAgregar:
+                    type: integer
+      responses:
+        '200':
+          description: Stock actualizado
+
+  # ==========================================
+  # MÓDULO: VUELOS Y CONTENEDORES
+  # ==========================================
+  /vuelos:
+    post:
+      summary: Programar un nuevo vuelo logística
+      tags: [Vuelos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vuelo'
+      responses:
+        '201':
+          description: Vuelo creado
+    get:
+      summary: Listar vuelos programados o en curso
+      tags: [Vuelos]
+      responses:
+        '200':
+          description: Lista de vuelos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vuelo'
+
+  /vuelos/{id}/contenedores:
+    post:
+      summary: Asignar un contenedor (paquete físico con paracaídas) a un vuelo
+      tags: [Vuelos]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contenedor'
+      responses:
+        '201':
+          description: Contenedor asignado al vuelo
+
 components:
   securitySchemes:
-    bearerAuth:
+    clerkAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Token JWT provisto por Clerk en el header Authorization
 
   schemas:
-    # --- Esquema de Error Estándar ---
-    Error:
+    Usuario:
       type: object
       properties:
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: STOCK_INSUFICIENTE
-            message:
-              type: string
-              example: No hay inventario suficiente para los productos solicitados.
-            details:
-              type: string
-              nullable: true
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+        email:
+          type: string
+        rol:
+          type: string
+        baseId:
+          type: integer
+          nullable: true
 
-    # --- Esquemas de Dominio ---
     NuevaSolicitudRequest:
       type: object
       required: [latDestino, lonDestino, prioridad, productos]
@@ -262,6 +367,22 @@ components:
         cantidadSolicitada:
           type: integer
 
+    HistorialEstado:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fechaHora:
+          type: string
+          format: date-time
+        estadoAnterior:
+          type: string
+        estadoNuevo:
+          type: string
+        usuarioId:
+          type: string
+
     StockBase:
       type: object
       properties:
@@ -273,4 +394,45 @@ components:
         cantidadDisponible:
           type: integer
         cantidadReservada:
-          type: integer 
+          type: integer
+
+    Vuelo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fechaHoraProgramada:
+          type: string
+          format: date-time
+        estado:
+          type: string
+          example: Programado
+
+    Contenedor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipoParacaidas:
+          type: string
+        pesoMax:
+          type: number
+        envioId:
+          type: string
+          format: uuid
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          example: INSUFFICIENT_STOCK
+        message:
+          type: string
+          example: La base operativa no cuenta con el inventario requerido.
+        details:
+          type: array
+          items:
+            type: string
