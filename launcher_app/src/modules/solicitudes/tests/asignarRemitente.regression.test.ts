@@ -6,18 +6,6 @@ import {
   PrioridadSolicitud,
 } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 
-// Solicitud existente en estado Creada — simula lo que vendría de DB
-const solicitudExistente = Solicitud.reconstruir({
-  id_solicitud: "solicitud-123",
-  id_usuario: "usuario-456",
-  ubicacion_destino: { type: "Point", coordinates: [-62.27, -38.7] },
-  prioridad: PrioridadSolicitud.Media,
-  productos: [{ productoId: "producto-1", cantidad: 2 }],
-  estado: EstadoSolicitud.Creada,
-  fecha_solicitada: new Date(),
-  fechaActualizacion: new Date(),
-});
-
 const remitenteAprobado = {
   id: "remitente-789",
   rol: "REMITENTE" as const,
@@ -33,6 +21,17 @@ describe("AsignarRemitenteUseCase — regresión persistencia", () => {
   let useCase: AsignarRemitenteUseCase;
 
   beforeEach(() => {
+    // Solicitud existente en estado Creada — simula lo que vendría de DB
+    const solicitudExistente = Solicitud.reconstruir({
+      id_solicitud: "solicitud-123",
+      id_usuario: "usuario-456",
+      ubicacion_destino: { type: "Point", coordinates: [-62.27, -38.7] },
+      prioridad: PrioridadSolicitud.Media,
+      productos: [{ productoId: "producto-1", cantidad: 2 }],
+      estado: EstadoSolicitud.Creada,
+      fecha_solicitada: new Date(),
+      fechaActualizacion: new Date(),
+    });
     solicitudRepo = {
       buscarPorId: vi.fn().mockResolvedValue(solicitudExistente),
       guardar: vi.fn(),

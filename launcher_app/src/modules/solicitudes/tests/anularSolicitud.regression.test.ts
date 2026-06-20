@@ -6,17 +6,6 @@ import {
   PrioridadSolicitud,
 } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 
-const solicitudExistente = Solicitud.reconstruir({
-  id_solicitud: "solicitud-123",
-  id_usuario: "usuario-456",
-  ubicacion_destino: { type: "Point", coordinates: [-62.27, -38.7] },
-  prioridad: PrioridadSolicitud.Media,
-  productos: [{ productoId: "producto-1", cantidad: 2 }],
-  estado: EstadoSolicitud.Asignada, // Anular requiere estar en un estado no terminal
-  fecha_solicitada: new Date(),
-  fechaActualizacion: new Date(),
-});
-
 describe("AnularSolicitudUseCase — regresión persistencia", () => {
   let solicitudRepo: any;
   let notifier: any;
@@ -24,6 +13,16 @@ describe("AnularSolicitudUseCase — regresión persistencia", () => {
   let useCase: AnularSolicitudUseCase;
 
   beforeEach(() => {
+    const solicitudExistente = Solicitud.reconstruir({
+      id_solicitud: "solicitud-123",
+      id_usuario: "usuario-456",
+      ubicacion_destino: { type: "Point", coordinates: [-62.27, -38.7] },
+      prioridad: PrioridadSolicitud.Media,
+      productos: [{ productoId: "producto-1", cantidad: 2 }],
+      estado: EstadoSolicitud.Asignada, // Anular requiere estar en un estado no terminal
+      fecha_solicitada: new Date(),
+      fechaActualizacion: new Date(),
+    });
     solicitudRepo = {
       buscarPorId: vi.fn().mockResolvedValue(solicitudExistente),
       guardar: vi.fn(),
