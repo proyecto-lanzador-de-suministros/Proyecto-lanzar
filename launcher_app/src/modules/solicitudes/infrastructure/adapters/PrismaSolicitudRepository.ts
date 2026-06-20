@@ -34,6 +34,22 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
     });
   }
 
+  async actualizar(solicitud: Solicitud): Promise<void> {
+    await prisma.solicitud.update({
+      where: { id_solicitud: solicitud.id_solicitud },
+      data: {
+        estado_actual: solicitud.estado,
+        prioridad: solicitud.prioridad,
+        latitud_destino: solicitud.ubicacion_destino.coordinates[1],
+        longitud_destino: solicitud.ubicacion_destino.coordinates[0],
+        id_solicitante: solicitud.id_usuario,
+        id_remitente: solicitud.id_base ?? null,
+        motivo_cancelacion: solicitud.motivoCancelacion ?? null,
+        motivo_anulacion: solicitud.motivoAnulacion ?? null,
+      },
+    });
+  }
+
   async buscarPorId(id: string): Promise<Solicitud | null> {
     const row = await prisma.solicitud.findUnique({
       where: { id_solicitud: id },
