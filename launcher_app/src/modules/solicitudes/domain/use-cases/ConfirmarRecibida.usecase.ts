@@ -1,8 +1,8 @@
 import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
-import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 import { EstadoSolicitud } from "../entities/Solicitud";
+import { NotificarRecepcion } from "@/src/modules/notificaciones/domain/use-cases/NotificarRecepcion.usecase";
 
 export interface ConfirmarRecibidaInput {
   solicitudId: string;
@@ -13,7 +13,7 @@ export interface ConfirmarRecibidaInput {
 export class ConfirmarRecibidaUseCase {
   constructor(
     private readonly solicitudRepository: ForManagingSolicitudes,
-    private readonly notifier: ForNotifying,
+    private readonly notificarRecepcion: NotificarRecepcion,
     private readonly historial: ForManagingHistorial,
   ) {}
 
@@ -54,11 +54,7 @@ export class ConfirmarRecibidaUseCase {
 
     // Notificar al remitente (CU-16, postcondición)
     if (solicitud.id_base) {
-      await this.notifier.notificar({
-        destinatario: solicitud.id_base,
-        solicitudId,
-        estado: solicitud.estado,
-      });
+      await this.notificarRecepcion.ejecutar(solicitudId, solicitud.id_base);
     }
   }
 }

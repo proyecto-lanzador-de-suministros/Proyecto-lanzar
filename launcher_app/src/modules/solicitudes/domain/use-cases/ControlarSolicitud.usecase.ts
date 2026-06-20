@@ -7,6 +7,7 @@
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { Solicitud } from "../entities/Solicitud";
 import { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
+import { NotificarRechazo } from "@/src/modules/notificaciones/domain/use-cases/NotificarRechazo.usecase";
 
 export interface ControlarSolicitudOutput {
   solicitud: Solicitud;
@@ -18,6 +19,7 @@ export class ControlarSolicitud {
   constructor(
     private readonly repo: ForManagingSolicitudes,
     private readonly stock: ForManagingStock,
+    private readonly notificarRechazo: NotificarRechazo,
   ) {}
 
   async ejecutar(solicitud: Solicitud): Promise<ControlarSolicitudOutput> {
@@ -31,6 +33,13 @@ export class ControlarSolicitud {
       // 2a. Sin stock → rechazar
       solicitud.rechazar();
       await this.repo.actualizarEstado(solicitud.id_solicitud, solicitud.estado);
+
+      // Notificar al solicitante — best-effort
+      try {
+        await this.notificarRechazo.ejecutar(solicitud.id_solicitud, solicitud.id_usuario);
+      } catch {
+        // fire-and-forget
+      }
 
       return {
         solicitud,

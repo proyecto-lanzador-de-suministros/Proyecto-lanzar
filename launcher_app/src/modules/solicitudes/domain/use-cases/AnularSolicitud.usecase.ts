@@ -1,12 +1,12 @@
 import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
-import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
+import { NotificarAnulacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarAnulacion.usecase";
 
 export class AnularSolicitudUseCase {
   constructor(
     private readonly solicitudRepository: ForManagingSolicitudes,
-    private readonly notifier: ForNotifying,
+    private readonly notificarAnulacion: NotificarAnulacion,
     private readonly historial: ForManagingHistorial,
   ) {}
 
@@ -43,10 +43,6 @@ export class AnularSolicitudUseCase {
     });
 
     // Notificar al solicitante (CU-11, postcondición 3)
-    await this.notifier.notificar({
-      destinatario: solicitud.id_usuario,
-      solicitudId,
-      estado: solicitud.estado,
-    });
+    await this.notificarAnulacion.ejecutar(solicitudId, solicitud.id_usuario);
   }
 }

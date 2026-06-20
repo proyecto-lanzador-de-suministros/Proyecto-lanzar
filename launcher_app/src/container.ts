@@ -20,14 +20,33 @@ import { PrismaUsuarioRepository } from "./modules/usuarios/infrastructure/adapt
 import { AprobarCuentaUseCase } from "./modules/usuarios/domain/use-cases/AprobarCuenta.usecase";
 import { EliminarCuentaUseCase } from "./modules/usuarios/domain/use-cases/EliminarCuenta.usecase";
 import { ListarUsuariosUseCase } from "./modules/usuarios/domain/use-cases/ListarUsuarios.usecase";
+import { ListarBasesRemitentesUseCase } from "./modules/usuarios/domain/use-cases/ListarBasesRemitentes.usecase";
+import { ActualizarBaseRemitenteUseCase } from "./modules/usuarios/domain/use-cases/ActualizarBaseRemitente.usecase";
 import { PrismaSolicitudesRepository } from "./modules/solicitudes/infrastructure/adapters/PrismaSolicitudRepository";
 import { PrismaStockRepository } from "./modules/stock/infrastructure/adapters/PrismaStockRepository";
 import { ConsultarStockUseCase } from "./modules/stock/domain/use-cases/ConsultarStock.usecase";
 import { ActualizarStockUseCase } from "./modules/stock/domain/use-cases/ActualizarStock.usecase";
 import { PrismaHistorialRepository } from "./modules/historial/infrastructure/adapters/PrismaHistorialRepository";
+import { ListarAuditoriaGlobalUseCase } from "./modules/historial/domain/use-cases/ListarAuditoriaGlobal.usecase";
 import { NotificationServiceAdapter } from "./modules/notificaciones/infrastructure/adapters/NotificationServiceAdapter";
 import { NotificarSolicitudCreada } from "./modules/notificaciones/domain/use-cases/NotificarSolicitudCreada.usecase";
 import { NotificarCancelacion } from "./modules/notificaciones/domain/use-cases/NotificarCancelacion.usecase";
+import { NotificarAnulacion } from "./modules/notificaciones/domain/use-cases/NotificarAnulacion.usecase";
+import { NotificarAsignacion } from "./modules/notificaciones/domain/use-cases/NotificarAsignacion.usecase";
+import { NotificarEnPreparacion } from "./modules/notificaciones/domain/use-cases/NotificarEnPreparacion.usecase";
+import { NotificarLista } from "./modules/notificaciones/domain/use-cases/NotificarLista.usecase";
+import { NotificarEnCamino } from "./modules/notificaciones/domain/use-cases/NotificarEnCamino.usecase";
+import { NotificarLanzada } from "./modules/notificaciones/domain/use-cases/NotificarLanzada.usecase";
+import { NotificarRecepcion } from "./modules/notificaciones/domain/use-cases/NotificarRecepcion.usecase";
+import { NotificarRechazo } from "./modules/notificaciones/domain/use-cases/NotificarRechazo.usecase";
+import { InicializarDatosPruebaUseCase } from "./modules/solicitudes/domain/use-cases/InicializarDatosPrueba.usecase";
+import { PrismaTestDataRepository } from "./modules/solicitudes/infrastructure/adapters/PrismaTestDataRepository";
+import { GenerarReporteGeneralUseCase } from "./modules/reportes/domain/use-cases/GenerarReporteGeneral.usecase";
+import { PrismaReportsRepository } from "./modules/reportes/infrastructure/adapters/PrismaReportsRepository";
+import { PrismaProductosRepository } from "./modules/stock/infrastructure/adapters/PrismaProductosRepository";
+import { ListarCatalogoProductosUseCase } from "./modules/stock/domain/use-cases/ListarCatalogoProductos.usecase";
+import { PrismaNotificacionesRepository } from "./modules/notificaciones/infrastructure/adapters/PrismaNotificacionesRepository";
+import { ListarNotificacionesUseCase } from "./modules/notificaciones/domain/use-cases/ListarNotificaciones.usecase";
 
 // ── Infraestructura compartida ──────────────────────────────────────────────
 
@@ -41,6 +60,16 @@ export const stockRepository = new PrismaStockRepository();
 
 const notificationAdapter = new NotificationServiceAdapter();
 const notificarSolicitudCreada = new NotificarSolicitudCreada(notificationAdapter);
+const notificarAnulacion = new NotificarAnulacion(notificationAdapter);
+const notificarAsignacion = new NotificarAsignacion(notificationAdapter);
+const notificarEnPreparacion = new NotificarEnPreparacion(notificationAdapter);
+const notificarLista = new NotificarLista(notificationAdapter);
+const notificarEnCamino = new NotificarEnCamino(notificationAdapter);
+const notificarLanzada = new NotificarLanzada(notificationAdapter);
+const notificarRecepcion = new NotificarRecepcion(notificationAdapter);
+const notificarRechazo = new NotificarRechazo(notificationAdapter);
+
+const notificacionesRepository = new PrismaNotificacionesRepository();
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
@@ -61,11 +90,16 @@ export const eliminarCuentaUseCase = new EliminarCuentaUseCase(
 
 export const listarUsuariosUseCase = new ListarUsuariosUseCase(usuarioRepository);
 
+export const listarBasesRemitentesUseCase = new ListarBasesRemitentesUseCase(usuarioRepository);
+
+export const actualizarBaseRemitenteUseCase = new ActualizarBaseRemitenteUseCase(usuarioRepository);
+
 // ── Solicitudes ─────────────────────────────────────────────────────────────
 
 export const controlarSolicitudUseCase = new ControlarSolicitud(
   solicitudRepository,
   stockRepository,
+  notificarRechazo,
 );
 
 export const crearSolicitudUseCase = new CrearSolicitud(
@@ -92,44 +126,44 @@ export const listarSolicitudesAdminUseCase = new ListarSolicitudesAdminUseCase(s
 
 export const anularSolicitudUseCase = new AnularSolicitudUseCase(
   solicitudRepository,
-  notificationAdapter,
+  notificarAnulacion,
   historialRepository,
 );
 
 export const asignarRemitenteUseCase = new AsignarRemitenteUseCase(
   solicitudRepository,
   usuarioRepository,
-  notificationAdapter,
+  notificarAsignacion,
   historialRepository,
 );
 
 export const registrarEnPreparacionUseCase = new RegistrarEnPreparacionUseCase(
   solicitudRepository,
-  notificationAdapter,
+  notificarEnPreparacion,
   historialRepository,
 );
 
 export const registrarListaUseCase = new RegistrarListaUseCase(
   solicitudRepository,
-  notificationAdapter,
+  notificarLista,
   historialRepository,
 );
 
 export const registrarEnCaminoUseCase = new RegistrarEnCaminoUseCase(
   solicitudRepository,
-  notificationAdapter,
+  notificarEnCamino,
   historialRepository,
 );
 
 export const registrarLanzadaUseCase = new RegistrarLanzadaUseCase(
   solicitudRepository,
-  notificationAdapter,
+  notificarLanzada,
   historialRepository,
 );
 
 export const confirmarRecibidaUseCase = new ConfirmarRecibidaUseCase(
   solicitudRepository,
-  notificationAdapter,
+  notificarRecepcion,
   historialRepository,
 );
 
@@ -138,8 +172,44 @@ export const consultarDetalleSolicitudAdminUseCase = new ConsultarDetalleSolicit
   historialRepository,
 );
 
+// ── Test Data Seeding ────────────────────────────────────────────────────────
+
+const testDataRepository = new PrismaTestDataRepository();
+
+export const inicializarDatosPruebaUseCase = new InicializarDatosPruebaUseCase(
+  testDataRepository,
+);
+
 // ── Stock ───────────────────────────────────────────────────────────────────
 
 export const consultarStockUseCase = new ConsultarStockUseCase(stockRepository);
 
 export const actualizarStockUseCase = new ActualizarStockUseCase(stockRepository);
+
+// ── Productos (Catálogo) ─────────────────────────────────────────────────────
+
+const productosRepository = new PrismaProductosRepository();
+
+export const listarCatalogoProductosUseCase = new ListarCatalogoProductosUseCase(
+  productosRepository,
+);
+
+// ── Historial / Auditoría ────────────────────────────────────────────────────
+
+export const listarAuditoriaGlobalUseCase = new ListarAuditoriaGlobalUseCase(
+  historialRepository,
+);
+
+// ── Reportes ─────────────────────────────────────────────────────────────────
+
+const reportsRepository = new PrismaReportsRepository();
+
+export const generarReporteGeneralUseCase = new GenerarReporteGeneralUseCase(
+  reportsRepository,
+);
+
+// ── Notificaciones ───────────────────────────────────────────────────────────
+
+export const listarNotificacionesUseCase = new ListarNotificacionesUseCase(
+  notificacionesRepository,
+);

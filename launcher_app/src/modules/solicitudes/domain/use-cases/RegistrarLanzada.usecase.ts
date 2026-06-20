@@ -1,8 +1,8 @@
 import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
-import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 import { EstadoSolicitud } from "../entities/Solicitud";
+import { NotificarLanzada } from "@/src/modules/notificaciones/domain/use-cases/NotificarLanzada.usecase";
 
 export interface RegistrarLanzadaInput {
   solicitudId: string;
@@ -13,7 +13,7 @@ export interface RegistrarLanzadaInput {
 export class RegistrarLanzadaUseCase {
   constructor(
     private readonly solicitudRepository: ForManagingSolicitudes,
-    private readonly notifier: ForNotifying,
+    private readonly notificarLanzada: NotificarLanzada,
     private readonly historial: ForManagingHistorial,
   ) {}
 
@@ -53,10 +53,6 @@ export class RegistrarLanzadaUseCase {
     });
 
     // Notificar al solicitante (CU-15, postcondición)
-    await this.notifier.notificar({
-      destinatario: solicitud.id_usuario,
-      solicitudId,
-      estado: solicitud.estado,
-    });
+    await this.notificarLanzada.ejecutar(solicitudId, solicitud.id_usuario);
   }
 }

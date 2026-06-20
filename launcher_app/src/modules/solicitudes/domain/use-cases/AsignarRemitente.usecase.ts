@@ -1,14 +1,14 @@
 import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { ForManagingUsuarios } from "@/src/modules/usuarios/domain/ports/forManagingUsuarios.port";
-import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
+import { NotificarAsignacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarAsignacion.usecase";
 
 export class AsignarRemitenteUseCase {
   constructor(
     private readonly solicitudRepository: ForManagingSolicitudes,
     private readonly usuarioRepository: ForManagingUsuarios,
-    private readonly notifier: ForNotifying,
+    private readonly notificarAsignacion: NotificarAsignacion,
     private readonly historial: ForManagingHistorial,
   ) {}
 
@@ -68,15 +68,10 @@ export class AsignarRemitenteUseCase {
     });
 
     // 6. Notificar al solicitante y al remitente (CU-09, paso 5)
-    await this.notifier.notificar({
-      destinatario: solicitud.id_usuario,
+    await this.notificarAsignacion.ejecutar(
       solicitudId,
-      estado: solicitud.estado,
-    });
-    await this.notifier.notificar({
-      destinatario: remitenteId,
-      solicitudId,
-      estado: solicitud.estado,
-    });
+      solicitud.id_usuario,
+      remitenteId,
+    );
   }
 }

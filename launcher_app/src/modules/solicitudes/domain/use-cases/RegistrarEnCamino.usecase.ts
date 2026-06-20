@@ -1,8 +1,8 @@
 import { Errores } from "@/src/modules/errors/domain/factories";
 import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
-import { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 import { EstadoSolicitud } from "../entities/Solicitud";
+import { NotificarEnCamino } from "@/src/modules/notificaciones/domain/use-cases/NotificarEnCamino.usecase";
 
 export interface RegistrarEnCaminoInput {
   solicitudId: string;
@@ -13,7 +13,7 @@ export interface RegistrarEnCaminoInput {
 export class RegistrarEnCaminoUseCase {
   constructor(
     private readonly solicitudRepository: ForManagingSolicitudes,
-    private readonly notifier: ForNotifying,
+    private readonly notificarEnCamino: NotificarEnCamino,
     private readonly historial: ForManagingHistorial,
   ) {}
 
@@ -53,10 +53,6 @@ export class RegistrarEnCaminoUseCase {
     });
 
     // Notificar al solicitante (CU-14, postcondición)
-    await this.notifier.notificar({
-      destinatario: solicitud.id_usuario,
-      solicitudId,
-      estado: solicitud.estado,
-    });
+    await this.notificarEnCamino.ejecutar(solicitudId, solicitud.id_usuario);
   }
 }
