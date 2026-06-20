@@ -1,8 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { consultarStockUseCase, actualizarStockUseCase } from "../container";
-import { prisma } from "../infrastructure/db/prisma.client";
+import { consultarStockUseCase, actualizarStockUseCase, listarCatalogoProductosUseCase } from "../container";
 
 /**
  * Consulta el stock de una base específica (CU-17).
@@ -89,24 +88,13 @@ export async function listarBasesParaStockAction() {
   }
 
   try {
-    const remitentes = await prisma.remitente.findMany({
-      select: { id_remitente: true, nombre_base: true },
-      orderBy: { nombre_base: "asc" },
-    });
-
-    return {
-      success: true,
-      data: remitentes.map((r) => ({ id: r.id_remitente, nombre: r.nombre_base })),
-    };
+    const data = await listarCatalogoProductosUseCase.ejecutarBases();
+    return { success: true, data };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
 }
 
-/**
- * Lista el catálogo completo de productos, para poder agregar stock
- * de un producto que la base todavía no tiene cargado.
- */
 export async function listarCatalogoProductosAction() {
   const { userId, sessionClaims } = await auth();
   const rol = sessionClaims?.metadata?.rol;
@@ -116,12 +104,8 @@ export async function listarCatalogoProductosAction() {
   }
 
   try {
-    const productos = await prisma.producto.findMany({
-      select: { id_producto: true, nombre: true },
-      orderBy: { nombre: "asc" },
-    });
-
-    return { success: true, data: productos };
+    const data = await listarCatalogoProductosUseCase.ejecutarCatalogo();
+    return { success: true, data };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
