@@ -5,6 +5,7 @@ import Avatar from "@/app/components/ui/Avatar";
 import Badge from "@/app/components/ui/Badge";
 import { aprobarUsuario } from "./actions";
 import { eliminarCuentaAction } from "@/src/actions/usuarios.actions";
+import ModalEditarCuenta from "./ModalEditarCuenta";
 
 interface UsuarioPlain {
   id: string;
@@ -20,7 +21,8 @@ interface UsuariosTableProps {
 type ModalState =
   | { tipo: "ninguno" }
   | { tipo: "confirmar-eliminar"; usuario: UsuarioPlain }
-  | { tipo: "confirmar-eliminar-con-activas"; usuario: UsuarioPlain; cantidadActivas: number };
+  | { tipo: "confirmar-eliminar-con-activas"; usuario: UsuarioPlain; cantidadActivas: number }
+  | { tipo: "editar-cuenta"; usuario: UsuarioPlain };
 
 export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
   const [modal, setModal] = useState<ModalState>({ tipo: "ninguno" });
@@ -56,6 +58,11 @@ export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
   function abrirConfirmacionEliminar(usuario: UsuarioPlain) {
     limpiarError(usuario.id);
     setModal({ tipo: "confirmar-eliminar", usuario });
+  }
+
+  function abrirEdicionCuenta(usuario: UsuarioPlain) {
+    limpiarError(usuario.id);
+    setModal({ tipo: "editar-cuenta", usuario });
   }
 
   function cerrarModal() {
@@ -195,6 +202,14 @@ export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
                           <button
                             type="button"
                             disabled={enCurso}
+                            onClick={() => abrirEdicionCuenta(usuario)}
+                            className="text-[#1565C0] border border-blue-200 bg-blue-50 hover:bg-[#1565C0] hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            disabled={enCurso}
                             onClick={() => abrirConfirmacionEliminar(usuario)}
                             className="text-red-600 border border-red-200 bg-red-50 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
@@ -254,6 +269,15 @@ export default function UsuariosTable({ usuarios }: UsuariosTableProps) {
           loading={isPending}
           onCancel={cerrarModal}
           onConfirm={() => ejecutarEliminacion(modal.usuario, true)}
+        />
+      )}
+
+      {/* Modal: editar información de cuenta y login (CU-03/CU-04) */}
+      {modal.tipo === "editar-cuenta" && (
+        <ModalEditarCuenta
+          usuario={modal.usuario}
+          onClose={cerrarModal}
+          onSaved={() => {}}
         />
       )}
     </>

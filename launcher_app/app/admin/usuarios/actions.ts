@@ -68,3 +68,139 @@ export async function aprobarUsuario(userId: string, rol: string) {
 
   revalidatePath("/admin/usuarios");
 }
+
+/**
+ * CU-04: Obtiene los datos editables de una cuenta para precargar el
+ * formulario de edición del admin (datos específicos por rol + email
+ * de login desde Clerk). Solo lectura.
+ */
+export async function obtenerDetalleCuentaAction(usuarioId: string, rolNormalizado: string) {
+  const client = await clerkClient();
+
+  try {
+    const clerkUser = await client.users.getUser(usuarioId);
+    const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
+
+    let datos: Record<string, unknown> = {};
+
+    if (rolNormalizado === "solicitante") {
+      const solicitante = await prisma.solicitante.findUnique({
+        where: { id_solicitante: usuarioId },
+        select: { nombre: true, contacto: true },
+      });
+      datos = { nombre: solicitante?.nombre ?? "", contacto: solicitante?.contacto ?? "" };
+    } else if (rolNormalizado === "administrador" || rolNormalizado === "admin") {
+      const administrador = await prisma.administrador.findUnique({
+        where: { id_admin: usuarioId },
+        select: { nombre: true, permisos_rol: true },
+      });
+      datos = { nombre: administrador?.nombre ?? "", permisos_rol: administrador?.permisos_rol ?? "" };
+    } else if (rolNormalizado === "remitente") {
+      const remitente = await prisma.remitente.findUnique({
+        where: { id_remitente: usuarioId },
+        select: { nombre_base: true, capacidad_pista: true, latitud_base: true, longitud_base: true },
+      });
+      datos = remitente ?? {};
+    }
+
+    return { success: true, data: { email, ...datos } };
+  } catch (error: any) {
+    return { success: false, error: error.message ?? "No se pudo cargar la cuenta." };
+  }
+}
+
+/**
+ * CU-04: Edita la información de cuenta (no relacionada al login) de un
+ * Solicitante o Administrador. Los datos físicos de una base Remitente
+ * (nombre de base, ubicación, capacidad de pista) se editan exclusivamente
+ * desde "Gestión de Remitentes" para no duplicar la fuente de verdad.
+ */
+export async function editarInfoCuentaAction(
+  usuarioId: string,
+  rolNormalizado: string,
+  datos: { nombre?: string; contacto?: string; permisos_rol?: string },
+) {
+  if (datos.nombre !== undefined && datos.nombre.trim() === "") {
+    return { success: false, error: "El nombre no puede estar vacío." };
+  }
+
+  try {
+    if (rolNormalizado === "solicitante") {
+      await prisma.solicitante.update({
+        where: { id_solicitante: usuarioId },
+        data: {
+          ...(datos.nombre !== undefined && { nombre: datos.nombre }),
+          ...(datos.contacto !== undefined && { contacto: datos.contacto }),
+        },
+      });
+    } else if (rolNormalizado === "administrador" || rolNormalizado === "admin") {
+      await prisma.administrador.update({
+        where: { id_admin: usuarioId },
+        data: {
+          ...(datos.nombre !== undefined && { nombre: datos.nombre }),
+          ...(datos.permisos_rol !== undefined && { permisos_rol: datos.permisos_rol }),
+        },
+      });
+    } else {
+      return {
+        success: false,
+        error: "Para editar los datos de una base remitente, usá la sección 'Remitentes'.",
+      };
+    }
+
+    revalidatePath("/admin/usuarios");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * CU-03 (contraseña): el admin fija directamente una nueva contraseña
+ * para cualquier cuenta, sin pasar por el flujo de "olvidé mi contraseña".
+ */
+export async function resetearPasswordAction(usuarioId: string, nuevaPassword: string) {
+  if (nuevaPassword.length < 8) {
+    return { success: false, error: "La contraseña debe tener al menos 8 caracteres." };
+  }
+
+  try {
+    const client = await clerkClient();
+    await client.users.updateUser(usuarioId, { password: nuevaPassword });
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message ?? "No se pudo actualizar la contraseña." };
+  }
+}
+
+/**
+ * CU-03 (email): el admin cambia el email de acceso de cualquier cuenta.
+ *
+ * ⚠️ Verificar contra la versión instalada de @clerk/backend: este método
+ * (emailAddresses.createEmailAddress) puede no existir o tener otra firma
+ * según la versión del SDK. Si falla, la alternativa manual es cambiar el
+ * email directamente desde el Dashboard de Clerk.
+ */
+export async function actualizarEmailLoginAction(usuarioId: string, nuevoEmail: string) {
+  if (!nuevoEmail.includes("@")) {
+    return { success: false, error: "Ingresá un email válido." };
+  }
+
+  try {
+    const client = await clerkClient();
+    await client.emailAddresses.createEmailAddress({
+      userId: usuarioId,
+      emailAddress: nuevoEmail,
+      verified: true,
+      primary: true,
+    });
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error:
+        error.message ??
+        "No se pudo actualizar el email. Verificá que tu versión del Clerk Backend SDK soporte emailAddresses.createEmailAddress.",
+    };
+  }
+}
