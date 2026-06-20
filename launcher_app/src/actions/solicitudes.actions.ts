@@ -1,5 +1,6 @@
 "use server";
 
+import { Errores } from "@/src/modules/errors/domain/factories";
 import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import {
@@ -178,7 +179,7 @@ export async function asignarRemitenteAction(solicitudId: string, formData: Form
 
   try {
     const remitenteId = formData.get("remitenteId") as string;
-    if (!remitenteId) throw new Error("Debe seleccionar un remitente válido.");
+    if (!remitenteId) throw Errores.remitenteNoSeleccionado();
 
     await asignarRemitenteUseCase.ejecutar(solicitudId, remitenteId, userId);
 
@@ -223,7 +224,7 @@ export async function crearSolicitudAction(data: {
         },
       });
       if (!dbProduct) {
-        throw new Error(`Producto no encontrado en catálogo: ${p.productoId}`);
+        throw Errores.productoNoEncontrado(p.productoId);
       }
       mappedProductos.push({
         productoId: dbProduct.id_producto,
