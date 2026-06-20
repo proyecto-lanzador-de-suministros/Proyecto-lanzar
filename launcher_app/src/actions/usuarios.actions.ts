@@ -1,12 +1,32 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { aprobarCuentaUseCase, eliminarCuentaUseCase, listarUsuariosUseCase } from "../container";
+import {
+  aprobarCuentaUseCase,
+  rechazarCuentaUseCase,
+  eliminarCuentaUseCase,
+  listarUsuariosUseCase,
+} from "../container";
 import { EliminarConSolicitudesActivasError } from "../modules/usuarios/domain/use-cases/EliminarCuenta.usecase";
 
 export async function aprobarCuentaAction(usuarioId: string) {
   try {
     await aprobarCuentaUseCase.ejecutar(usuarioId);
+    revalidatePath("/admin/usuarios");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Rechaza una cuenta pendiente (CU-02, Caso A). A diferencia de
+ * eliminarCuentaAction, no borra el registro: lo deja en estado
+ * "RECHAZADA" para mantener trazabilidad.
+ */
+export async function rechazarCuentaAction(usuarioId: string) {
+  try {
+    await rechazarCuentaUseCase.ejecutar(usuarioId);
     revalidatePath("/admin/usuarios");
     return { success: true };
   } catch (error: any) {
