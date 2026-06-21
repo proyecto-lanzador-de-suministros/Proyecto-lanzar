@@ -71,7 +71,7 @@ export default function SolicitanteDashboard() {
   // Agrupamiento y conteo de estados para las tarjetas
   const getCounts = () => {
     let enCamino = 0;
-    let porLlegar = 0;
+    let enProceso = 0;
     let entregadas = 0;
     let canceladas = 0;
 
@@ -85,7 +85,7 @@ export default function SolicitanteDashboard() {
         est === EstadoSolicitud.EnPreparacion ||
         est === EstadoSolicitud.Lista
       ) {
-        porLlegar++;
+        enProceso++;
       } else if (est === EstadoSolicitud.Completada) {
         entregadas++;
       } else if (
@@ -97,10 +97,10 @@ export default function SolicitanteDashboard() {
       }
     });
 
-    return { enCamino, porLlegar, entregadas, canceladas };
+    return { enCamino, enProceso, entregadas, canceladas };
   };
 
-  const { enCamino, porLlegar, entregadas, canceladas } = getCounts();
+  const { enCamino, enProceso, entregadas, canceladas } = getCounts();
 
   const getStatusDisplay = (est: EstadoSolicitud) => {
     switch (est) {
@@ -257,13 +257,13 @@ export default function SolicitanteDashboard() {
                 <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{enCamino}</span>
               </div>
 
-              {/* Por llegar */}
+              {/* En proceso */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-100/30 dark:border-orange-900/30">
                 <div className="flex items-center gap-2.5">
                   <span className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm">⏱️</span>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Por llegar</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">En proceso</span>
                 </div>
-                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{porLlegar}</span>
+                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{enProceso}</span>
               </div>
 
               {/* Entregados */}
