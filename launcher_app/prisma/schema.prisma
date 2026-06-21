@@ -33,17 +33,17 @@ model Usuario {
   nombre        String?
   email         String?
   telefono      String?
-  rol           String  // "SOLICITANTE" | "ADMINISTRADOR" | "REMITENTE"
+  rol           String // "SOLICITANTE" | "ADMINISTRADOR" | "REMITENTE"
   contrasena    String?
   estado_cuenta String  @default("PENDIENTE")
   id_base       String? // solo para remitentes
 
-  base               Base?               @relation(fields: [id_base], references: [id_base])
-  solicitudes_creadas Solicitud[]        @relation("Solicitante")
-  solicitudes_gestionadas Solicitud[]    @relation("AdminGestiona")
-  historiales_estado Historial_Estado[]
-  historiales_stock  Historial_Stock[]
-  notificaciones     Notificacion[]
+  base                    Base?              @relation(fields: [id_base], references: [id_base])
+  solicitudes_creadas     Solicitud[]        @relation("Solicitante")
+  solicitudes_gestionadas Solicitud[]        @relation("AdminGestiona")
+  historiales_estado      Historial_Estado[]
+  historiales_stock       Historial_Stock[]
+  notificaciones          Notificacion[]
 }
 
 // ==========================================
@@ -51,8 +51,8 @@ model Usuario {
 // ==========================================
 
 model Solicitud {
-  id_solicitud       String   @id @default(uuid())
-  fecha_solicitada   DateTime @default(now())
+  id_solicitud       String    @id @default(uuid())
+  fecha_solicitada   DateTime  @default(now())
   fecha_entrega      DateTime?
   fecha_estimada     DateTime?
   estado             String
@@ -64,13 +64,13 @@ model Solicitud {
   id_admin           String?
   id_base            String?
 
-  solicitante Usuario            @relation("Solicitante", fields: [id_usuario], references: [id_usuario])
-  admin       Usuario?            @relation("AdminGestiona", fields: [id_admin], references: [id_usuario])
-  base        Base?               @relation(fields: [id_base], references: [id_base])
-  detalles    Detalle_Solicitud[]
-  historiales Historial_Estado[]
+  solicitante    Usuario             @relation("Solicitante", fields: [id_usuario], references: [id_usuario])
+  admin          Usuario?            @relation("AdminGestiona", fields: [id_admin], references: [id_usuario])
+  base           Base?               @relation(fields: [id_base], references: [id_base])
+  detalles       Detalle_Solicitud[]
+  historiales    Historial_Estado[]
   notificaciones Notificacion[]
-  envios      Envio[]
+  envios         Envio[]
 }
 
 // ==========================================
@@ -96,7 +96,7 @@ model Producto {
   id_producto String  @id @default(uuid())
   nombre      String
   descripcion String?
-  peso_kg     Float
+  peso_kg     Float   @default(0)
   categoria   String?
 
   stocks             Stock_Base[]
@@ -175,10 +175,10 @@ model Historial_Estado {
 }
 
 model Notificacion {
-  id_notificacion String   @id @default(uuid())
+  id_notificacion String    @id @default(uuid())
   mensaje         String
-  fecha           DateTime @default(now())
-  leida           Boolean  @default(false)
+  fecha           DateTime  @default(now())
+  leida           Boolean   @default(false)
   tipo            String?
   canal_envio     String?
   enviada_at      DateTime?
