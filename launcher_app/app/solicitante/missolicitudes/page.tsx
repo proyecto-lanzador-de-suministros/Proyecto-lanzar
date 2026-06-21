@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { obtenerSolicitudesSolicitanteAction, cancelarSolicitudAction } from "@/src/actions/solicitudes.actions";
 import StatusBadge from "@/app/components/ui/StatusBadge";
@@ -9,6 +10,7 @@ import Button from "@/app/components/ui/Button";
 type FilterTab = "TODAS" | "EN_CAMINO" | "POR_LLEGAR" | "ENTREGADAS" | "CANCELADAS";
 
 export default function MisSolicitudesPage() {
+  const router = useRouter();
   const [solList, setSolList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,21 +65,36 @@ export default function MisSolicitudesPage() {
     }
   };
 
-  const getStatusDisplay = (est: EstadoSolicitud) => {
-    switch (est) {
-      case EstadoSolicitud.EnCamino:
-      case EstadoSolicitud.Lanzada:
-        return { text: "En camino", variant: "info" as const, group: "EN_CAMINO" };
-      case EstadoSolicitud.Completada:
-        return { text: "Entregado", variant: "success" as const, group: "ENTREGADAS" };
-      case EstadoSolicitud.Cancelada:
-      case EstadoSolicitud.Anulada:
-      case EstadoSolicitud.Rechazada:
-        return { text: "Cancelado", variant: "danger" as const, group: "CANCELADAS" };
-      default:
-        return { text: "Por llegar", variant: "warning" as const, group: "POR_LLEGAR" };
-    }
-  };
+  const ESTADO_LABELS: Record<string, string> = {
+  [EstadoSolicitud.Creada]: "Creada",
+  [EstadoSolicitud.Asignada]: "Asignada",
+  [EstadoSolicitud.EnPreparacion]: "En preparación",
+  [EstadoSolicitud.Lista]: "Lista",
+  [EstadoSolicitud.EnCamino]: "En camino",
+  [EstadoSolicitud.Lanzada]: "Lanzada",
+  [EstadoSolicitud.Completada]: "Entregada",
+  [EstadoSolicitud.Cancelada]: "Cancelada",
+  [EstadoSolicitud.Anulada]: "Anulada",
+  [EstadoSolicitud.Rechazada]: "Rechazada",
+};
+
+const getStatusDisplay = (est: EstadoSolicitud) => {
+  const text = ESTADO_LABELS[est] ?? est;
+
+  switch (est) {
+    case EstadoSolicitud.EnCamino:
+    case EstadoSolicitud.Lanzada:
+      return { text, variant: "info" as const, group: "EN_CAMINO" };
+    case EstadoSolicitud.Completada:
+      return { text, variant: "success" as const, group: "ENTREGADAS" };
+    case EstadoSolicitud.Cancelada:
+    case EstadoSolicitud.Anulada:
+    case EstadoSolicitud.Rechazada:
+      return { text, variant: "danger" as const, group: "CANCELADAS" };
+    default:
+      return { text, variant: "warning" as const, group: "POR_LLEGAR" };
+  }
+};
 
   // Filtrado de solicitudes según el tab activo
   const filteredSolicitudes = solList.filter((s) => {
@@ -114,7 +131,7 @@ export default function MisSolicitudesPage() {
         {(["TODAS", "POR_LLEGAR", "EN_CAMINO", "ENTREGADAS", "CANCELADAS"] as FilterTab[]).map((tab) => {
           const isActive = activeTab === tab;
           let label = "Todas";
-          if (tab === "POR_LLEGAR") label = "Por llegar";
+          if (tab === "POR_LLEGAR") label = "En proceso";
           if (tab === "EN_CAMINO") label = "En camino";
           if (tab === "ENTREGADAS") label = "Entregadas";
           if (tab === "CANCELADAS") label = "Canceladas";
@@ -167,7 +184,8 @@ export default function MisSolicitudesPage() {
             return (
               <div
                 key={s.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                onClick={() => router.push(`/solicitante/solicitudes/${s.id}`)}
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:border-brand/40 hover:shadow-md transition-all"
               >
                 {/* Información básica */}
                 <div className="flex flex-col gap-2 flex-1 min-w-0">
@@ -221,7 +239,10 @@ export default function MisSolicitudesPage() {
                 <div className="shrink-0 flex items-center justify-end">
                   {s.puedeSerCancelada ? (
                     <Button
-                      onClick={() => handleCancelClick(s)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelClick(s);
+                      }}
                       className="bg-red-50 hover:bg-red-100 text-red-600 text-xs py-1.5 px-3 border border-red-200"
                     >
                       Cancelar solicitud

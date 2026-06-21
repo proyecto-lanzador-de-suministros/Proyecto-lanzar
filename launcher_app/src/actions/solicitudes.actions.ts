@@ -240,7 +240,15 @@ export async function crearSolicitudAction(data: {
     });
 
     revalidatePath("/solicitante/solicitudes");
-    return { success: true, data: resultado };
+    return {
+      success: true,
+      data: {
+        id: resultado.solicitud.id_solicitud,
+        estado: resultado.solicitud.estado,
+        asignada: resultado.asignada,
+        stockFaltante: resultado.stockFaltante,
+      },
+    };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
@@ -404,8 +412,8 @@ export async function consultarDetalleSolicitudAdminAction(solicitudId: string) 
   }
 
   try {
-    const { consultarDetalleSolicitudAdminUseCase } = await import("../container");
-    const { solicitud, historial } = await consultarDetalleSolicitudAdminUseCase.ejecutar(solicitudId);
+    const { consultarDetalleSolicitudUseCase } = await import("../container");
+    const { solicitud, historial } = await consultarDetalleSolicitudUseCase.ejecutar(solicitudId);
 
     return {
       success: true,
@@ -422,6 +430,55 @@ export async function consultarDetalleSolicitudAdminAction(solicitudId: string) 
         fechaSolicitada: solicitud.fecha_solicitada.toISOString(),
         fechaActualizacion: solicitud.fechaActualizacion.toISOString(),
         fechaEntrega: solicitud.fecha_entrega ? solicitud.fecha_entrega.toISOString() : undefined,
+        historial: historial.map((h) => ({
+          id: h.id,
+          actorId: h.actorId,
+          estadoAnterior: h.estadoAnterior,
+          estadoNuevo: h.estadoNuevo,
+          fechaHora: h.fechaHora.toISOString(),
+        })),
+      },
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Consulta el detalle de una solicitud propia con su historial de estados (CU-20).
+ * Reutiliza el mismo use case que admin, pero valida que la solicitud
+ * le pertenezca al solicitante autenticado.
+ */
+export async function consultarDetalleSolicitudSolicitanteAction(solicitudId: string) {
+  const { userId, sessionClaims } = await auth();
+  const rol = sessionClaims?.metadata?.rol;
+
+  if (!userId || rol !== "solicitante") {
+    return { success: false, error: "No autorizado. Se requiere rol solicitante." };
+  }
+
+  try {
+    const { consultarDetalleSolicitudUseCase } = await import("../container");
+    const { solicitud, historial } = await consultarDetalleSolicitudUseCase.ejecutar(solicitudId);
+    // Verificar pertenencia: el solicitante solo puede ver sus propias solicitudes
+    if (solicitud.id_usuario !== userId) {
+      return { success: false, error: "No tenés permiso para consultar esta solicitud." };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: solicitud.id_solicitud,
+        ubicacion_destino: solicitud.ubicacion_destino,
+        prioridad: solicitud.prioridad,
+        productos: solicitud.productos,
+        estado: solicitud.estado,
+        motivoCancelacion: solicitud.motivoCancelacion,
+        motivoAnulacion: solicitud.motivoAnulacion,
+        fechaSolicitada: solicitud.fecha_solicitada.toISOString(),
+        fechaActualizacion: solicitud.fechaActualizacion.toISOString(),
+        fechaEntrega: solicitud.fecha_entrega ? solicitud.fecha_entrega.toISOString() : undefined,
+        puedeSerCancelada: solicitud.puedeSerCancelada(),
         historial: historial.map((h) => ({
           id: h.id,
           actorId: h.actorId,

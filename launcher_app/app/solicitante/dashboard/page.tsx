@@ -9,6 +9,7 @@ import { obtenerNotificacionesAction } from "@/src/actions/notificaciones.action
 import CoverageMap from "@/app/components/map/CoverageMap";
 import StatusBadge from "@/app/components/ui/StatusBadge";
 import Button from "@/app/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 interface NotificationJSON {
   id_notificacion: string;
@@ -59,9 +60,12 @@ export default function SolicitanteDashboard() {
     setSelectedPoint({ lat, lng });
   };
 
+  const router = useRouter();
   const handleCreateClick = () => {
-    // El botón se activa, pero tal como solicita el usuario, no hace nada (no-op)
-    console.log("Crear solicitud cliqueado con punto:", selectedPoint);
+    if (!selectedPoint) return;
+    router.push(
+      `/solicitante/solicitudes/nueva?lat=${selectedPoint.lat}&lon=${selectedPoint.lng}`
+    );
   };
 
   // Agrupamiento y conteo de estados para las tarjetas
