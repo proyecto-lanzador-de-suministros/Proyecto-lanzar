@@ -6,7 +6,7 @@
 // ============================================================
 
 export interface RegistrarHistorialStockParams {
-  id_remitente: string;
+  id_base: string;
   id_producto: string;
   cantidadAnterior: number;
   cantidadNueva: number;
@@ -15,7 +15,7 @@ export interface RegistrarHistorialStockParams {
 
 export interface HistorialStockEntry {
   id: string;
-  id_remitente: string;
+  id_base: string;
   id_producto: string;
   nombreProducto: string;
   cantidadAnterior: number;
@@ -27,5 +27,5 @@ export interface HistorialStockEntry {
 
 export interface ForManagingHistorialStock {
   registrar(params: RegistrarHistorialStockParams): Promise<void>;
-  listarPorBase(id_remitente: string): Promise<HistorialStockEntry[]>;
+  listarPorBase(id_base: string): Promise<HistorialStockEntry[]>;
 }

@@ -1,7 +1,7 @@
 export class Stock {
   constructor(
     readonly id: string,
-    readonly remitenteId: string,
+    readonly baseId: string,
     readonly productoId: string,
     private _cantidadDisponible: number,
     private _cantidadReservada: number,
@@ -31,13 +31,13 @@ export class Stock {
   }
 
   static crear(props: {
-    remitenteId: string;
+    baseId: string;
     productoId: string;
     cantidadDisponible: number;
   }): Stock {
     return new Stock(
       crypto.randomUUID(),
-      props.remitenteId,
+      props.baseId,
       props.productoId,
       props.cantidadDisponible,
       0,
@@ -46,13 +46,13 @@ export class Stock {
 
   static reconstruir(props: {
     id: string;
-    remitenteId: string;
+    baseId: string;
     productoId: string;
     cantidadDisponible: number;
     cantidadReservada: number;
   }): Stock {
     return new Stock(
-      props.id, props.remitenteId, props.productoId,
+      props.id, props.baseId, props.productoId,
       props.cantidadDisponible, props.cantidadReservada,
     )
   }

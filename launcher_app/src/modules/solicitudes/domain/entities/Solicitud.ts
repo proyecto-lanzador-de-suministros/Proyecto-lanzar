@@ -169,7 +169,6 @@ export class Solicitud {
   }
 
   // ── Métodos de negocio ──────────────────────────────────────────────────
-  //!!!! TODO : porqué se mapea id_remitente -> id_base ??? (AsignarRemitente.usecase.ts)
   /** CU-09: stock OK → asigna base directamente (Creada → Asignada) */
   asignar(id_base: string): void {
     this.props.id_base = id_base;
