@@ -326,13 +326,13 @@ export default function SolicitanteDashboard() {
             <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">Información útil</h2>
             
             <div className="flex flex-col gap-2">
-              <Link href="/solicitante/ayuda">
+              <Link href="/solicitante/ayuda?q=0">
                 <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                   <span className="font-medium text-slate-700 dark:text-slate-300">¿Cómo hacer una solicitud?</span>
                   <span className="text-slate-400">➔</span>
                 </div>
               </Link>
-              <Link href="/solicitante/ayuda">
+              <Link href="/solicitante/ayuda?q=4">
                 <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                   <span className="font-medium text-slate-700 dark:text-slate-300">Condiciones de envío</span>
                   <span className="text-slate-400">➔</span>
