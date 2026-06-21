@@ -15,7 +15,7 @@ interface NotificationJSON {
   id_notificacion: string;
   mensaje: string;
   fecha_hora: string;
-  id_solicitud: string;
+  id_solicitud: string | null;
 }
 
 export default function SolicitanteDashboard() {
@@ -114,7 +114,7 @@ export default function SolicitanteDashboard() {
       case EstadoSolicitud.Rechazada:
         return { text: "Cancelado", variant: "danger" as const };
       default:
-        return { text: "Por llegar", variant: "warning" as const };
+        return { text: "En proceso", variant: "warning" as const };
     }
   };
 
