@@ -13,7 +13,9 @@ datasource db {
 
 model Usuario {
   id_usuario    String  @id @default(uuid()) // Será el ID provisto por Clerk (ADR-006)
-  contrasena    String? // Opcional ya que la autenticación se delega a Clerk
+  nombre        String? // Nombre visible. En producción viene de Clerk; se puede setear directo en seed/dev
+  email         String? // Email. Opcional porque Clerk es source of truth en producción
+  contrasena    String? // Opcional ya que la autenticación se delega a Clerk. Útil para seed/dev offline
   estado_cuenta String  @default("PENDIENTE") // PENDIENTE, APROBADA, RECHAZADA
 
   // Relaciones de herencia (1 a 1)
