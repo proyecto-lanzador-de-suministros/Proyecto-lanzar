@@ -1,4 +1,4 @@
-import { ForManagingUsuarios, BaseRemitenteData, ActualizarBaseRemitenteInput, CrearBaseRemitenteInput } from "../../domain/ports/forManagingUsuarios.port";
+import { ForManagingUsuarios, BaseRemitenteData, ActualizarBaseRemitenteInput, CrearBaseRemitenteInput, DatosPerfilInput } from "../../domain/ports/forManagingUsuarios.port";
 import { Usuario, EstadoCuenta, RolUsuario } from "../../domain/entities/Usuario";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 
@@ -106,6 +106,13 @@ export class PrismaUsuarioRepository implements ForManagingUsuarios {
   async baseExiste(id: string): Promise<boolean> {
     const count = await prisma.base.count({ where: { id_base: id } });
     return count > 0;
+  }
+
+  async guardarDatosPerfil(id: string, datos: DatosPerfilInput): Promise<void> {
+    await prisma.usuario.update({
+      where: { id_usuario: id },
+      data: datos,
+    });
   }
 
   async crearBaseRemitente(id: string, datos: CrearBaseRemitenteInput): Promise<void> {
