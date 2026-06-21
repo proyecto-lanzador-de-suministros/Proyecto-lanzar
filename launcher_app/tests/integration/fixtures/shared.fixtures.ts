@@ -39,22 +39,29 @@ export async function crearRemitenteFixture(
 ) {
   const id = overrides?.idUsuario ?? crypto.randomUUID();
 
+  const base = await prisma.base.create({
+    data: {
+      nombre: overrides?.nombreBase ?? "Base Test",
+      latitud: overrides?.latitud ?? -34.6037,
+      longitud: overrides?.longitud ?? -58.3816,
+      direccion: "Test Address",
+      capacidad_pista: overrides?.capacidadPista ?? "grande",
+    },
+  });
+
   await prisma.usuario.create({
     data: {
       id_usuario: id,
       estado_cuenta: "APROBADA",
       remitente: {
         create: {
-          nombre_base: overrides?.nombreBase ?? "Base Test",
-          latitud_base: overrides?.latitud ?? -34.6037,
-          longitud_base: overrides?.longitud ?? -58.3816,
-          capacidad_pista: overrides?.capacidadPista ?? "grande",
+          id_base: base.id_base,
         },
       },
     },
   });
 
-  return { idUsuario: id, idRemitente: id };
+  return { idUsuario: id, idRemitente: base.id_base };
 }
 
 export async function crearAdminFixture(
@@ -72,16 +79,13 @@ export async function crearAdminFixture(
     data: {
       id_usuario: id,
       estado_cuenta: "APROBADA",
-      administradorId_admin: id,
-    },
-  });
-
-  await prisma.administrador.create({
-    data: {
-      id_admin: id,
-      nombre: overrides?.nombre ?? "Admin Test",
-      usuario: overrides?.usuario ?? "admin_test",
-      permisos_rol: overrides?.permisosRol ?? "full",
+      administrador: {
+        create: {
+          nombre: overrides?.nombre ?? "Admin Test",
+          usuario: overrides?.usuario ?? "admin_test",
+          permisos_rol: overrides?.permisosRol ?? "full",
+        },
+      },
     },
   });
 
@@ -115,14 +119,14 @@ export async function crearProductoFixture(
 export async function crearStockFixture(
   prisma: PrismaClient,
   overrides: {
-    idRemitente: string;
+    idBase: string;
     idProducto: string;
     cantidad?: number;
   },
 ) {
   const stock = await prisma.stock_Base.create({
     data: {
-      id_remitente: overrides.idRemitente,
+      id_base: overrides.idBase,
       id_producto: overrides.idProducto,
       cantidad_disponible: overrides.cantidad ?? 10,
     },

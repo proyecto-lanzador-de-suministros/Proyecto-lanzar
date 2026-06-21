@@ -17,7 +17,7 @@ export async function setup() {
   process.env.DATABASE_URL_TEST = url;
 
   // DATABASE_URL explícito en el env del proceso hijo tiene precedencia sobre dotenv
-  execSync("npx prisma migrate deploy", {
+  execSync("npx prisma db push", {
     env: { ...process.env, DATABASE_URL: url },
     stdio: "inherit",
   });
