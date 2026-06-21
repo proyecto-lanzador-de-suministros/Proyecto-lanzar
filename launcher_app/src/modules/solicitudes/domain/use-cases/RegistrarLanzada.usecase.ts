@@ -32,7 +32,7 @@ export class RegistrarLanzadaUseCase {
     }
 
     // Verificar permisos: si es remitente, debe ser el asignado a la solicitud
-    if (rol === "remitente" && solicitud.id_remitente !== actorId) {
+    if (rol === "remitente" && solicitud.id_base !== actorId) {
       throw Errores.permisoDenegado("remitente", rol);
     }
 

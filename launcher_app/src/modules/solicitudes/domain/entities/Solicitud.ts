@@ -78,7 +78,7 @@ export interface ProductoSolicitado {
 export interface SolicitudProps {
   id_solicitud: string;
   id_usuario: string;
-  id_remitente?: string;
+  id_base?: string;
   ubicacion_destino: PuntoGeometria;
   prioridad: PrioridadSolicitud;
   productos: ProductoSolicitado[];
@@ -134,8 +134,8 @@ export class Solicitud {
   get id_usuario() {
     return this.props.id_usuario;
   }
-  get id_remitente() {
-    return this.props.id_remitente;
+  get id_base() {
+    return this.props.id_base;
   }
   get ubicacion_destino() {
     return this.props.ubicacion_destino;

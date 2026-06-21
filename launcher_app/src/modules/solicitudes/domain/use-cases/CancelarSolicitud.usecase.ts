@@ -41,9 +41,9 @@ export class CancelarSolicitud {
 
     solicitud.cancelar(input.motivo);
 
-    if (solicitud.id_remitente) {
+    if (solicitud.id_base) {
       await this.stock.liberarReserva({
-        id_base: solicitud.id_remitente,
+        id_base: solicitud.id_base,
         productos: solicitud.productos,
       });
     }
