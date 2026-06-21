@@ -4,35 +4,25 @@ import { currentUser } from "@clerk/nextjs/server";
 
 export class PrismaTestDataRepository implements ForManagingTestData {
   async ensureSolicitanteExists(usuarioId: string): Promise<void> {
-    const existing = await prisma.solicitante.findUnique({
-      where: { id_solicitante: usuarioId },
+    const existing = await prisma.usuario.findUnique({
+      where: { id_usuario: usuarioId },
     });
-    if (existing) return;
+    if (existing?.rol === "SOLICITANTE") return;
 
     const clerkUser = await currentUser();
     const email = clerkUser?.emailAddresses[0]?.emailAddress ?? "solicitante@correo.com";
     const nombre = clerkUser?.fullName ?? "Usuario Solicitante";
 
-    await prisma.$transaction(async (tx) => {
-      let usuario = await tx.usuario.findUnique({
-        where: { id_usuario: usuarioId },
-      });
-      if (!usuario) {
-        usuario = await tx.usuario.create({
-          data: {
-            id_usuario: usuarioId,
-            estado_cuenta: "APROBADA",
-          },
-        });
-      }
-
-      await tx.solicitante.create({
-        data: {
-          id_solicitante: usuarioId,
-          nombre,
-          contacto: email,
-        },
-      });
+    await prisma.usuario.upsert({
+      where: { id_usuario: usuarioId },
+      update: { rol: "SOLICITANTE", nombre, email },
+      create: {
+        id_usuario: usuarioId,
+        nombre,
+        email,
+        rol: "SOLICITANTE",
+        estado_cuenta: "APROBADA",
+      },
     });
   }
 
@@ -50,6 +40,7 @@ export class PrismaTestDataRepository implements ForManagingTestData {
           update: {},
           create: {
             id_usuario: baseUserId,
+            rol: "REMITENTE",
             estado_cuenta: "APROBADA",
           },
         });
@@ -58,20 +49,14 @@ export class PrismaTestDataRepository implements ForManagingTestData {
           data: {
             id_base: "base-default-location",
             nombre: "Base Central Bahía Blanca",
-            latitud: -38.7183,
-            longitud: -62.2663,
-            capacidad_pista: "Grande",
+            posicion_base: JSON.stringify({ lat: -38.7183, lng: -62.2663 }),
             direccion: "Bahía Blanca, Argentina",
           },
         });
 
-        await tx.remitente.upsert({
-          where: { id_remitente: baseUserId },
-          update: {},
-          create: {
-            id_remitente: baseUserId,
-            id_base: base.id_base,
-          },
+        await tx.usuario.update({
+          where: { id_usuario: baseUserId },
+          data: { id_base: base.id_base },
         });
 
         defaultBaseId = base.id_base;
@@ -87,7 +72,7 @@ export class PrismaTestDataRepository implements ForManagingTestData {
           data: {
             nombre: "Vacunas y Suero Fisiológico",
             descripcion: "Kit térmico con vacunas esenciales y suero.",
-            peso_unitario: 4.5,
+            peso_kg: 4.5,
             categoria: "Suministros Médicos",
           },
         });
@@ -96,7 +81,7 @@ export class PrismaTestDataRepository implements ForManagingTestData {
           data: {
             nombre: "Botiquín de Primeros Auxilios",
             descripcion: "Gasas, desinfectante, bandages y medicamentos básicos.",
-            peso_unitario: 1.5,
+            peso_kg: 1.5,
             categoria: "Suministros Médicos",
           },
         });
@@ -105,7 +90,7 @@ export class PrismaTestDataRepository implements ForManagingTestData {
           data: {
             nombre: "Raciones de Alimento Deshidratado",
             descripcion: "Comida de emergencia alta en calorías.",
-            peso_unitario: 2.0,
+            peso_kg: 2.0,
             categoria: "Suministros Médicos",
           },
         });

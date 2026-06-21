@@ -9,8 +9,10 @@ export class PrismaStockRepository implements ForManagingStock {
     const bases = await prisma.base.findMany();
 
     const basesOrdenadas = bases.sort((a, b) => {
-      const distA = Math.hypot(a.latitud - lat, a.longitud - lon);
-      const distB = Math.hypot(b.latitud - lat, b.longitud - lon);
+      const pa = JSON.parse(a.posicion_base) as { lat: number; lng: number };
+      const pb = JSON.parse(b.posicion_base) as { lat: number; lng: number };
+      const distA = Math.hypot(pa.lat - lat, pa.lng - lon);
+      const distB = Math.hypot(pb.lat - lat, pb.lng - lon);
       return distA - distB;
     });
 

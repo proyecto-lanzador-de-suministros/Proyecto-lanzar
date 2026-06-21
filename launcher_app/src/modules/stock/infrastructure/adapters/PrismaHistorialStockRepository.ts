@@ -5,17 +5,9 @@ import {
 } from "../../domain/ports/forManagingHistorialStock.port";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 
-interface ActorRelaciones {
-  remitente: { base: { nombre: string } } | null;
-  administrador: { nombre: string } | null;
-  solicitante: { nombre: string } | null;
-}
-
-function resolverNombreActor(usuario: ActorRelaciones): string {
-  if (usuario.remitente) return usuario.remitente.base.nombre;
-  if (usuario.administrador) return usuario.administrador.nombre;
-  if (usuario.solicitante) return usuario.solicitante.nombre;
-  return "Usuario sin nombre";
+function resolverNombreActor(usuario: { rol: string; nombre?: string | null; base?: { nombre?: string | null } | null }): string {
+  if (usuario.rol === "REMITENTE") return usuario.base?.nombre ?? "Usuario sin nombre";
+  return usuario.nombre ?? "Usuario sin nombre";
 }
 
 export class PrismaHistorialStockRepository implements ForManagingHistorialStock {
@@ -38,11 +30,7 @@ export class PrismaHistorialStockRepository implements ForManagingHistorialStock
       include: {
         producto: { select: { nombre: true } },
         actor: {
-          select: {
-            remitente: { select: { base: { select: { nombre: true } } } },
-            administrador: { select: { nombre: true } },
-            solicitante: { select: { nombre: true } },
-          },
+          include: { base: true },
         },
       },
     });
@@ -55,7 +43,7 @@ export class PrismaHistorialStockRepository implements ForManagingHistorialStock
       cantidadAnterior: r.cantidad_anterior,
       cantidadNueva: r.cantidad_nueva,
       actorId: r.id_actor,
-      actorNombre: resolverNombreActor(r.actor as ActorRelaciones),
+      actorNombre: resolverNombreActor(r.actor),
       fechaHora: r.fecha_hora,
     }));
   }

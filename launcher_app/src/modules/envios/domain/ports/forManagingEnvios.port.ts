@@ -4,22 +4,18 @@ export interface Envio {
   id_base: string;
   fecha_hora_programada: Date | null;
   estado_envio: string;
-  matricula_avion: string | null;
-  piloto: string | null;
 }
 
 export interface Contenedor {
   id_contenedor: string;
   tipo_paracaidas: string;
-  peso_maximo: number;
-  estado_mecanico: string;
+  peso_max: number;
   id_envio: string;
 }
 
 export type CrearContenedorInput = {
   tipo_paracaidas: string;
-  peso_maximo: number;
-  estado_mecanico: string;
+  peso_max: number;
 };
 
 export interface ForManagingEnvios {

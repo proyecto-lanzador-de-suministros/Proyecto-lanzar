@@ -28,15 +28,14 @@ export async function POST(
     const contenedor = await asignarContenedorUseCase.ejecutar({
       id_envio: id,
       tipo_paracaidas: tipoParacaidas,
-      peso_maximo: pesoMax,
-      estado_mecanico: "operativo",
+      peso_max: pesoMax,
     });
 
     return NextResponse.json(
       {
         id: contenedor.id_contenedor,
         tipoParacaidas: contenedor.tipo_paracaidas,
-        pesoMax: contenedor.peso_maximo,
+        pesoMax: contenedor.peso_max,
         envioId: contenedor.id_envio,
       },
       { status: 201 },

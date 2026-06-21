@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { id_solicitud, id_base, matricula_avion, piloto } = body;
+    const { id_solicitud, id_base } = body;
 
     if (!id_solicitud || !id_base) {
       return NextResponse.json(
@@ -42,8 +42,6 @@ export async function POST(request: Request) {
     const envio = await programarEnvioUseCase.ejecutar({
       id_solicitud,
       id_base,
-      matricula_avion,
-      piloto,
     });
 
     return NextResponse.json(

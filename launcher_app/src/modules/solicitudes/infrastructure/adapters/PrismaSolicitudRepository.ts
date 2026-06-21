@@ -5,7 +5,6 @@ import {
   PrioridadSolicitud,
 } from "../../domain/entities/Solicitud";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
-
 import { Prisma } from "../../../../generated/prisma";
 
 type SolicitudConDetalles = Prisma.SolicitudGetPayload<{
@@ -17,11 +16,13 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
     await prisma.solicitud.create({
       data: {
         id_solicitud: solicitud.id_solicitud,
-        estado_actual: solicitud.estado,
+        estado: solicitud.estado,
         prioridad: solicitud.prioridad,
-        latitud_destino: solicitud.ubicacion_destino.coordinates[1],
-        longitud_destino: solicitud.ubicacion_destino.coordinates[0],
-        id_solicitante: solicitud.id_usuario,
+        ubicacion_destino: JSON.stringify({
+          lat: solicitud.ubicacion_destino.coordinates[1],
+          lon: solicitud.ubicacion_destino.coordinates[0],
+        }),
+        id_usuario: solicitud.id_usuario,
         id_base: solicitud.id_base ?? null,
       },
     });
@@ -31,11 +32,13 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
     await prisma.solicitud.update({
       where: { id_solicitud: solicitud.id_solicitud },
       data: {
-        estado_actual: solicitud.estado,
+        estado: solicitud.estado,
         prioridad: solicitud.prioridad,
-        latitud_destino: solicitud.ubicacion_destino.coordinates[1],
-        longitud_destino: solicitud.ubicacion_destino.coordinates[0],
-        id_solicitante: solicitud.id_usuario,
+        ubicacion_destino: JSON.stringify({
+          lat: solicitud.ubicacion_destino.coordinates[1],
+          lon: solicitud.ubicacion_destino.coordinates[0],
+        }),
+        id_usuario: solicitud.id_usuario,
         id_base: solicitud.id_base ?? null,
         motivo_cancelacion: solicitud.motivoCancelacion ?? null,
         motivo_anulacion: solicitud.motivoAnulacion ?? null,
@@ -53,18 +56,18 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
 
   async listarPorSolicitante(userId: string): Promise<Solicitud[]> {
     const rows = await prisma.solicitud.findMany({
-      where: { id_solicitante: userId },
+      where: { id_usuario: userId },
       include: { detalles: true },
-      orderBy: { fecha_creacion: "desc" },
+      orderBy: { fecha_solicitada: "desc" },
     });
     return rows.map((row) => this.mapToDomain(row));
   }
 
   async listarTodas(estadoFiltro?: string): Promise<Solicitud[]> {
     const rows = await prisma.solicitud.findMany({
-      where: estadoFiltro ? { estado_actual: estadoFiltro } : undefined,
+      where: estadoFiltro ? { estado: estadoFiltro } : undefined,
       include: { detalles: true },
-      orderBy: { fecha_creacion: "desc" },
+      orderBy: { fecha_solicitada: "desc" },
     });
     return rows.map((row) => this.mapToDomain(row));
   }
@@ -73,16 +76,16 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
     const rows = await prisma.solicitud.findMany({
       where: { id_base },
       include: { detalles: true },
-      orderBy: { fecha_creacion: "desc" },
+      orderBy: { fecha_solicitada: "desc" },
     });
     return rows.map((row) => this.mapToDomain(row));
   }
 
   async listarPendientes(id_base: string): Promise<Solicitud[]> {
     const rows = await prisma.solicitud.findMany({
-      where: { id_base, estado_actual: EstadoSolicitud.Asignada },
+      where: { id_base, estado: EstadoSolicitud.Asignada },
       include: { detalles: true },
-      orderBy: { fecha_creacion: "asc" },
+      orderBy: { fecha_solicitada: "asc" },
     });
     return rows.map((row) => this.mapToDomain(row));
   }
@@ -100,7 +103,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
     await prisma.solicitud.update({
       where: { id_solicitud: id },
       data: {
-        estado_actual: nuevoEstado,
+        estado: nuevoEstado,
         ...(extras?.id_base !== undefined && { id_base: extras.id_base }),
         ...(extras?.motivoCancelacion !== undefined && {
           motivo_cancelacion: extras.motivoCancelacion,
@@ -113,22 +116,25 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
   }
 
   private mapToDomain(row: SolicitudConDetalles): Solicitud {
+    const ubicacion = row.ubicacion_destino
+      ? JSON.parse(row.ubicacion_destino) as { lat: number; lon: number }
+      : { lat: 0, lon: 0 };
     return Solicitud.reconstruir({
       id_solicitud: row.id_solicitud,
-      id_usuario: row.id_solicitante,
+      id_usuario: row.id_usuario,
       id_base: row.id_base ?? undefined,
       ubicacion_destino: {
         type: "Point",
-        coordinates: [row.longitud_destino, row.latitud_destino],
+        coordinates: [ubicacion.lon, ubicacion.lat],
       },
       prioridad: row.prioridad as PrioridadSolicitud,
       productos: (row.detalles ?? []).map((d) => ({
         productoId: d.id_producto,
-        cantidad: d.cantidad_pedida,
+        cantidad: d.cantidad_solicitada,
       })),
-      estado: row.estado_actual as EstadoSolicitud,
-      fecha_solicitada: row.fecha_creacion,
-      fechaActualizacion: row.fecha_creacion,
+      estado: row.estado as EstadoSolicitud,
+      fecha_solicitada: row.fecha_solicitada,
+      fechaActualizacion: row.fecha_solicitada,
       motivoCancelacion: row.motivo_cancelacion ?? undefined,
       motivoAnulacion: row.motivo_anulacion ?? undefined,
     });

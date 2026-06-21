@@ -4,7 +4,6 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 import { aprobarCuentaUseCase, crearCuentaUseCase } from "@/src/container";
-import type { Prisma } from "../../../src/generated/prisma";
 
 async function verificarAdmin() {
   const { userId, sessionClaims } = await auth();
@@ -14,16 +13,12 @@ async function verificarAdmin() {
   return { ok: true as const };
 }
 
-/**
- * Aprueba una cuenta de usuario (CU-02).
- *
- * Esta action maneja únicamente lo que no puede hacer el caso de uso del dominio:
- * crear el perfil específico por rol en Postgres (Remitente, Solicitante, Administrador),
- * que requiere datos de Clerk (nombre, email) que el dominio no conoce.
- *
- * La actualización de estado en Postgres y la sincronización con Clerk
- * la delega al caso de uso AprobarCuentaUseCase.
- */
+function rolNormalizar(rol: string): string {
+  if (rol === "admin" || rol === "administrador") return "ADMINISTRADOR";
+  if (rol === "remitente") return "REMITENTE";
+  return "SOLICITANTE";
+}
+
 export async function aprobarUsuario(userId: string, rol: string) {
   const chequeo = await verificarAdmin();
   if (!chequeo.ok) throw new Error(chequeo.error);
@@ -32,65 +27,40 @@ export async function aprobarUsuario(userId: string, rol: string) {
   const user = await client.users.getUser(userId);
   const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Usuario sin nombre";
   const email = user.emailAddresses[0]?.emailAddress || "sin-email";
+  const rolNorm = rolNormalizar(rol);
 
-  // 1. Crear el registro base del usuario y el perfil por rol en Postgres
-  //    (esto es infraestructura específica de Clerk que el dominio no puede hacer)
-  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  await prisma.$transaction(async (tx) => {
     await tx.usuario.upsert({
       where: { id_usuario: userId },
-      update: {},
-      create: { id_usuario: userId },//saque el email para que funcione el build
+      update: { rol: rolNorm, nombre: fullName },
+      create: {
+        id_usuario: userId,
+        nombre: fullName,
+        email,
+        rol: rolNorm,
+        estado_cuenta: "PENDIENTE",
+      },
     });
 
-    if (rol === "remitente") {
+    if (rolNorm === "REMITENTE") {
       const base = await tx.base.create({
         data: {
           nombre: `Base Logística ${fullName}`,
-          latitud: 0,
-          longitud: 0,
+          posicion_base: JSON.stringify({ lat: 0, lng: 0 }),
           direccion: "",
-          capacidad_pista: "pendiente",
         },
       });
-      await tx.remitente.upsert({
-        where: { id_remitente: userId },
-        update: {},
-        create: {
-          id_remitente: userId,
-          id_base: base.id_base,
-        },
-      });
-    } else if (rol === "solicitante") {
-      await tx.solicitante.upsert({
-        where: { id_solicitante: userId },
-        update: {},
-        create: { id_solicitante: userId, nombre: fullName, contacto: email },
-      });
-    } else if (rol === "administrador" || rol === "admin") {
-      await tx.administrador.upsert({
-        where: { id_admin: userId },
-        update: {},
-        create: {
-          id_admin: userId,
-          nombre: fullName,
-          usuario: email,
-          permisos_rol: "admin",
-        },
+      await tx.usuario.update({
+        where: { id_usuario: userId },
+        data: { id_base: base.id_base },
       });
     }
   });
 
-  // 2. Aprobar en dominio + sincronizar con Clerk (delegado al caso de uso)
   await aprobarCuentaUseCase.ejecutar(userId);
-
   revalidatePath("/admin/usuarios");
 }
 
-/**
- * CU-04: Obtiene los datos editables de una cuenta para precargar el
- * formulario de edición del admin (datos específicos por rol + email
- * de login desde Clerk). Solo lectura.
- */
 export async function obtenerDetalleCuentaAction(usuarioId: string, rolNormalizado: string) {
   const chequeo = await verificarAdmin();
   if (!chequeo.ok) return { success: false, error: chequeo.error };
@@ -100,27 +70,36 @@ export async function obtenerDetalleCuentaAction(usuarioId: string, rolNormaliza
   try {
     const clerkUser = await client.users.getUser(usuarioId);
     const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
+    const rolNorm = rolNormalizar(rolNormalizado);
 
     let datos: Record<string, unknown> = {};
 
-    if (rolNormalizado === "solicitante") {
-      const solicitante = await prisma.solicitante.findUnique({
-        where: { id_solicitante: usuarioId },
-        select: { nombre: true, contacto: true },
+    if (rolNorm === "SOLICITANTE") {
+      const usuario = await prisma.usuario.findUnique({
+        where: { id_usuario: usuarioId },
+        select: { nombre: true, email: true },
       });
-      datos = { nombre: solicitante?.nombre ?? "", contacto: solicitante?.contacto ?? "" };
-    } else if (rolNormalizado === "administrador" || rolNormalizado === "admin") {
-      const administrador = await prisma.administrador.findUnique({
-        where: { id_admin: usuarioId },
-        select: { nombre: true, permisos_rol: true },
+      datos = { nombre: usuario?.nombre ?? "", contacto: usuario?.email ?? "" };
+    } else if (rolNorm === "ADMINISTRADOR") {
+      const usuario = await prisma.usuario.findUnique({
+        where: { id_usuario: usuarioId },
+        select: { nombre: true },
       });
-      datos = { nombre: administrador?.nombre ?? "", permisos_rol: administrador?.permisos_rol ?? "" };
-    } else if (rolNormalizado === "remitente") {
-      const remitente = await prisma.remitente.findUnique({
-        where: { id_remitente: usuarioId },
-        select: { base: { select: { nombre: true, latitud: true, longitud: true, capacidad_pista: true } } },
+      datos = { nombre: usuario?.nombre ?? "", permisos_rol: "admin" };
+    } else if (rolNorm === "REMITENTE") {
+      const usuario = await prisma.usuario.findUnique({
+        where: { id_usuario: usuarioId },
+        include: { base: true },
       });
-      datos = remitente?.base ?? {};
+      const posicion = usuario?.base?.posicion_base
+        ? JSON.parse(usuario.base.posicion_base) as { lat: number; lng: number }
+        : { lat: 0, lng: 0 };
+      datos = {
+        nombre: usuario?.base?.nombre ?? "",
+        latitud: posicion.lat,
+        longitud: posicion.lng,
+        capacidad_pista: "",
+      };
     }
 
     return { success: true, data: { email, ...datos } };
@@ -129,12 +108,6 @@ export async function obtenerDetalleCuentaAction(usuarioId: string, rolNormaliza
   }
 }
 
-/**
- * CU-04: Edita la información de cuenta (no relacionada al login) de un
- * Solicitante o Administrador. Los datos físicos de una base Remitente
- * (nombre de base, ubicación, capacidad de pista) se editan exclusivamente
- * desde "Gestión de Remitentes" para no duplicar la fuente de verdad.
- */
 export async function editarInfoCuentaAction(
   usuarioId: string,
   rolNormalizado: string,
@@ -148,20 +121,21 @@ export async function editarInfoCuentaAction(
   }
 
   try {
-    if (rolNormalizado === "solicitante") {
-      await prisma.solicitante.update({
-        where: { id_solicitante: usuarioId },
+    const rolNorm = rolNormalizar(rolNormalizado);
+
+    if (rolNorm === "SOLICITANTE") {
+      await prisma.usuario.update({
+        where: { id_usuario: usuarioId },
         data: {
           ...(datos.nombre !== undefined && { nombre: datos.nombre }),
-          ...(datos.contacto !== undefined && { contacto: datos.contacto }),
+          ...(datos.contacto !== undefined && { email: datos.contacto }),
         },
       });
-    } else if (rolNormalizado === "administrador" || rolNormalizado === "admin") {
-      await prisma.administrador.update({
-        where: { id_admin: usuarioId },
+    } else if (rolNorm === "ADMINISTRADOR") {
+      await prisma.usuario.update({
+        where: { id_usuario: usuarioId },
         data: {
           ...(datos.nombre !== undefined && { nombre: datos.nombre }),
-          ...(datos.permisos_rol !== undefined && { permisos_rol: datos.permisos_rol }),
         },
       });
     } else {
@@ -178,10 +152,6 @@ export async function editarInfoCuentaAction(
   }
 }
 
-/**
- * CU-03 (contraseña): el admin fija directamente una nueva contraseña
- * para cualquier cuenta, sin pasar por el flujo de "olvidé mi contraseña".
- */
 export async function resetearPasswordAction(usuarioId: string, nuevaPassword: string) {
   const chequeo = await verificarAdmin();
   if (!chequeo.ok) return { success: false, error: chequeo.error };
@@ -199,11 +169,6 @@ export async function resetearPasswordAction(usuarioId: string, nuevaPassword: s
   }
 }
 
-/**
- * CU-03 (email): el admin cambia el email de acceso de cualquier cuenta.
- * Verificado contra la documentación de Clerk: emailAddresses.createEmailAddress
- * es un wrapper estable de POST /email_addresses del Backend API.
- */
 export async function actualizarEmailLoginAction(usuarioId: string, nuevoEmail: string) {
   const chequeo = await verificarAdmin();
   if (!chequeo.ok) return { success: false, error: chequeo.error };
@@ -229,28 +194,6 @@ export async function actualizarEmailLoginAction(usuarioId: string, nuevoEmail: 
   }
 }
 
-/**
- * Alta directa de cuenta por parte del admin (CU-01, variante administrativa).
- *
- * A diferencia de aprobarUsuario (que aprueba una cuenta que ya se
- * autoregistró desde /sign-up), acá el admin crea la cuenta de punta a
- * punta: la persona nunca pasa por el flujo de registro. El alta tiene
- * dos partes:
- *
- * 1. crearCuentaUseCase (dominio): valida los datos y crea el usuario
- *    en Clerk con el rol ya seteado en publicMetadata.
- * 2. Esta action (infraestructura específica de Clerk + Postgres):
- *    crea el registro base Usuario y el perfil por rol, ya en estado
- *    APROBADA — no tiene sentido pedirle al admin que apruebe una
- *    cuenta que él mismo acaba de dar de alta.
- *
- * Replica el mismo patrón transaccional que aprobarUsuario, para no
- * introducir una segunda forma de crear perfiles por rol en el sistema.
- * Si falla la creación en Postgres después de haber creado el usuario
- * en Clerk, el usuario queda huérfano en Clerk (sin perfil local) —
- * mismo riesgo que ya existe en el flujo de self-signup, no es una
- * regresión introducida acá.
- */
 export async function crearUsuarioAction(datos: {
   email: string;
   password: string;
@@ -261,46 +204,31 @@ export async function crearUsuarioAction(datos: {
   if (!chequeo.ok) return { success: false, error: chequeo.error };
 
   try {
-    // 1. Crear en Clerk (dominio)
     const { id: userId } = await crearCuentaUseCase.ejecutar(datos);
+    const rolNorm = rolNormalizar(datos.rol);
 
-    // 2. Crear registro base + perfil por rol en Postgres, ya APROBADA
-    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    await prisma.$transaction(async (tx) => {
       await tx.usuario.create({
         data: {
           id_usuario: userId,
+          nombre: datos.nombre,
+          email: datos.email,
+          rol: rolNorm,
           estado_cuenta: "APROBADA",
         },
       });
 
-      if (datos.rol === "remitente") {
+      if (rolNorm === "REMITENTE") {
         const base = await tx.base.create({
           data: {
             nombre: `Base Logística ${datos.nombre}`,
-            latitud: 0,
-            longitud: 0,
+            posicion_base: JSON.stringify({ lat: 0, lng: 0 }),
             direccion: "",
-            capacidad_pista: "pendiente",
           },
         });
-        await tx.remitente.create({
-          data: {
-            id_remitente: userId,
-            id_base: base.id_base,
-          },
-        });
-      } else if (datos.rol === "solicitante") {
-        await tx.solicitante.create({
-          data: { id_solicitante: userId, nombre: datos.nombre, contacto: datos.email },
-        });
-      } else if (datos.rol === "admin") {
-        await tx.administrador.create({
-          data: {
-            id_admin: userId,
-            nombre: datos.nombre,
-            usuario: datos.email,
-            permisos_rol: "admin",
-          },
+        await tx.usuario.update({
+          where: { id_usuario: userId },
+          data: { id_base: base.id_base },
         });
       }
     });

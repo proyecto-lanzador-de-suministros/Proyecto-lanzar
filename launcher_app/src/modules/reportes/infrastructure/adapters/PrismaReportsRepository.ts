@@ -16,16 +16,16 @@ export class PrismaReportsRepository implements ForGeneratingReports {
 
     const solicitudes = await prisma.solicitud.findMany({
       where: {
-        fecha_creacion: {
+        fecha_solicitada: {
           ...(desde && { gte: desde }),
           ...(hasta && { lte: hasta }),
         },
       },
-      orderBy: { fecha_creacion: "desc" },
+      orderBy: { fecha_solicitada: "desc" },
       select: {
         id_solicitud: true,
-        fecha_creacion: true,
-        estado_actual: true,
+        fecha_solicitada: true,
+        estado: true,
         prioridad: true,
         base: { select: { nombre: true } },
       },
@@ -33,10 +33,10 @@ export class PrismaReportsRepository implements ForGeneratingReports {
 
     const filas: FilaSolicitudReporte[] = solicitudes.map((s) => ({
       id: s.id_solicitud,
-      fechaCreacion: s.fecha_creacion.toISOString(),
-      estado: s.estado_actual as EstadoSolicitud,
+      fechaCreacion: s.fecha_solicitada.toISOString(),
+      estado: s.estado as EstadoSolicitud,
       prioridad: s.prioridad as PrioridadSolicitud,
-      baseAsignada: s.base?.nombre ?? "Sin asignar",
+      baseAsignada: (s as any).base?.nombre ?? "Sin asignar",
     }));
 
     const porEstado: Record<string, number> = {};

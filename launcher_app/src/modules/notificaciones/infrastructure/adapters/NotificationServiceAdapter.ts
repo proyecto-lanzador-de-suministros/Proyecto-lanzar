@@ -59,7 +59,7 @@ export class NotificationServiceAdapter implements ForNotifying, ForNotifyingCue
         data: {
           mensaje,
           id_solicitud: params.solicitudId,
-          id_usuario_destino: params.destinatario,
+          id_usuario: params.destinatario,
         },
       });
       console.log(`[NotificationServiceAdapter] Notificación creada en DB para ${params.destinatario}: ${mensaje}`);
@@ -93,7 +93,7 @@ export class NotificationServiceAdapter implements ForNotifying, ForNotifyingCue
       await prisma.notificacion.create({
         data: {
           mensaje,
-          id_usuario_destino: usuarioId,
+          id_usuario: usuarioId,
         },
       });
       console.log(`[NotificationServiceAdapter] Notificación de cuenta creada en DB para ${usuarioId}: ${mensaje}`);

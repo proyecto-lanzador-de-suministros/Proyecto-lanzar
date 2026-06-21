@@ -8,83 +8,96 @@ datasource db {
 }
 
 // ==========================================
-// Usuarios y Roles (Herencia) - CU-01 a CU-05
+// Base operativa
+// ==========================================
+
+model Base {
+  id_base       String @id @default(uuid())
+  nombre        String
+  posicion_base String // JSON: {"lat": -38.71, "lng": -62.26}
+  direccion     String
+
+  usuarios          Usuario[]
+  solicitudes       Solicitud[]
+  stocks            Stock_Base[]
+  envios            Envio[]
+  historiales_stock Historial_Stock[]
+}
+
+// ==========================================
+// Usuario (tabla única con rol)
 // ==========================================
 
 model Usuario {
-  id_usuario    String  @id @default(uuid()) // Será el ID provisto por Clerk (ADR-006)
-  nombre        String? // Nombre visible. En producción viene de Clerk; se puede setear directo en seed/dev
-  email         String? // Email. Opcional porque Clerk es source of truth en producción
-  contrasena    String? // Opcional ya que la autenticación se delega a Clerk. Útil para seed/dev offline
-  estado_cuenta String  @default("PENDIENTE") // PENDIENTE, APROBADA, RECHAZADA
+  id_usuario    String  @id @default(uuid())
+  nombre        String?
+  email         String?
+  telefono      String?
+  rol           String  // "SOLICITANTE" | "ADMINISTRADOR" | "REMITENTE"
+  contrasena    String?
+  estado_cuenta String  @default("PENDIENTE")
+  id_base       String? // solo para remitentes
 
-  // Relaciones de herencia (1 a 1)
-  solicitante    Solicitante?
-  administrador  Administrador?
-  remitente      Remitente?
-
-  // Trazabilidad y Notificaciones
+  base               Base?               @relation(fields: [id_base], references: [id_base])
+  solicitudes_creadas Solicitud[]        @relation("Solicitante")
+  solicitudes_gestionadas Solicitud[]    @relation("AdminGestiona")
   historiales_estado Historial_Estado[]
   historiales_stock  Historial_Stock[]
   notificaciones     Notificacion[]
 }
 
-model Solicitante {
-  id_solicitante String @id
-  nombre         String
-  contacto       String
+// ==========================================
+// Solicitudes
+// ==========================================
 
-  usuario     Usuario     @relation(fields: [id_solicitante], references: [id_usuario], onDelete: Cascade)
-  solicitudes Solicitud[]
-}
+model Solicitud {
+  id_solicitud       String   @id @default(uuid())
+  fecha_solicitada   DateTime @default(now())
+  fecha_entrega      DateTime?
+  fecha_estimada     DateTime?
+  estado             String
+  prioridad          String
+  ubicacion_destino  String // JSON: {"lat": -38.0, "lng": -62.5}
+  motivo_cancelacion String?
+  motivo_anulacion   String?
+  id_usuario         String
+  id_admin           String?
+  id_base            String?
 
-model Administrador {
-  id_admin     String @id
-  nombre       String
-  usuario      String // Nombre de usuario en el sistema
-  permisos_rol String
-
-  cuenta_usuario Usuario     @relation(fields: [id_admin], references: [id_usuario], onDelete: Cascade)
-  solicitudes    Solicitud[]
-}
-
-model Remitente {
-  id_remitente String @id
-  id_base      String
-
-  usuario Usuario @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
-  base    Base    @relation(fields: [id_base], references: [id_base])
+  solicitante Usuario            @relation("Solicitante", fields: [id_usuario], references: [id_usuario])
+  admin       Usuario?            @relation("AdminGestiona", fields: [id_admin], references: [id_usuario])
+  base        Base?               @relation(fields: [id_base], references: [id_base])
+  detalles    Detalle_Solicitud[]
+  historiales Historial_Estado[]
+  notificaciones Notificacion[]
+  envios      Envio[]
 }
 
 // ==========================================
-// Bases operativas (ubicaciones físicas)
+// Detalle de solicitud
 // ==========================================
 
-model Base {
-  id_base   String @id @default(uuid())
-  nombre    String
-  latitud   Float
-  longitud  Float
-  direccion String
-  capacidad_pista String
+model Detalle_Solicitud {
+  id_detalle          String @id @default(uuid())
+  cantidad_solicitada Int
+  cantidad_aprobada   Int?
+  id_solicitud        String
+  id_producto         String
 
-  remitentes        Remitente[]
-  stock_bases       Stock_Base[]
-  historiales_stock Historial_Stock[]
-  solicitudes       Solicitud[]
-  envios            Envio[]
+  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  producto  Producto  @relation(fields: [id_producto], references: [id_producto])
 }
 
 // ==========================================
-// Catálogo e Inventario - CU-17, CU-18
+// Productos e Inventario
 // ==========================================
 
 model Producto {
-  id_producto   String  @id @default(uuid())
-  nombre        String
-  descripcion   String?
-  peso_unitario Float
-  categoria     String?
+  id_producto String  @id @default(uuid())
+  nombre      String
+  descripcion String?
+  peso_kg     Float
+  categoria   String?
 
   stocks             Stock_Base[]
   detalles_solicitud Detalle_Solicitud[]
@@ -93,124 +106,85 @@ model Producto {
 
 model Stock_Base {
   id_stock            String @id @default(uuid())
-  id_base             String
-  id_producto         String
   cantidad_disponible Int
   cantidad_reservada  Int    @default(0)
+  id_base             String
+  id_producto         String
 
-  base    Base     @relation(fields: [id_base], references: [id_base])
+  base     Base     @relation(fields: [id_base], references: [id_base])
   producto Producto @relation(fields: [id_producto], references: [id_producto])
 }
 
 model Historial_Stock {
   id_historial_stock String   @id @default(uuid())
-  id_base            String
-  id_producto        String
   cantidad_anterior  Int
   cantidad_nueva     Int
+  fecha_hora         DateTime @default(now())
+  id_base            String
+  id_producto        String
   id_actor           String
-  fecha_hora         DateTime @default(now())
 
-  base    Base     @relation(fields: [id_base], references: [id_base])
+  base     Base     @relation(fields: [id_base], references: [id_base])
   producto Producto @relation(fields: [id_producto], references: [id_producto])
-  actor   Usuario  @relation(fields: [id_actor], references: [id_usuario])
+  actor    Usuario  @relation(fields: [id_actor], references: [id_usuario])
 }
 
 // ==========================================
-// Solicitudes y Logística - CU-08 a CU-20
-// ==========================================
-
-model Solicitud {
-  id_solicitud       String   @id @default(uuid())
-  fecha_creacion     DateTime @default(now())
-  estado_actual      String
-  prioridad          String
-  latitud_destino    Float
-  longitud_destino   Float
-  id_solicitante     String
-  id_admin           String? // Nullable porque se asigna al aprobar (CU-09)
-  id_base            String? // Nullable porque se asigna al aprobar (CU-09)
-  motivo_cancelacion String?
-  motivo_anulacion   String?
-
-  solicitante Solicitante    @relation(fields: [id_solicitante], references: [id_solicitante])
-  admin       Administrador? @relation(fields: [id_admin], references: [id_admin])
-  base        Base?          @relation(fields: [id_base], references: [id_base])
-
-  detalles       Detalle_Solicitud[]
-  historiales    Historial_Estado[]
-  notificaciones Notificacion[]
-  envios         Envio[]
-}
-
-model Detalle_Solicitud {
-  id_detalle      String @id @default(uuid())
-  id_solicitud    String
-  id_producto     String
-  cantidad_pedida Int
-
-  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
-  producto  Producto  @relation(fields: [id_producto], references: [id_producto])
-}
-
-model Historial_Estado {
-  id_historial    String   @id @default(uuid())
-  fecha_hora      DateTime @default(now())
-  estado_anterior String?
-  estado_nuevo    String
-  id_solicitud    String
-  id_usuario      String
-
-  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
-  usuario   Usuario   @relation(fields: [id_usuario], references: [id_usuario])
-}
-
-model Notificacion {
-  id_notificacion    String   @id @default(uuid())
-  mensaje            String
-  leida              Boolean  @default(false)
-  fecha_hora         DateTime @default(now())
-  id_solicitud       String?
-  id_usuario_destino String
-
-  solicitud       Solicitud? @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
-  usuario_destino Usuario    @relation(fields: [id_usuario_destino], references: [id_usuario], onDelete: Cascade)
-}
-
-// ==========================================
-// Entregas Físicas (ADR-007)
+// Envíos y Contenedores
 // ==========================================
 
 model Envio {
-  id_envio     String @id @default(uuid())
-  id_solicitud String
-  id_base      String
+  id_envio        String    @id @default(uuid())
+  fecha_hora      DateTime?
+  estado_envio    String    @default("PROGRAMADO")
+  datos_clima     Json?
+  entrega_real    DateTime?
+  cod_seguimiento String?
+  fecha_salida    DateTime?
+  id_base         String
+  id_solicitud    String
 
-  matricula_avion String?
-  piloto          String?
-
-  latitud_calculada  Float?
-  longitud_calculada Float?
-  altitud            Float?
-  datos_clima        Json?
-
-  estado_envio       String    @default("programado")
-  codigo_seguimiento String?
-  fecha_hora         DateTime?
-  fecha_salida       DateTime?
-  entrega_real       DateTime?
-
-  solicitud    Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
   base         Base         @relation(fields: [id_base], references: [id_base])
+  solicitud    Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
   contenedores Contenedor[]
 }
 
 model Contenedor {
   id_contenedor   String @id @default(uuid())
   tipo_paracaidas String
-  peso_maximo     Float
-  estado_mecanico String
+  peso_max        Float
   id_envio        String
 
   envio Envio @relation(fields: [id_envio], references: [id_envio], onDelete: Cascade)
+}
+
+// ==========================================
+// Trazabilidad
+// ==========================================
+
+model Historial_Estado {
+  id_historial String   @id @default(uuid())
+  fecha_hora   DateTime @default(now())
+  est_ant      String?
+  est_nue      String
+  id_solicitud String
+  id_usuario   String
+
+  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  usuario   Usuario   @relation(fields: [id_usuario], references: [id_usuario])
+}
+
+model Notificacion {
+  id_notificacion String   @id @default(uuid())
+  mensaje         String
+  fecha           DateTime @default(now())
+  leida           Boolean  @default(false)
+  tipo            String?
+  canal_envio     String?
+  enviada_at      DateTime?
+  id_solicitud    String?
+  id_usuario      String
+
+  solicitud Solicitud? @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  usuario   Usuario    @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 }

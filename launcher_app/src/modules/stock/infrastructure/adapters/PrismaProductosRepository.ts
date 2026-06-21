@@ -4,7 +4,7 @@ import { prisma } from "@/src/infrastructure/db/prisma.client";
 export class PrismaProductosRepository implements ForManagingProductos {
   async listarCatalogo(): Promise<CatalogoProducto[]> {
     const productos = await prisma.producto.findMany({
-      select: { id_producto: true, nombre: true, descripcion: true, peso_unitario: true },
+      select: { id_producto: true, nombre: true, descripcion: true, peso_kg: true },
       orderBy: { nombre: "asc" },
     });
 
@@ -12,7 +12,7 @@ export class PrismaProductosRepository implements ForManagingProductos {
       id_producto: p.id_producto,
       nombre: p.nombre,
       descripcion: p.descripcion,
-      peso_unitario: p.peso_unitario,
+      peso_kg: p.peso_kg,
     }));
   }
 
@@ -36,7 +36,7 @@ export class PrismaProductosRepository implements ForManagingProductos {
           { nombre: identificador },
         ],
       },
-      select: { id_producto: true, nombre: true, descripcion: true, peso_unitario: true },
+      select: { id_producto: true, nombre: true, descripcion: true, peso_kg: true },
     });
 
     if (!producto) return null;
@@ -45,7 +45,7 @@ export class PrismaProductosRepository implements ForManagingProductos {
       id_producto: producto.id_producto,
       nombre: producto.nombre,
       descripcion: producto.descripcion,
-      peso_unitario: producto.peso_unitario,
+      peso_kg: producto.peso_kg,
     };
   }
 }

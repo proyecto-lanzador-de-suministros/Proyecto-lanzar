@@ -195,7 +195,7 @@ function NuevaSolicitudForm() {
                       />
                       <div>
                         <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{prod.nombre}</p>
-                        <p className="text-xs text-slate-400">{prod.peso_unitario} kg/unidad</p>
+                        <p className="text-xs text-slate-400">{prod.peso_kg} kg/unidad</p>
                       </div>
                     </div>
                     {sel && (

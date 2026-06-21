@@ -2,7 +2,7 @@ export interface CatalogoProducto {
   id_producto: string;
   nombre: string;
   descripcion: string | null;
-  peso_unitario: number;
+  peso_kg: number;
 }
 
 export interface BaseParaStock {

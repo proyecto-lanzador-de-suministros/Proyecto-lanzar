@@ -16,7 +16,7 @@ type CatalogoProducto = {
   id_producto: string;
   nombre: string;
   descripcion: string | null;
-  peso_unitario: number;
+  peso_kg: number;
 };
 
 const ESTADO_ICONO: Record<string, string> = {
