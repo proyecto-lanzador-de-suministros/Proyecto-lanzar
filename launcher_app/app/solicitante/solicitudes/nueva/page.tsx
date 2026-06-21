@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { Suspense, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PrioridadSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { CatalogoProducto } from "@/src/modules/stock/domain/ports/forManagingProductos.port";
 import { crearSolicitudAction, obtenerProductosAction } from "@/src/actions/solicitudes.actions";
 import Button from "@/app/components/ui/Button";
+import { useSearchParams } from "next/navigation";
 
 type ProductoSeleccionado = {
   productoId: string;
   cantidad: number;
 };
 
-export default function NuevaSolicitudPage() {
+function NuevaSolicitudForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -21,11 +22,13 @@ export default function NuevaSolicitudPage() {
   const [loadingProductos, setLoadingProductos] = useState(true);
 
   // Form state
-  const [lat, setLat] = useState("");
-  const [lon, setLon] = useState("");
+  const searchParams = useSearchParams();
+  const [lat, setLat] = useState(searchParams.get("lat") ?? "");
+  const [lon, setLon] = useState(searchParams.get("lon") ?? "");
   const [prioridad, setPrioridad] = useState<PrioridadSolicitud>(PrioridadSolicitud.Media);
   const [seleccionados, setSeleccionados] = useState<ProductoSeleccionado[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
 
   useEffect(() => {
     obtenerProductosAction().then((res) => {
@@ -241,6 +244,23 @@ export default function NuevaSolicitudPage() {
         </div>
 
       </form>
+    </div>
+  );
+}
+export default function NuevaSolicitudPage() {
+  return (
+    <Suspense fallback={<NuevaSolicitudSkeleton />}>
+      <NuevaSolicitudForm />
+    </Suspense>
+  );
+}
+
+function NuevaSolicitudSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 font-sans max-w-2xl">
+      <div className="h-8 w-48 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
+      <div className="h-40 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+      <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
     </div>
   );
 }
