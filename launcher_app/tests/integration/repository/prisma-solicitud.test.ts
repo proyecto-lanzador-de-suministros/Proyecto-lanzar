@@ -40,7 +40,7 @@ describe("PrismaSolicitudesRepository (integration)", () => {
     expect(row!.prioridad).toBe(PrioridadSolicitud.Media);
     expect(row!.latitud_destino).toBe(-38.7);
     expect(row!.longitud_destino).toBe(-62.3);
-    expect(row!.id_remitente).toBeNull();
+    expect(row!.id_base).toBeNull();
   });
 
   it("buscarPorId retorna null para ID inexistente", async () => {
@@ -140,7 +140,7 @@ describe("PrismaSolicitudesRepository (integration)", () => {
     });
     expect(row!.estado_actual).toBe(EstadoSolicitud.Asignada);
     expect(row!.prioridad).toBe(PrioridadSolicitud.Alta);
-    expect(row!.id_remitente).toBe(idRemitente);
+    expect(row!.id_base).toBe(idRemitente);
     expect(row!.latitud_destino).toBe(-34.6);
     expect(row!.longitud_destino).toBe(-58.38);
   });
@@ -169,7 +169,7 @@ describe("PrismaSolicitudesRepository (integration)", () => {
       where: { id_solicitud: idSolicitud },
     });
     expect(row!.estado_actual).toBe(EstadoSolicitud.Asignada);
-    expect(row!.id_remitente).toBe(idRemitente);
+    expect(row!.id_base).toBe(idRemitente);
   });
 
   it("actualizarEstado incluye motivo_cancelacion cuando se provee", async () => {

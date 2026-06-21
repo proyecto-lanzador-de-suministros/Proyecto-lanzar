@@ -28,7 +28,7 @@ describe("Server Actions - Notificaciones", () => {
         data: {
           id_usuario: userId,
           estado_cuenta: "APROBADA",
-          solicitante: { create: { id_solicitante: userId, nombre: "Test", contacto: "t@t.com" } },
+          solicitante: { create: { nombre: "Test", contacto: "t@t.com" } },
         },
       });
 
@@ -85,7 +85,7 @@ describe("Server Actions - Notificaciones", () => {
         data: {
           id_usuario: userId,
           estado_cuenta: "APROBADA",
-          solicitante: { create: { id_solicitante: userId, nombre: "Test", contacto: "t@t.com" } },
+          solicitante: { create: { nombre: "Test", contacto: "t@t.com" } },
         },
       });
 

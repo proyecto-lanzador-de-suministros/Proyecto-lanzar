@@ -92,7 +92,7 @@ describe("Server Actions - Solicitudes", () => {
       expect(result.success).toBe(true);
 
       const solicitud = await prisma.solicitud.findUnique({ where: { id_solicitud: idSolicitud } });
-      expect(solicitud?.id_remitente).toBe(idRemitente);
+      expect(solicitud?.id_base).toBe(idRemitente);
     });
 
     it("rechaza si el rol no es admin", async () => {
@@ -221,7 +221,6 @@ async function crearSolicitudConFixture(prisma: PrismaClient, estado: string) {
       estado_cuenta: "APROBADA",
       solicitante: {
         create: {
-          id_solicitante: idUsuario,
           nombre: "Solicitante Test",
           contacto: "test@test.com",
         },

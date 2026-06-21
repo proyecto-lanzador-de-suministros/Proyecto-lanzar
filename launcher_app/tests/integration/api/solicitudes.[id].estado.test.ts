@@ -86,13 +86,22 @@ describe("PATCH /api/solicitudes/[id]/estado", () => {
       data: {
         id_usuario: idUsuarioSolicitante,
         estado_cuenta: "APROBADA",
-        solicitante: {
-          create: {
-            id_solicitante: idUsuarioSolicitante,
-            nombre: "Test",
-            contacto: "t@t.com",
+          solicitante: {
+            create: {
+              nombre: "Test",
+              contacto: "t@t.com",
+            },
           },
-        },
+      },
+    });
+
+    const baseA = await prisma.base.create({
+      data: {
+        nombre: "Base A",
+        latitud: -34.6,
+        longitud: -58.4,
+        direccion: "Test Address A",
+        capacidad_pista: "Alta",
       },
     });
 
@@ -102,13 +111,19 @@ describe("PATCH /api/solicitudes/[id]/estado", () => {
         estado_cuenta: "APROBADA",
         remitente: {
           create: {
-            id_remitente: idUsuarioRemitente,
-            nombre_base: "Base A",
-            latitud_base: -34.6,
-            longitud_base: -58.4,
-            capacidad_pista: "Alta",
+            id_base: baseA.id_base,
           },
         },
+      },
+    });
+
+    const baseB = await prisma.base.create({
+      data: {
+        nombre: "Base B",
+        latitud: -34.7,
+        longitud: -58.5,
+        direccion: "Test Address B",
+        capacidad_pista: "Media",
       },
     });
 
@@ -118,11 +133,7 @@ describe("PATCH /api/solicitudes/[id]/estado", () => {
         estado_cuenta: "APROBADA",
         remitente: {
           create: {
-            id_remitente: idUsuarioOtroRemitente,
-            nombre_base: "Base B",
-            latitud_base: -34.7,
-            longitud_base: -58.5,
-            capacidad_pista: "Media",
+            id_base: baseB.id_base,
           },
         },
       },
@@ -136,7 +147,7 @@ describe("PATCH /api/solicitudes/[id]/estado", () => {
         latitud_destino: -38.7,
         longitud_destino: -62.27,
         id_solicitante: idUsuarioSolicitante,
-        id_remitente: idUsuarioRemitente,
+        id_base: baseA.id_base,
       },
     });
 
@@ -163,9 +174,9 @@ describe("PATCH /api/solicitudes/[id]/estado", () => {
       data: {
         id_usuario: idUsuario,
         estado_cuenta: "APROBADA",
-        solicitante: {
-          create: { id_solicitante: idUsuario, nombre: "Test", contacto: "t@t.com" },
-        },
+          solicitante: {
+            create: { nombre: "Test", contacto: "t@t.com" },
+          },
       },
     });
 
@@ -203,9 +214,9 @@ describe("PATCH /api/solicitudes/[id]/estado", () => {
       data: {
         id_usuario: idUsuario,
         estado_cuenta: "APROBADA",
-        solicitante: {
-          create: { id_solicitante: idUsuario, nombre: "Test", contacto: "t@t.com" },
-        },
+          solicitante: {
+            create: { nombre: "Test", contacto: "t@t.com" },
+          },
       },
     });
 

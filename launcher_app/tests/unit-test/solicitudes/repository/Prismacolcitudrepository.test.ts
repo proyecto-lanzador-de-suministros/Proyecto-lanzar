@@ -34,7 +34,7 @@ function rowBase() {
   return {
     id_solicitud: "sol-001",
     id_solicitante: "usr-001",
-    id_remitente: null,
+    id_base: null,
     latitud_destino: -38.7,
     longitud_destino: -62.3,
     prioridad: PrioridadSolicitud.Media,
@@ -214,7 +214,7 @@ describe("PrismaSolicitudesRepository", () => {
       });
     });
 
-    it("incluye id_remitente cuando se pasa id_base en extras", async () => {
+    it("incluye id_base cuando se pasa id_base en extras", async () => {
       prismaMock.solicitud.update.mockResolvedValue(undefined);
 
       await repo.actualizarEstado("sol-001", EstadoSolicitud.Asignada, {
@@ -224,7 +224,7 @@ describe("PrismaSolicitudesRepository", () => {
       expect(prismaMock.solicitud.update).toHaveBeenCalledWith({
         where: { id_solicitud: "sol-001" },
         data: expect.objectContaining({
-          id_remitente: "base-007",
+          id_base: "base-007",
         }),
       });
     });

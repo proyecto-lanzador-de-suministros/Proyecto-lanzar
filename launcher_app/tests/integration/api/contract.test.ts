@@ -135,7 +135,7 @@ describe("POST /api/envios", () => {
       data: { id_solicitud: idSolicitud, estado_actual: "Asignada", prioridad: "Alta", latitud_destino: -38.7, longitud_destino: -62.27, id_solicitante: idUsuario },
     });
     await prisma.base.create({
-      data: { id_base: idBase, nombre: "Base Test", latitud: -38.7, longitud: -62.27, direccion: "Test" },
+      data: { id_base: idBase, nombre: "Base Test", latitud: -38.7, longitud: -62.27, direccion: "Test", capacidad_pista: "Grande" },
     });
     mockAuth.mockResolvedValue({ userId: idUsuario, sessionClaims: { metadata: { rol: "admin" } } });
     const res = await POST_Envios(crearRequest("/envios", { id_solicitud: idSolicitud, id_base: idBase }));
@@ -155,7 +155,7 @@ describe("POST /api/envios/[id]/contenedores", () => {
     await prisma.usuario.create({
       data: { id_usuario: idUsuario, estado_cuenta: "APROBADA", administrador: { create: { nombre: "Admin", usuario: "admin", permisos_rol: "admin" } } },
     });
-    await prisma.base.create({ data: { id_base: idBase, nombre: "Base", latitud: -38.7, longitud: -62.27, direccion: "Test" } });
+    await prisma.base.create({ data: { id_base: idBase, nombre: "Base", latitud: -38.7, longitud: -62.27, direccion: "Test", capacidad_pista: "Grande" } });
     await prisma.solicitud.create({
       data: { id_solicitud: idSolicitud, estado_actual: "Asignada", prioridad: "Alta", latitud_destino: -38.7, longitud_destino: -62.27, id_solicitante: idUsuario },
     });
