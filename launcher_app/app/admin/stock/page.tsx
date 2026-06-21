@@ -6,6 +6,7 @@ import {
   actualizarStockAction,
   listarBasesParaStockAction,
   listarCatalogoProductosAction,
+  listarHistorialStockAction,
 } from "@/src/actions/stock.actions";
 
 interface StockItemJSON {
@@ -23,6 +24,15 @@ interface BaseOption {
 interface ProductoOption {
   id_producto: string;
   nombre: string;
+}
+
+interface HistorialStockItemJSON {
+  id: string;
+  nombreProducto: string;
+  cantidadAnterior: number;
+  cantidadNueva: number;
+  actorNombre: string;
+  fechaHora: string;
 }
 
 export default function AdminStockPage() {
@@ -44,6 +54,12 @@ export default function AdminStockPage() {
   // Agregar producto nuevo al stock de la base
   const [productoAAgregar, setProductoAAgregar] = useState("");
   const [cantidadAAgregar, setCantidadAAgregar] = useState("");
+
+  // Historial de stock (CU-18, postcondición): modal por producto
+  const [productoHistorial, setProductoHistorial] = useState<StockItemJSON | null>(null);
+  const [historialItems, setHistorialItems] = useState<HistorialStockItemJSON[]>([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
+  const [errorHistorial, setErrorHistorial] = useState<string | null>(null);
 
   useEffect(() => {
     listarBasesParaStockAction().then((res) => {
@@ -154,6 +170,31 @@ export default function AdminStockPage() {
     setGuardandoProductoId(null);
   };
 
+  // ── Historial de stock (CU-18) ──────────────────────────────────────────
+  const abrirHistorial = async (item: StockItemJSON) => {
+    setProductoHistorial(item);
+    setHistorialItems([]);
+    setErrorHistorial(null);
+    setLoadingHistorial(true);
+
+    const res = await listarHistorialStockAction(baseSeleccionada);
+
+    if (res.success && res.data) {
+      // El use case filtra por base; acá recortamos al producto puntual
+      // para mostrar solo lo relevante en el modal.
+      setHistorialItems(res.data.filter((h) => h.nombreProducto === item.nombreProducto));
+    } else {
+      setErrorHistorial(res.error ?? "No se pudo cargar el historial.");
+    }
+    setLoadingHistorial(false);
+  };
+
+  const cerrarHistorial = () => {
+    setProductoHistorial(null);
+    setHistorialItems([]);
+    setErrorHistorial(null);
+  };
+
   // Productos del catálogo que la base todavía NO tiene cargados en stock
   const productosDisponiblesParaAgregar = catalogo.filter(
     (p) => !stock.some((s) => s.productoId === p.id_producto),
@@ -233,6 +274,7 @@ export default function AdminStockPage() {
                       <th className="px-6 py-3 font-semibold">Disponible</th>
                       <th className="px-6 py-3 font-semibold">Fijar valor</th>
                       <th className="px-6 py-3 font-semibold">Sumar / Restar</th>
+                      <th className="px-6 py-3 font-semibold text-center">Historial</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
@@ -301,8 +343,16 @@ export default function AdminStockPage() {
                               </button>
                             </div>
                           </td>
+                          <td className="px-6 py-4 text-center">
+                            <button
+                              onClick={() => abrirHistorial(item)}
+                              className="text-[#6B7280] bg-gray-50 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                            >
+                              Ver historial
+                            </button>
+                          </td>
                           {errorItem && (
-                            <td colSpan={4} className="px-6 pb-3 -mt-2">
+                            <td colSpan={5} className="px-6 pb-3 -mt-2">
                               <p className="text-[11px] text-red-600">{errorItem}</p>
                             </td>
                           )}
@@ -357,6 +407,87 @@ export default function AdminStockPage() {
           </div>
         )}
       </div>
+
+      {/* Modal: historial de cambios de stock por producto (CU-18, postcondición) */}
+      {productoHistorial && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) cerrarHistorial();
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-[#1A1A2E]">Historial de stock</h2>
+                <p className="text-xs text-[#6B7280] mt-0.5">{productoHistorial.nombreProducto}</p>
+              </div>
+              <button
+                onClick={cerrarHistorial}
+                className="text-[#6B7280] hover:text-[#1A1A2E] text-2xl leading-none"
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+
+            {loadingHistorial ? (
+              <div className="py-10 flex justify-center items-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#F5A623]" />
+                <span className="text-sm text-[#6B7280]">Cargando historial...</span>
+              </div>
+            ) : errorHistorial ? (
+              <p className="text-sm text-[#F44336] bg-red-50 rounded-lg px-3 py-2">{errorHistorial}</p>
+            ) : historialItems.length === 0 ? (
+              <p className="text-sm text-[#6B7280] py-6 text-center">
+                Todavía no hay cambios registrados para este producto en esta base.
+              </p>
+            ) : (
+              <div className="relative border-l border-slate-200 ml-3 pl-6 space-y-5">
+                {historialItems.map((h) => {
+                  const subio = h.cantidadNueva >= h.cantidadAnterior;
+                  return (
+                    <div key={h.id} className="relative">
+                      <span
+                        className={`absolute -left-[31px] top-1 bg-white border-2 w-3.5 h-3.5 rounded-full ${
+                          subio ? "border-[#4CAF50]" : "border-[#F44336]"
+                        }`}
+                      />
+                      <div className="flex items-center gap-2 text-sm flex-wrap">
+                        <span className="font-semibold text-[#1A1A2E]">{h.cantidadAnterior}</span>
+                        <svg className="w-3.5 h-3.5 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                        <span className={`font-semibold ${subio ? "text-[#4CAF50]" : "text-[#F44336]"}`}>
+                          {h.cantidadNueva}
+                        </span>
+                        <span className="text-xs text-[#6B7280] ml-1">unidades</span>
+                      </div>
+                      <p className="text-xs text-[#6B7280] mt-1">
+                        {new Date(h.fechaHora).toLocaleDateString("es-AR", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}{" "}
+                        · por {h.actorNombre}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <button
+              onClick={cerrarHistorial}
+              className="w-full mt-6 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-[#6B7280] hover:bg-gray-50 transition"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
