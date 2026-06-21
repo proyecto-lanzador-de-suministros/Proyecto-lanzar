@@ -51,6 +51,9 @@ import { PrismaNotificacionesRepository } from "./modules/notificaciones/infrast
 import { ListarNotificacionesUseCase } from "./modules/notificaciones/domain/use-cases/ListarNotificaciones.usecase";
 import { PrismaHistorialStockRepository } from "./modules/stock/infrastructure/adapters/PrismaHistorialStockRepository";
 import { ListarHistorialStockUseCase } from "./modules/stock/domain/use-cases/ListarHistorialStock.usecase";
+import { CalcularTrayectoria } from "./modules/trayectoria/domain/use-cases/CalcularTrayectoria.usecase";
+import { TrajectoryCalculatorAdapter } from "./modules/trayectoria/infrastructure/adapters/TrajectoryCalculatorAdapter";
+import { OpenMeteoWeatherAdapter } from "./modules/trayectoria/infrastructure/adapters/openMeteoWeatherAdapter";
 // ── Infraestructura compartida ──────────────────────────────────────────────
 
 export const authAdapter = new ClerkAuthAdapter();
@@ -62,6 +65,8 @@ export const historialRepository = new PrismaHistorialRepository();
 export const stockRepository = new PrismaStockRepository();
 
 const notificationAdapter = new NotificationServiceAdapter();
+const weatherAdapter = new OpenMeteoWeatherAdapter();
+const trajectoryCalculator = new TrajectoryCalculatorAdapter();
 const notificarSolicitudCreada = new NotificarSolicitudCreada(notificationAdapter);
 const notificarAnulacion = new NotificarAnulacion(notificationAdapter);
 const notificarAsignacion = new NotificarAsignacion(notificationAdapter);
@@ -229,6 +234,16 @@ const reportsRepository = new PrismaReportsRepository();
 export const generarReporteGeneralUseCase = new GenerarReporteGeneralUseCase(
   reportsRepository,
 );
+
+// ── Trayectoria ─────────────────────────────────────────────────────────────
+
+export const calcularTrayectoriaUseCase = new CalcularTrayectoria(
+  weatherAdapter,
+  trajectoryCalculator,
+);
+
+export const weatherServiceAdapter = weatherAdapter;
+export const trajectoryCalculatorAdapter = trajectoryCalculator;
 
 // ── Notificaciones ───────────────────────────────────────────────────────────
 
