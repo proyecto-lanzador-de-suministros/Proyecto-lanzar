@@ -27,4 +27,39 @@ export class ClerkSyncAdapter implements ForSyncingExternalAuth {
       },
     });
   }
+
+  /**
+   * Crea un usuario nuevo directamente en Clerk (alta administrativa).
+   * Setea el rol en publicMetadata desde el momento de creación, así
+   * el primer login ya trae el JWT con sessionClaims.metadata.rol
+   * correctamente poblado (consistente con ClerkAuthAdapter).
+   *
+   * Clerk exige password con un mínimo de complejidad; si falla la
+   * validación, el error sube tal cual lo devuelve el SDK para que
+   * el caller lo traduzca a un mensaje de usuario.
+   */
+  async crearUsuarioExterno(datos: {
+    email: string;
+    password: string;
+    nombre?: string;
+    rol: "admin" | "remitente" | "solicitante";
+  }): Promise<{ id: string }> {
+    const client = await clerkClient();
+
+    const [firstName, ...resto] = (datos.nombre ?? "").trim().split(" ").filter(Boolean);
+    const lastName = resto.join(" ") || undefined;
+
+    const usuarioCreado = await client.users.createUser({
+      emailAddress: [datos.email],
+      password: datos.password,
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+      publicMetadata: {
+        rol: datos.rol,
+      },
+      skipPasswordChecks: false,
+    });
+
+    return { id: usuarioCreado.id };
+  }
 }

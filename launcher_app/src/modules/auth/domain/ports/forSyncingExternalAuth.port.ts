@@ -6,6 +6,10 @@
  * 1. PostgreSQL (la entidad Usuario del dominio).
  * 2. El IdP externo (Clerk), para que los tokens JWT del usuario
  *    reflejen el nuevo estado sin necesidad de un nuevo login.
+ *
+ * CrearCuentaUseCase (alta directa por admin) también depende de este
+ * puerto: necesita pedirle al IdP externo que cree el usuario con
+ * email/password antes de poder persistir el perfil en Postgres.
  */
 export interface ForSyncingExternalAuth {
   /**
@@ -16,4 +20,18 @@ export interface ForSyncingExternalAuth {
     usuarioId: string,
     metadatos: Record<string, unknown>,
   ): Promise<void>;
+
+  /**
+   * Crea un usuario nuevo directamente en el IdP externo (alta por admin,
+   * CU-01 variante administrativa — sin pasar por self-signup).
+   * Devuelve el ID externo (Clerk userId) que se usará como id_usuario
+   * en Postgres, manteniendo el mismo esquema de IDs compartidos que
+   * usa el resto del sistema (ADR-006).
+   */
+  crearUsuarioExterno(datos: {
+    email: string;
+    password: string;
+    nombre?: string;
+    rol: "admin" | "remitente" | "solicitante";
+  }): Promise<{ id: string }>;
 }

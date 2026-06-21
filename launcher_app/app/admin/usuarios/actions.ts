@@ -3,7 +3,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
-import { aprobarCuentaUseCase } from "@/src/container";
+import { aprobarCuentaUseCase, crearCuentaUseCase } from "@/src/container";
 import type { Prisma } from "../../../src/generated/prisma";
 
 async function verificarAdmin() {
@@ -220,5 +220,82 @@ export async function actualizarEmailLoginAction(usuarioId: string, nuevoEmail: 
       success: false,
       error: error.message ?? "No se pudo actualizar el email.",
     };
+  }
+}
+
+/**
+ * Alta directa de cuenta por parte del admin (CU-01, variante administrativa).
+ *
+ * A diferencia de aprobarUsuario (que aprueba una cuenta que ya se
+ * autoregistró desde /sign-up), acá el admin crea la cuenta de punta a
+ * punta: la persona nunca pasa por el flujo de registro. El alta tiene
+ * dos partes:
+ *
+ * 1. crearCuentaUseCase (dominio): valida los datos y crea el usuario
+ *    en Clerk con el rol ya seteado en publicMetadata.
+ * 2. Esta action (infraestructura específica de Clerk + Postgres):
+ *    crea el registro base Usuario y el perfil por rol, ya en estado
+ *    APROBADA — no tiene sentido pedirle al admin que apruebe una
+ *    cuenta que él mismo acaba de dar de alta.
+ *
+ * Replica el mismo patrón transaccional que aprobarUsuario, para no
+ * introducir una segunda forma de crear perfiles por rol en el sistema.
+ * Si falla la creación en Postgres después de haber creado el usuario
+ * en Clerk, el usuario queda huérfano en Clerk (sin perfil local) —
+ * mismo riesgo que ya existe en el flujo de self-signup, no es una
+ * regresión introducida acá.
+ */
+export async function crearUsuarioAction(datos: {
+  email: string;
+  password: string;
+  nombre: string;
+  rol: "admin" | "remitente" | "solicitante";
+}) {
+  const chequeo = await verificarAdmin();
+  if (!chequeo.ok) return { success: false, error: chequeo.error };
+
+  try {
+    // 1. Crear en Clerk (dominio)
+    const { id: userId } = await crearCuentaUseCase.ejecutar(datos);
+
+    // 2. Crear registro base + perfil por rol en Postgres, ya APROBADA
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await tx.usuario.create({
+        data: {
+          id_usuario: userId,
+          estado_cuenta: "APROBADA",
+        },
+      });
+
+      if (datos.rol === "remitente") {
+        await tx.remitente.create({
+          data: {
+            id_remitente: userId,
+            nombre_base: `Base Logística ${datos.nombre}`,
+            latitud_base: 0,
+            longitud_base: 0,
+            capacidad_pista: "pendiente",
+          },
+        });
+      } else if (datos.rol === "solicitante") {
+        await tx.solicitante.create({
+          data: { id_solicitante: userId, nombre: datos.nombre, contacto: datos.email },
+        });
+      } else if (datos.rol === "admin") {
+        await tx.administrador.create({
+          data: {
+            id_admin: userId,
+            nombre: datos.nombre,
+            usuario: datos.email,
+            permisos_rol: "admin",
+          },
+        });
+      }
+    });
+
+    revalidatePath("/admin/usuarios");
+    return { success: true, data: { id: userId } };
+  } catch (error: any) {
+    return { success: false, error: error.message ?? "No se pudo crear el usuario." };
   }
 }
