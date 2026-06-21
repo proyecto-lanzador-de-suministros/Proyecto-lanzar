@@ -8,29 +8,50 @@
 erDiagram
     Usuario {
         string id_usuario PK
+        string estado_cuenta "PENDIENTE | APROBADA | RECHAZADA"
+    }
+
+    Solicitante {
+        string id_solicitante PK, FK
         string nombre
-        string email
-        string telefono
-        string rol
+        string contacto
+    }
+
+    Administrador {
+        string id_admin PK, FK
+        string nombre
+        string usuario
+        string permisos_rol
+    }
+
+    Remitente {
+        string id_remitente PK, FK
+        string nombre_base
+        float latitud_base
+        float longitud_base
+        string capacidad_pista
     }
 
     Base {
         string id_base PK
         string nombre
-        PuntoGeometria posicion_base
+        float latitud
+        float longitud
         string direccion
     }
 
     Solicitud {
         string id_solicitud PK
-        string id_base FK
-        string id_usuario FK
-        date fecha_solicitada
-        string estado
+        string id_solicitante FK
+        string id_admin FK
+        string id_remitente FK
+        datetime fecha_creacion
+        string estado_actual
         string prioridad
-        PuntoGeometria ubicacion_destino
-        date fecha_entrega
-        date fecha_estimada
+        float latitud_destino
+        float longitud_destino
+        string motivo_cancelacion
+        string motivo_anulacion
     }
     
 
@@ -40,22 +61,29 @@ erDiagram
         string id_base FK
         string estado_envio
         string codigo_seguimiento
+        string matricula_avion
+        string piloto
+        float latitud_calculada
+        float longitud_calculada
+        float altitud
+        json datos_clima
         datetime fecha_hora
-        date fecha_salida
-        date entrega_real
+        datetime fecha_salida
+        datetime entrega_real
     }
 
     Contenedor {
         string id_contenedor PK
         string id_envio FK
         string tipo_paracaidas
-        float peso_max
+        float peso_maximo
+        string estado_mecanico
     }
 
 
     StockBase {
         string id_stock PK
-        string id_base FK
+        string id_remitente FK
         string id_producto FK
         int cantidad_disponible
         int cantidad_reservada
@@ -65,14 +93,13 @@ erDiagram
         string id_detalle PK
         string id_solicitud FK
         string id_producto FK
-        int cantidad_solicitada
-        int cantidad_aprobada
+        int cantidad_pedida
     }
      Producto {
         string id_producto PK
         string nombre
         string descripcion
-        float peso_kg
+        float peso_unitario
         string categoria
     }
 
@@ -81,27 +108,45 @@ erDiagram
         string id_solicitud FK
         string id_usuario FK
         datetime fecha_hora
-        EstadoSolicitud estado_anterior
-        EstadoSolicitud estado_nuevo
+        string estado_anterior
+        string estado_nuevo
+    }
+
+    HistorialStock {
+        string id_historial_stock PK
+        string id_remitente FK
+        string id_producto FK
+        string id_actor FK
+        int cantidad_anterior
+        int cantidad_nueva
+        datetime fecha_hora
     }
 
     Notificacion {
         string id_notificacion PK
         string id_solicitud FK
-        string id_usuario FK
-        date fecha
-        string tipo
+        string id_usuario_destino FK
         string mensaje
-        string canal_envio
+        boolean leida
+        datetime fecha_hora
     }
-    Usuario ||--o{ Solicitud : "Realiza"
-    Base ||--o{ Solicitud : "Pertenece"
-    Base }o--||Usuario: "Gestiona"
+
+    Usuario ||--o| Solicitante : "es"
+    Usuario ||--o| Administrador : "es"
+    Usuario ||--o| Remitente : "es"
     Usuario ||--o{ HistorialEstado : "Registra"
     Usuario ||--o{ Notificacion : "Recibe"
+    Usuario ||--o{ HistorialStock : "Actor"
     
+    Solicitante ||--o{ Solicitud : "Realiza"
+    Remitente ||--o{ StockBase : "Gestiona stock"
+    Remitente ||--o{ HistorialStock : "Registra cambios"
+    Remitente ||--o{ Solicitud : "Atiende"
+    
+    Administrador ||--o{ Solicitud : "Gestiona"
+
     Solicitud ||--o{ Envio : "Deriva En"
-    Base ||--o{ StockBase : "Se almacena en"
+    Base ||--o{ StockBase : "Se almacena en" "TODO: migrar"
     Base ||--o{ Envio : "Posee"
     
     Solicitud ||--o{ DetalleSolicitud : "Compone"
@@ -111,5 +156,5 @@ erDiagram
     DetalleSolicitud }o--|| Producto : "Especifica en"
       
     Producto ||--o{ StockBase : "Se almacena en"
+    Producto ||--o{ HistorialStock : "Audita"
 ```
-- LLM puso `deriva en` (relación) como `1-1` en el diagrama original esta como `1-N`
