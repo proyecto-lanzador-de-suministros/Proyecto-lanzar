@@ -240,7 +240,15 @@ export async function crearSolicitudAction(data: {
     });
 
     revalidatePath("/solicitante/solicitudes");
-    return { success: true, data: resultado };
+    return {
+      success: true,
+      data: {
+        id: resultado.solicitud.id_solicitud,
+        estado: resultado.solicitud.estado,
+        asignada: resultado.asignada,
+        stockFaltante: resultado.stockFaltante,
+      },
+    };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
