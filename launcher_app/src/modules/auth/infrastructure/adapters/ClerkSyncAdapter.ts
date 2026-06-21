@@ -91,7 +91,7 @@ export class ClerkSyncAdapter implements ForSyncingExternalAuth {
 
     const emailAddress = await client.emailAddresses.createEmailAddress({
       userId: usuarioId,
-      email: nuevoEmail,
+      emailAddress: nuevoEmail,
       primary: true,
       verified: true,
     });
