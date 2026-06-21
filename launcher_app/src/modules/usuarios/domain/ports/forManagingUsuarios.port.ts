@@ -18,6 +18,13 @@ export interface ActualizarBaseRemitenteInput {
   capacidad_pista?: string;
 }
 
+export interface CrearBaseRemitenteInput {
+  nombre: string;
+  latitud: number;
+  longitud: number;
+  capacidad_pista: string;
+}
+
 export interface ForManagingUsuarios {
   buscarPorId(id: string): Promise<Usuario | null>;
   listarPendientes(): Promise<Usuario[]>;
@@ -28,4 +35,6 @@ export interface ForManagingUsuarios {
   actualizarBaseRemitente(id: string, datos: ActualizarBaseRemitenteInput): Promise<void>;
   /** Resuelve la base que gestiona un remitente a partir de su ID de usuario */
   obtenerBaseDeRemitente(remitenteId: string): Promise<string | null>;
+  crearBaseRemitente(id: string, datos: CrearBaseRemitenteInput): Promise<void>;
+  baseExiste(id: string): Promise<boolean>;
 }

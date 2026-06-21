@@ -30,7 +30,7 @@ export class ConsultarSolicitud {
       throw Errores.permisoDenegado("solicitante", input.rol);
     }
 
-    if (input.rol === "remitente" && solicitud.id_base !== input.id_base) {
+    if (input.rol === "remitente" && solicitud.id_remitente !== input.id_base) {
       throw Errores.permisoDenegado("remitente", input.rol);
     }
 

@@ -38,6 +38,9 @@ export default function ModalGestionSolicitud({
     !solicitud.baseId &&
     (solicitud.estado === EstadoSolicitud.Creada || solicitud.estado === EstadoSolicitud.Asignada);
 
+  const puedeReasignarRemitente =
+    !!solicitud.baseId && solicitud.estado === EstadoSolicitud.Asignada;
+
   const puedeAnular =
     solicitud.estado !== EstadoSolicitud.Completada &&
     solicitud.estado !== EstadoSolicitud.Anulada &&
@@ -148,10 +151,10 @@ export default function ModalGestionSolicitud({
           </div>
         </div>
 
-        {puedeAsignarRemitente && (
+        {(puedeAsignarRemitente || puedeReasignarRemitente) && (
           <div className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
             <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
-              Asignar a base remitente:
+              {puedeReasignarRemitente ? "Reasignar base remitente:" : "Asignar a base remitente:"}
             </label>
             <div className="flex gap-2">
               <select
@@ -169,9 +172,14 @@ export default function ModalGestionSolicitud({
                 disabled={!remitenteSeleccionado || guardando}
                 className="px-4 py-2 bg-[#1565C0] text-white text-sm font-semibold rounded-lg disabled:opacity-50"
               >
-                Asignar
+                {puedeReasignarRemitente ? "Reasignar" : "Asignar"}
               </button>
             </div>
+            {puedeReasignarRemitente && (
+              <p className="text-[11px] text-[#6B7280] mt-2">
+                Actual: {remitentesAprobados.find((r) => r.id === solicitud.baseId)?.nombre ?? solicitud.baseId}
+              </p>
+            )}
           </div>
         )}
 

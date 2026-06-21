@@ -6,6 +6,7 @@ import {
   actualizarStockUseCase,
   listarCatalogoProductosUseCase,
   listarHistorialStockUseCase,
+  usuarioRepository,
 } from "../container";
 /**
  * Consulta el stock de una base específica (CU-17).
@@ -26,6 +27,11 @@ export async function consultarStockBaseAction(id_base: string) {
 
   if (rol !== "admin" && rol !== "remitente") {
     return { success: false, error: "No autorizado." };
+  }
+
+  const existe = await usuarioRepository.baseExiste(id_base);
+  if (!existe) {
+    return { success: false, error: "La base especificada no existe." };
   }
 
   try {
@@ -63,6 +69,11 @@ export async function actualizarStockAction(
     return { success: false, error: "No autorizado." };
   }
 
+  const existe = await usuarioRepository.baseExiste(id_base);
+  if (!existe) {
+    return { success: false, error: "La base especificada no existe." };
+  }
+
   try {
     const resultado = await actualizarStockUseCase.ejecutar({
       id_base,
@@ -93,6 +104,11 @@ export async function listarHistorialStockAction(id_base: string) {
   }
   if (rol !== "admin" && rol !== "remitente") {
     return { success: false, error: "No autorizado." };
+  }
+
+  const existe = await usuarioRepository.baseExiste(id_base);
+  if (!existe) {
+    return { success: false, error: "La base especificada no existe." };
   }
 
   try {

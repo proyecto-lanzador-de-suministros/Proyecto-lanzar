@@ -1,4 +1,4 @@
-import { ForManagingUsuarios, BaseRemitenteData, ActualizarBaseRemitenteInput } from "../../domain/ports/forManagingUsuarios.port";
+import { ForManagingUsuarios, BaseRemitenteData, ActualizarBaseRemitenteInput, CrearBaseRemitenteInput } from "../../domain/ports/forManagingUsuarios.port";
 import { Usuario, EstadoCuenta, RolUsuario } from "../../domain/entities/Usuario";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 
@@ -86,6 +86,41 @@ export class PrismaUsuarioRepository implements ForManagingUsuarios {
       select: { id_base: true },
     });
     return remitente?.id_base ?? null;
+  }
+
+  async baseExiste(id: string): Promise<boolean> {
+    const count = await prisma.remitente.count({
+      where: { id_remitente: id },
+    });
+    return count > 0;
+  }
+
+  async crearBaseRemitente(id: string, datos: CrearBaseRemitenteInput): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      const base = await tx.base.create({
+        data: {
+          nombre: datos.nombre,
+          latitud: datos.latitud,
+          longitud: datos.longitud,
+          direccion: "",
+          capacidad_pista: datos.capacidad_pista,
+        },
+      });
+
+      await tx.usuario.create({
+        data: {
+          id_usuario: id,
+          estado_cuenta: "APROBADA",
+        },
+      });
+
+      await tx.remitente.create({
+        data: {
+          id_remitente: id,
+          id_base: base.id_base,
+        },
+      });
+    });
   }
 
   private mapToDomain(row: any): Usuario {

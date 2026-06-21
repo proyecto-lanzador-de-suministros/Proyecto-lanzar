@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   listarRemitentesAction,
   actualizarBaseRemitenteAction,
+  crearBaseRemitenteAction,
 } from "@/src/actions/remitentes.actions";
 import CoverageMap from "@/app/components/map/CoverageMap";
 
@@ -32,6 +33,19 @@ export default function AdminRemitentesPage() {
   const [formLon, setFormLon] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [errorModal, setErrorModal] = useState<string | null>(null);
+
+  const [creando, setCreando] = useState(false);
+  const [formCrear, setFormCrear] = useState({
+    email: "",
+    password: "",
+    nombreContacto: "",
+    nombreBase: "",
+    latitudBase: "",
+    longitudBase: "",
+    capacidadPista: "",
+  });
+  const [guardandoCrear, setGuardandoCrear] = useState(false);
+  const [errorCrear, setErrorCrear] = useState<string | null>(null);
 
   const cargar = async () => {
     setLoading(true);
@@ -106,12 +120,24 @@ export default function AdminRemitentesPage() {
 
   return (
     <div className="flex-1 bg-[#F4F6F9] overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-8 py-5">
-        <h1 className="text-2xl font-bold text-[#1A1A2E]">Gestión de remitentes</h1>
-        <p className="text-sm text-[#6B7280] mt-0.5">
-          Bases operativas registradas en el sistema. Corregí ubicación y capacidad
-          de pista para que el cálculo de asignación de stock funcione correctamente.
-        </p>
+      <div className="bg-white border-b border-gray-200 px-8 py-5 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[#1A1A2E]">Gestión de remitentes</h1>
+          <p className="text-sm text-[#6B7280] mt-0.5">
+            Bases operativas registradas en el sistema. Corregí ubicación y capacidad
+            de pista para que el cálculo de asignación de stock funcione correctamente.
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setCreando(true);
+            setFormCrear({ email: "", password: "", nombreContacto: "", nombreBase: "", latitudBase: "", longitudBase: "", capacidadPista: "" });
+            setErrorCrear(null);
+          }}
+          className="bg-[#1565C0] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#0D47A1] transition flex items-center gap-2"
+        >
+          + Nueva base
+        </button>
       </div>
 
       <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
@@ -305,6 +331,187 @@ export default function AdminRemitentesPage() {
                 className="flex-1 px-4 py-2.5 rounded-lg bg-[#1565C0] text-white text-sm font-semibold hover:bg-[#0D47A1] transition disabled:opacity-50"
               >
                 {guardando ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de creación */}
+      {creando && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !guardandoCrear) setCreando(false);
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-[#1A1A2E]">Nueva base remitente</h2>
+                <p className="text-xs text-[#6B7280] mt-0.5">
+                  Creá una nueva base y su cuenta de acceso asociada.
+                </p>
+              </div>
+              <button
+                onClick={() => setCreando(false)}
+                className="text-[#6B7280] hover:text-[#1A1A2E] text-2xl leading-none"
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#1A1A2E]">Nombre de la base</label>
+                <input
+                  type="text"
+                  value={formCrear.nombreBase}
+                  onChange={(e) => setFormCrear({ ...formCrear, nombreBase: e.target.value })}
+                  placeholder="Ej: Base Logística Sur"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0]"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#1A1A2E]">Capacidad de pista</label>
+                <select
+                  value={formCrear.capacidadPista}
+                  onChange={(e) => setFormCrear({ ...formCrear, capacidadPista: e.target.value })}
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0] bg-white"
+                >
+                  <option value="">Seleccionar...</option>
+                  {OPCIONES_CAPACIDAD.map((op) => (
+                    <option key={op} value={op}>{op}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#1A1A2E]">Latitud</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={formCrear.latitudBase}
+                  onChange={(e) => setFormCrear({ ...formCrear, latitudBase: e.target.value })}
+                  placeholder="-38.7183"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0]"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#1A1A2E]">Longitud</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={formCrear.longitudBase}
+                  onChange={(e) => setFormCrear({ ...formCrear, longitudBase: e.target.value })}
+                  placeholder="-62.2663"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0]"
+                />
+              </div>
+            </div>
+
+            <p className="text-xs text-[#6B7280] mb-2">
+              También podés hacer clic en el mapa para fijar la ubicación:
+            </p>
+            <div className="rounded-xl overflow-hidden border border-gray-100 mb-6">
+              <CoverageMap
+                onSelectPoint={(lat, lng) => setFormCrear({ ...formCrear, latitudBase: String(lat), longitudBase: String(lng) })}
+                selectedPoint={
+                  formCrear.latitudBase && formCrear.longitudBase && Number.isFinite(parseFloat(formCrear.latitudBase)) && Number.isFinite(parseFloat(formCrear.longitudBase))
+                    ? { lat: parseFloat(formCrear.latitudBase), lng: parseFloat(formCrear.longitudBase) }
+                    : null
+                }
+              />
+            </div>
+
+            <div className="border-t border-gray-100 pt-4 mb-4">
+              <h3 className="text-sm font-semibold text-[#1A1A2E] mb-3">Cuenta de acceso</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-[#1A1A2E]">Email</label>
+                  <input
+                    type="email"
+                    value={formCrear.email}
+                    onChange={(e) => setFormCrear({ ...formCrear, email: e.target.value })}
+                    placeholder="base@ejemplo.com"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0]"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-[#1A1A2E]">Contraseña</label>
+                  <input
+                    type="password"
+                    value={formCrear.password}
+                    onChange={(e) => setFormCrear({ ...formCrear, password: e.target.value })}
+                    placeholder="Mín. 8 caracteres"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0]"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 md:col-span-2">
+                  <label className="text-xs font-semibold text-[#1A1A2E]">Nombre de contacto</label>
+                  <input
+                    type="text"
+                    value={formCrear.nombreContacto}
+                    onChange={(e) => setFormCrear({ ...formCrear, nombreContacto: e.target.value })}
+                    placeholder="Nombre del responsable de la base"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {errorCrear && (
+              <p className="text-sm text-[#F44336] bg-red-50 rounded-lg px-3 py-2 mb-4">
+                {errorCrear}
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCreando(false)}
+                disabled={guardandoCrear}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-[#6B7280] hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  const lat = parseFloat(formCrear.latitudBase);
+                  const lon = parseFloat(formCrear.longitudBase);
+
+                  if (formCrear.nombreBase.trim() === "") { setErrorCrear("El nombre de la base no puede estar vacío."); return; }
+                  if (formCrear.email.trim() === "" || !formCrear.email.includes("@")) { setErrorCrear("Ingresá un email válido."); return; }
+                  if (formCrear.password.length < 8) { setErrorCrear("La contraseña debe tener al menos 8 caracteres."); return; }
+                  if (formCrear.nombreContacto.trim() === "") { setErrorCrear("El nombre de contacto no puede estar vacío."); return; }
+                  if (!Number.isFinite(lat) || lat < -90 || lat > 90) { setErrorCrear("Latitud inválida (-90 a 90)."); return; }
+                  if (!Number.isFinite(lon) || lon < -180 || lon > 180) { setErrorCrear("Longitud inválida (-180 a 180)."); return; }
+                  if (formCrear.capacidadPista === "") { setErrorCrear("Seleccioná una capacidad de pista."); return; }
+
+                  setGuardandoCrear(true);
+                  setErrorCrear(null);
+
+                  const res = await crearBaseRemitenteAction({
+                    email: formCrear.email,
+                    password: formCrear.password,
+                    nombreContacto: formCrear.nombreContacto,
+                    nombreBase: formCrear.nombreBase.trim(),
+                    latitudBase: lat,
+                    longitudBase: lon,
+                    capacidadPista: formCrear.capacidadPista,
+                  });
+
+                  if (res.success) {
+                    setCreando(false);
+                    await cargar();
+                  } else {
+                    setErrorCrear(res.error ?? "No se pudo crear la base.");
+                  }
+                  setGuardandoCrear(false);
+                }}
+                disabled={guardandoCrear}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-[#1565C0] text-white text-sm font-semibold hover:bg-[#0D47A1] transition disabled:opacity-50"
+              >
+                {guardandoCrear ? "Creando..." : "Crear base"}
               </button>
             </div>
           </div>

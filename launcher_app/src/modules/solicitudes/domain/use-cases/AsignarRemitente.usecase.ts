@@ -50,8 +50,13 @@ export class AsignarRemitenteUseCase {
 
     const estadoAnterior = solicitud.estado;
 
-    // 4. Asignar — la entidad valida la transición (Creada → Asignada)
-    solicitud.asignar(baseId);
+    // 4. Asignar o reasignar — la entidad valida la transición
+    const esReasignacion = !!solicitud.id_base;
+    if (esReasignacion) {
+      solicitud.reasignar(baseId);
+    } else {
+      solicitud.asignar(baseId);
+    }
 
     // 5. Persistir
     await this.solicitudRepository.actualizar(solicitud);

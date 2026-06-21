@@ -15,7 +15,7 @@ export interface ForManagingSolicitudes {
     extras?: {
       motivoCancelacion?: string;
       motivoAnulacion?: string;
-      id_base?: string;
+      id_remitente?: string;
       fecha_entrega?: Date;
     }
   ): Promise<void>;
