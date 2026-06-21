@@ -81,6 +81,7 @@ model Stock_Base {
   id_remitente        String
   id_producto         String
   cantidad_disponible Int
+  cantidad_reservada  Int    @default(0)
 
   remitente Remitente @relation(fields: [id_remitente], references: [id_remitente])
   producto  Producto  @relation(fields: [id_producto], references: [id_producto])

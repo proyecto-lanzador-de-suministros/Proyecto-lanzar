@@ -52,6 +52,15 @@ import { PrismaNotificacionesRepository } from "./modules/notificaciones/infrast
 import { ListarNotificacionesUseCase } from "./modules/notificaciones/domain/use-cases/ListarNotificaciones.usecase";
 import { PrismaHistorialStockRepository } from "./modules/stock/infrastructure/adapters/PrismaHistorialStockRepository";
 import { ListarHistorialStockUseCase } from "./modules/stock/domain/use-cases/ListarHistorialStock.usecase";
+import { ListarSolicitudesUseCase } from "./modules/solicitudes/domain/use-cases/ListarSolicitudes.usecase";
+import { PrismaEnvioRepository } from "./modules/envios/infrastructure/adapters/PrismaEnvioRepository";
+import { ListarEnviosUseCase } from "./modules/envios/domain/use-cases/ListarEnvios.usecase";
+import { ProgramarEnvioUseCase } from "./modules/envios/domain/use-cases/ProgramarEnvio.usecase";
+import { AsignarContenedorAEnvioUseCase } from "./modules/envios/domain/use-cases/AsignarContenedorAEnvio.usecase";
+import { CalcularTrayectoria } from "./modules/trayectoria/domain/use-cases/CalcularTrayectoria.usecase";
+import { TrajectoryCalculatorAdapter } from "./modules/trayectoria/infrastructure/adapters/TrajectoryCalculatorAdapter";
+import { OpenMeteoWeatherAdapter } from "./modules/trayectoria/infrastructure/adapters/openMeteoWeatherAdapter";
+
 // ── Infraestructura compartida ──────────────────────────────────────────────
 
 export const authAdapter = new ClerkAuthAdapter();
@@ -63,6 +72,8 @@ export const historialRepository = new PrismaHistorialRepository();
 export const stockRepository = new PrismaStockRepository();
 
 const notificationAdapter = new NotificationServiceAdapter();
+const weatherAdapter = new OpenMeteoWeatherAdapter();
+const trajectoryCalculator = new TrajectoryCalculatorAdapter();
 const notificarSolicitudCreada = new NotificarSolicitudCreada(notificationAdapter);
 const notificarAnulacion = new NotificarAnulacion(notificationAdapter);
 const notificarAsignacion = new NotificarAsignacion(notificationAdapter);
@@ -149,6 +160,8 @@ export const consultarSolicitudesPendientesUseCase = new ConsultarSolicitudesPen
 
 export const listarSolicitudesAdminUseCase = new ListarSolicitudesAdminUseCase(solicitudRepository);
 
+export const listarSolicitudesUseCase = new ListarSolicitudesUseCase(solicitudRepository);
+
 export const anularSolicitudUseCase = new AnularSolicitudUseCase(
   solicitudRepository,
   notificarAnulacion,
@@ -214,6 +227,16 @@ export const historialStockRepository = new PrismaHistorialStockRepository();
 export const actualizarStockUseCase = new ActualizarStockUseCase(stockRepository, historialStockRepository);
 
 export const listarHistorialStockUseCase = new ListarHistorialStockUseCase(historialStockRepository);
+
+// ── Envíos ────────────────────────────────────────────────────────────────────
+
+const envioRepository = new PrismaEnvioRepository();
+
+export const listarEnviosUseCase = new ListarEnviosUseCase(envioRepository);
+
+export const programarEnvioUseCase = new ProgramarEnvioUseCase(envioRepository);
+
+export const asignarContenedorUseCase = new AsignarContenedorAEnvioUseCase(envioRepository);
 // ── Productos (Catálogo) ─────────────────────────────────────────────────────
 
 const productosRepository = new PrismaProductosRepository();
@@ -235,6 +258,16 @@ const reportsRepository = new PrismaReportsRepository();
 export const generarReporteGeneralUseCase = new GenerarReporteGeneralUseCase(
   reportsRepository,
 );
+
+// ── Trayectoria ─────────────────────────────────────────────────────────────
+
+export const calcularTrayectoriaUseCase = new CalcularTrayectoria(
+  weatherAdapter,
+  trajectoryCalculator,
+);
+
+export const weatherServiceAdapter = weatherAdapter;
+export const trajectoryCalculatorAdapter = trajectoryCalculator;
 
 // ── Notificaciones ───────────────────────────────────────────────────────────
 

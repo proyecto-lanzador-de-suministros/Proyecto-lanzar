@@ -12,8 +12,8 @@ tags:
     description: Gestión de pedidos de encomiendas y su historial
   - name: Bases
     description: Gestión de bases y stock de los remitentes
-  - name: Vuelos
-    description: Gestión de logística aérea y contenedores
+  - name: Envios
+    description: Gestión de envíos y contenedores
   - name: Usuarios
     description: Gestión de cuentas y roles
 
@@ -231,38 +231,38 @@ paths:
           description: Stock actualizado
 
   # ==========================================
-  # MÓDULO: VUELOS Y CONTENEDORES
+  # MÓDULO: ENVÍOS Y CONTENEDORES
   # ==========================================
-  /vuelos:
+  /envios:
     post:
-      summary: Programar un nuevo vuelo logística
-      tags: [Vuelos]
+      summary: Programar un nuevo envío
+      tags: [Envios]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Vuelo'
+              $ref: '#/components/schemas/Envio'
       responses:
         '201':
-          description: Vuelo creado
+          description: Envío creado
     get:
-      summary: Listar vuelos programados o en curso
-      tags: [Vuelos]
+      summary: Listar envíos programados o en curso
+      tags: [Envios]
       responses:
         '200':
-          description: Lista de vuelos
+          description: Lista de envíos
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Vuelo'
+                  $ref: '#/components/schemas/Envio'
 
-  /vuelos/{id}/contenedores:
+  /envios/{id}/contenedores:
     post:
-      summary: Asignar un contenedor (paquete físico con paracaídas) a un vuelo
-      tags: [Vuelos]
+      summary: Asignar un contenedor (paquete físico con paracaídas) a un envío
+      tags: [Envios]
       parameters:
         - name: id
           in: path
@@ -278,7 +278,7 @@ paths:
               $ref: '#/components/schemas/Contenedor'
       responses:
         '201':
-          description: Contenedor asignado al vuelo
+          description: Contenedor asignado al envío
 
 components:
   securitySchemes:
@@ -394,7 +394,7 @@ components:
         cantidadReservada:
           type: integer
 
-    Vuelo:
+    Envio:
       type: object
       properties:
         id:

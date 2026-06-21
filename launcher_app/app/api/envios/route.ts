@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { consultarStockUseCase, actualizarStockUseCase } from "@/src/container";
+import { listarEnviosUseCase, programarEnvioUseCase } from "@/src/container";
 import { handleDomainError } from "@/src/infrastructure/errors/handleDomainError";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: { code: "UNAUTHORIZED", message: "No autenticado." } }, { status: 401 });
 
   try {
-    const { id } = await params;
-    const stock = await consultarStockUseCase.ejecutar(id);
-    const response = stock.map((s) => ({
-      productoId: s.productoId,
-      nombre: s.nombreProducto,
-      cantidadDisponible: s.cantidad_disponible,
-      cantidadReservada: s.cantidad_reservada,
+    const envios = await listarEnviosUseCase.ejecutar();
+    const response = envios.map((e) => ({
+      id: e.id_envio,
+      fechaHoraProgramada: e.fecha_hora_programada?.toISOString() ?? null,
+      estado: e.estado_envio,
     }));
     return NextResponse.json(response);
   } catch (error: unknown) {
@@ -26,10 +21,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: Request) {
   const { userId, sessionClaims } = await auth();
   const rol = sessionClaims?.metadata?.rol;
   if (!userId || (rol !== "admin" && rol !== "remitente")) {
@@ -37,21 +29,31 @@ export async function PUT(
   }
 
   try {
-    const { id } = await params;
     const body = await request.json();
-    const items = body as { productoId: string; cantidadAAgregar: number }[];
+    const { id_solicitud, id_base, matricula_avion, piloto } = body;
 
-    for (const item of items) {
-      await actualizarStockUseCase.ejecutar({
-        id_base: id,
-        productoId: item.productoId,
-        modo: "delta",
-        valor: item.cantidadAAgregar,
-        actorId: userId,
-      });
+    if (!id_solicitud || !id_base) {
+      return NextResponse.json(
+        { error: { code: "VALIDATION_ERROR", message: "id_solicitud y id_base son requeridos." } },
+        { status: 400 },
+      );
     }
 
-    return NextResponse.json({ message: "Stock actualizado" });
+    const envio = await programarEnvioUseCase.ejecutar({
+      id_solicitud,
+      id_base,
+      matricula_avion,
+      piloto,
+    });
+
+    return NextResponse.json(
+      {
+        id: envio.id_envio,
+        fechaHoraProgramada: envio.fecha_hora_programada?.toISOString() ?? null,
+        estado: envio.estado_envio,
+      },
+      { status: 201 },
+    );
   } catch (error: unknown) {
     const { code, message, httpStatus } = handleDomainError(error);
     return NextResponse.json({ error: { code, message } }, { status: httpStatus });
