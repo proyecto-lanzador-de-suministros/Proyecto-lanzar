@@ -25,6 +25,12 @@ export interface CrearBaseRemitenteInput {
   capacidad_pista: string;
 }
 
+export interface DatosPerfilInput {
+  nombre?: string;
+  email?: string;
+  telefono?: string;
+}
+
 export interface ForManagingUsuarios {
   buscarPorId(id: string): Promise<Usuario | null>;
   listarPendientes(): Promise<Usuario[]>;
@@ -37,4 +43,7 @@ export interface ForManagingUsuarios {
   obtenerBaseDeRemitente(remitenteId: string): Promise<string | null>;
   crearBaseRemitente(id: string, datos: CrearBaseRemitenteInput): Promise<void>;
   baseExiste(id: string): Promise<boolean>;
+
+  /** Guarda datos de perfil (nombre, email, telefono) en nuestra DB. */
+  guardarDatosPerfil(id: string, datos: DatosPerfilInput): Promise<void>;
 }

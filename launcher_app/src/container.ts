@@ -25,6 +25,8 @@ import { ListarUsuariosUseCase } from "./modules/usuarios/domain/use-cases/Lista
 import { ListarBasesRemitentesUseCase } from "./modules/usuarios/domain/use-cases/ListarBasesRemitentes.usecase";
 import { ActualizarBaseRemitenteUseCase } from "./modules/usuarios/domain/use-cases/ActualizarBaseRemitente.usecase";
 import { CrearBaseRemitenteUseCase } from "./modules/usuarios/domain/use-cases/CrearBaseRemitente.usecase";
+import { CambiarInfoLoginUseCase } from "./modules/usuarios/domain/use-cases/CambiarInfoLogin.usecase";
+import { CambiarInfoCuentaUseCase } from "./modules/usuarios/domain/use-cases/CambiarInfoCuenta.usecase";
 import { PrismaSolicitudesRepository } from "./modules/solicitudes/infrastructure/adapters/PrismaSolicitudRepository";
 import { PrismaStockRepository } from "./modules/stock/infrastructure/adapters/PrismaStockRepository";
 import { ConsultarStockUseCase } from "./modules/stock/domain/use-cases/ConsultarStock.usecase";
@@ -122,6 +124,16 @@ export const listarBasesRemitentesUseCase = new ListarBasesRemitentesUseCase(usu
 export const actualizarBaseRemitenteUseCase = new ActualizarBaseRemitenteUseCase(usuarioRepository);
 
 export const crearBaseRemitenteUseCase = new CrearBaseRemitenteUseCase(
+  usuarioRepository,
+  clerkSyncAdapter,
+);
+
+export const cambiarInfoLoginUseCase = new CambiarInfoLoginUseCase(
+  usuarioRepository,
+  clerkSyncAdapter,
+);
+
+export const cambiarInfoCuentaUseCase = new CambiarInfoCuentaUseCase(
   usuarioRepository,
   clerkSyncAdapter,
 );

@@ -78,6 +78,13 @@ export const Errores = {
       { nombre, estadoActual },
     ),
 
+  usuarioNoEncontrado: (id: string) =>
+    new DomainError(
+      "USUARIO_NO_ENCONTRADO",
+      `Usuario no encontrado: ${id}`,
+      { id },
+    ),
+
   faltaIdBase: () =>
     new DomainError(
       "FALTA_ID_BASE",

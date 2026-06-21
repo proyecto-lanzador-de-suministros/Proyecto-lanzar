@@ -34,4 +34,50 @@ export interface ForSyncingExternalAuth {
     nombre?: string;
     rol: "admin" | "remitente" | "solicitante";
   }): Promise<{ id: string }>;
+
+  /**
+   * Cambia el nombre de usuario (username) en el IdP externo.
+   * Usado por CU-03 CambiarInfoLogin.
+   */
+  actualizarNombreUsuario(
+    usuarioId: string,
+    nuevoUsername: string,
+  ): Promise<void>;
+
+  /**
+   * Cambia la contraseña en el IdP externo.
+   * Usado por CU-03 CambiarInfoLogin.
+   */
+  actualizarContrasena(
+    usuarioId: string,
+    nuevaPassword: string,
+  ): Promise<void>;
+
+  /**
+   * Cambia el email principal en el IdP externo.
+   * Usado por CU-04 CambiarInfoCuenta.
+   */
+  actualizarEmail(
+    usuarioId: string,
+    nuevoEmail: string,
+  ): Promise<void>;
+
+  /**
+   * Cambia el teléfono en el IdP externo (guardado en publicMetadata).
+   * Usado por CU-04 CambiarInfoCuenta.
+   */
+  actualizarTelefono(
+    usuarioId: string,
+    nuevoTelefono: string,
+  ): Promise<void>;
+
+  /**
+   * Cambia el nombre completo (firstName / lastName) en el IdP externo.
+   * Recibe el nombre completo en un solo string y lo divide.
+   * Usado por CU-04 CambiarInfoCuenta.
+   */
+  actualizarNombreCompleto(
+    usuarioId: string,
+    nombreCompleto: string,
+  ): Promise<void>;
 }

@@ -62,4 +62,69 @@ export class ClerkSyncAdapter implements ForSyncingExternalAuth {
 
     return { id: usuarioCreado.id };
   }
+
+  async actualizarNombreUsuario(
+    usuarioId: string,
+    nuevoUsername: string,
+  ): Promise<void> {
+    const client = await clerkClient();
+    await client.users.updateUser(usuarioId, {
+      username: nuevoUsername,
+    });
+  }
+
+  async actualizarContrasena(
+    usuarioId: string,
+    nuevaPassword: string,
+  ): Promise<void> {
+    const client = await clerkClient();
+    await client.users.updateUser(usuarioId, {
+      password: nuevaPassword,
+    });
+  }
+
+  async actualizarEmail(
+    usuarioId: string,
+    nuevoEmail: string,
+  ): Promise<void> {
+    const client = await clerkClient();
+
+    const emailAddress = await client.emailAddresses.createEmailAddress({
+      userId: usuarioId,
+      email: nuevoEmail,
+      primary: true,
+      verified: true,
+    });
+
+    const user = await client.users.getUser(usuarioId);
+    const idsAEliminar = user.emailAddresses
+      .filter((e) => e.id !== emailAddress.id)
+      .map((e) => e.id);
+
+    for (const id of idsAEliminar) {
+      await client.emailAddresses.deleteEmailAddress(id);
+    }
+  }
+
+  async actualizarTelefono(
+    usuarioId: string,
+    nuevoTelefono: string,
+  ): Promise<void> {
+    await this.actualizarMetadatos(usuarioId, { telefono: nuevoTelefono });
+  }
+
+  async actualizarNombreCompleto(
+    usuarioId: string,
+    nombreCompleto: string,
+  ): Promise<void> {
+    const client = await clerkClient();
+
+    const [firstName, ...resto] = nombreCompleto.trim().split(" ").filter(Boolean);
+    const lastName = resto.join(" ") || undefined;
+
+    await client.users.updateUser(usuarioId, {
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+    });
+  }
 }
