@@ -74,19 +74,12 @@ export class PrismaTestDataRepository implements ForManagingTestData {
 
     if (productCount === 0) {
       await prisma.$transaction(async (tx) => {
-        const tipo = await tx.tipo.create({
-          data: {
-            nombre_categoria: "Suministros Médicos",
-            peso_prioridad: 1,
-          },
-        });
-
         const prod1 = await tx.producto.create({
           data: {
             nombre: "Vacunas y Suero Fisiológico",
             descripcion: "Kit térmico con vacunas esenciales y suero.",
             peso_unitario: 4.5,
-            id_tipo: tipo.id_tipo,
+            categoria: "Suministros Médicos",
           },
         });
 
@@ -95,7 +88,7 @@ export class PrismaTestDataRepository implements ForManagingTestData {
             nombre: "Botiquín de Primeros Auxilios",
             descripcion: "Gasas, desinfectante, bandages y medicamentos básicos.",
             peso_unitario: 1.5,
-            id_tipo: tipo.id_tipo,
+            categoria: "Suministros Médicos",
           },
         });
 
@@ -104,7 +97,7 @@ export class PrismaTestDataRepository implements ForManagingTestData {
             nombre: "Raciones de Alimento Deshidratado",
             descripcion: "Comida de emergencia alta en calorías.",
             peso_unitario: 2.0,
-            id_tipo: tipo.id_tipo,
+            categoria: "Suministros Médicos",
           },
         });
 

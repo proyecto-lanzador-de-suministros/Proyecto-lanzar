@@ -72,6 +72,7 @@ export async function crearAdminFixture(
     data: {
       id_usuario: id,
       estado_cuenta: "APROBADA",
+      administradorId_admin: id,
     },
   });
 
@@ -84,17 +85,6 @@ export async function crearAdminFixture(
     },
   });
 
-  await prisma.administradorUsuario.create({
-    data: {
-      id_usuario: id,
-    },
-  });
-
-  await prisma.usuario.update({
-    where: { id_usuario: id },
-    data: { administradorId_admin: id },
-  });
-
   return { idUsuario: id, idAdmin: id };
 }
 
@@ -102,23 +92,12 @@ export async function crearProductoFixture(
   prisma: PrismaClient,
   overrides?: {
     idProducto?: string;
-    idTipo?: string;
     nombre?: string;
     categoria?: string;
     pesoUnitario?: number;
-    pesoPrioridad?: number;
   },
 ) {
-  const idTipo = overrides?.idTipo ?? crypto.randomUUID();
   const idProducto = overrides?.idProducto ?? crypto.randomUUID();
-
-  await prisma.tipo.create({
-    data: {
-      id_tipo: idTipo,
-      nombre_categoria: overrides?.categoria ?? "Alimentos",
-      peso_prioridad: overrides?.pesoPrioridad ?? 1,
-    },
-  });
 
   await prisma.producto.create({
     data: {
@@ -126,11 +105,11 @@ export async function crearProductoFixture(
       nombre: overrides?.nombre ?? "Producto Test",
       descripcion: "Descripción test",
       peso_unitario: overrides?.pesoUnitario ?? 1.0,
-      id_tipo: idTipo,
+      categoria: overrides?.categoria ?? "Alimentos",
     },
   });
 
-  return { idTipo, idProducto };
+  return { idProducto };
 }
 
 export async function crearStockFixture(

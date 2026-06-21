@@ -84,19 +84,12 @@ export async function seedAdmin(prisma: PrismaClient) {
 }
 
 export async function seedProductos(prisma: PrismaClient, idBase?: string) {
-  const tipo = await prisma.tipo.create({
-    data: {
-      nombre_categoria: "Suministros Médicos",
-      peso_prioridad: 1,
-    },
-  });
-
   const prod1 = await prisma.producto.create({
     data: {
       nombre: "Vacunas y Suero Fisiológico",
       descripcion: "Kit térmico con vacunas esenciales y suero.",
       peso_unitario: 4.5,
-      id_tipo: tipo.id_tipo,
+      categoria: "Suministros Médicos",
     },
   });
 
@@ -105,7 +98,7 @@ export async function seedProductos(prisma: PrismaClient, idBase?: string) {
       nombre: "Botiquín de Primeros Auxilios",
       descripcion: "Gasas, desinfectante, bandages y medicamentos básicos.",
       peso_unitario: 1.5,
-      id_tipo: tipo.id_tipo,
+      categoria: "Suministros Médicos",
     },
   });
 
@@ -125,13 +118,12 @@ export async function limpiarBase(prisma: PrismaClient) {
   await prisma.notificacion.deleteMany();
   await prisma.historial_Estado.deleteMany();
   await prisma.detalle_Solicitud.deleteMany();
-  await prisma.lanzamiento.deleteMany();
+  await prisma.contenedor.deleteMany();
+  await prisma.envio.deleteMany();
   await prisma.stock_Base.deleteMany();
   await prisma.producto.deleteMany();
-  await prisma.tipo.deleteMany();
   await prisma.solicitud.deleteMany();
   await prisma.solicitante.deleteMany();
-  await prisma.administradorUsuario.deleteMany();
   await prisma.administrador.deleteMany();
   await prisma.remitente.deleteMany();
   await prisma.usuario.deleteMany();
