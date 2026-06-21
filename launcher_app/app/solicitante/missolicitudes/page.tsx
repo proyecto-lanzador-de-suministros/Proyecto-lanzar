@@ -65,21 +65,36 @@ export default function MisSolicitudesPage() {
     }
   };
 
-  const getStatusDisplay = (est: EstadoSolicitud) => {
-    switch (est) {
-      case EstadoSolicitud.EnCamino:
-      case EstadoSolicitud.Lanzada:
-        return { text: "En camino", variant: "info" as const, group: "EN_CAMINO" };
-      case EstadoSolicitud.Completada:
-        return { text: "Entregado", variant: "success" as const, group: "ENTREGADAS" };
-      case EstadoSolicitud.Cancelada:
-      case EstadoSolicitud.Anulada:
-      case EstadoSolicitud.Rechazada:
-        return { text: "Cancelado", variant: "danger" as const, group: "CANCELADAS" };
-      default:
-        return { text: "Por llegar", variant: "warning" as const, group: "POR_LLEGAR" };
-    }
-  };
+  const ESTADO_LABELS: Record<string, string> = {
+  [EstadoSolicitud.Creada]: "Creada",
+  [EstadoSolicitud.Asignada]: "Asignada",
+  [EstadoSolicitud.EnPreparacion]: "En preparación",
+  [EstadoSolicitud.Lista]: "Lista",
+  [EstadoSolicitud.EnCamino]: "En camino",
+  [EstadoSolicitud.Lanzada]: "Lanzada",
+  [EstadoSolicitud.Completada]: "Entregada",
+  [EstadoSolicitud.Cancelada]: "Cancelada",
+  [EstadoSolicitud.Anulada]: "Anulada",
+  [EstadoSolicitud.Rechazada]: "Rechazada",
+};
+
+const getStatusDisplay = (est: EstadoSolicitud) => {
+  const text = ESTADO_LABELS[est] ?? est;
+
+  switch (est) {
+    case EstadoSolicitud.EnCamino:
+    case EstadoSolicitud.Lanzada:
+      return { text, variant: "info" as const, group: "EN_CAMINO" };
+    case EstadoSolicitud.Completada:
+      return { text, variant: "success" as const, group: "ENTREGADAS" };
+    case EstadoSolicitud.Cancelada:
+    case EstadoSolicitud.Anulada:
+    case EstadoSolicitud.Rechazada:
+      return { text, variant: "danger" as const, group: "CANCELADAS" };
+    default:
+      return { text, variant: "warning" as const, group: "POR_LLEGAR" };
+  }
+};
 
   // Filtrado de solicitudes según el tab activo
   const filteredSolicitudes = solList.filter((s) => {
@@ -116,7 +131,7 @@ export default function MisSolicitudesPage() {
         {(["TODAS", "POR_LLEGAR", "EN_CAMINO", "ENTREGADAS", "CANCELADAS"] as FilterTab[]).map((tab) => {
           const isActive = activeTab === tab;
           let label = "Todas";
-          if (tab === "POR_LLEGAR") label = "Por llegar";
+          if (tab === "POR_LLEGAR") label = "En proceso";
           if (tab === "EN_CAMINO") label = "En camino";
           if (tab === "ENTREGADAS") label = "Entregadas";
           if (tab === "CANCELADAS") label = "Canceladas";
