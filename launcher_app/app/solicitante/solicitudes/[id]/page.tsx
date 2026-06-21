@@ -163,6 +163,17 @@ export default function SolicitanteSolicitudPage() {
   return (
     <div className="flex flex-col gap-6 font-sans max-w-2xl">
 
+      {/* Botón volver */}
+      <button
+        onClick={() => router.push("/solicitante/missolicitudes")}
+        className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors w-fit"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Volver a mis solicitudes
+      </button>
+
       {/* Cabecera */}
       <div className="flex items-start justify-between">
         <div>
