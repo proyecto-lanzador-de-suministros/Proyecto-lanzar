@@ -78,7 +78,7 @@ export interface ProductoSolicitado {
 export interface SolicitudProps {
   id_solicitud: string;
   id_usuario: string;
-  id_base?: string;
+  id_remitente?: string;
   ubicacion_destino: PuntoGeometria;
   prioridad: PrioridadSolicitud;
   productos: ProductoSolicitado[];
@@ -134,8 +134,8 @@ export class Solicitud {
   get id_usuario() {
     return this.props.id_usuario;
   }
-  get id_base() {
-    return this.props.id_base;
+  get id_remitente() {
+    return this.props.id_remitente;
   }
   get ubicacion_destino() {
     return this.props.ubicacion_destino;
@@ -169,11 +169,19 @@ export class Solicitud {
   }
 
   // ── Métodos de negocio ──────────────────────────────────────────────────
-  //!!!! TODO : porqué se mapea id_remitente -> id_base ??? (AsignarRemitente.usecase.ts)
-  /** CU-09: stock OK → asigna base directamente (Creada → Asignada) */
-  asignar(id_base: string): void {
-    this.props.id_base = id_base;
+  /** CU-09: stock OK → asigna remitente (Creada → Asignada) */
+  asignar(remitenteId: string): void {
+    this.props.id_remitente = remitenteId;
     this.transicionarA(EstadoSolicitud.Asignada);
+  }
+
+  /** Reasigna un remitente distinto cuando ya está en Asignada */
+  reasignar(remitenteId: string): void {
+    if (this.props.estado !== EstadoSolicitud.Asignada) {
+      throw Errores.transicionInvalida(this.props.estado, EstadoSolicitud.Asignada);
+    }
+    this.props.id_remitente = remitenteId;
+    this.props.fechaActualizacion = new Date();
   }
 
   /** CU-09: stock insuficiente → rechaza */

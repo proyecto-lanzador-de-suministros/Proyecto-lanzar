@@ -64,7 +64,7 @@ export class ControlarSolicitud {
 
     solicitud.asignar(resultado.id_base!);
     await this.repo.actualizarEstado(solicitud.id_solicitud, solicitud.estado, {
-      id_base: resultado.id_base,
+      id_remitente: resultado.id_base,
     });
 
     try {

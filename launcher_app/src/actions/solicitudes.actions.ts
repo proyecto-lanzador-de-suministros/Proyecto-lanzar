@@ -363,7 +363,7 @@ export async function obtenerSolicitudesSolicitanteAction() {
     const data = solicitudesDomain.map((s) => ({
       id: s.id_solicitud,
       id_usuario: s.id_usuario,
-      id_base: s.id_base,
+      id_base: s.id_remitente,
       ubicacion_destino: s.ubicacion_destino,
       prioridad: s.prioridad,
       productos: s.productos,
@@ -399,6 +399,99 @@ export async function obtenerProductosAction() {
   }
 }
 /**
+ * Crea una solicitud en nombre de otro usuario (solo admin).
+ * Reutiliza el mismo use case que crearSolicitudAction, pero permite
+ * al admin especificar el id_usuario destino.
+ */
+export async function crearSolicitudAdminAction(data: {
+  id_usuario: string;
+  ubicacion_destino: PuntoGeometria;
+  prioridad: PrioridadSolicitud;
+  productos: ProductoSolicitado[];
+  fecha_estimada?: Date;
+}) {
+  const { userId, sessionClaims } = await auth();
+  const rol = sessionClaims?.metadata?.rol;
+
+  if (!userId || rol !== "admin") {
+    return { success: false, error: "No autorizado. Se requiere rol admin." };
+  }
+
+  try {
+    const mappedProductos = [];
+    for (const p of data.productos) {
+      const dbProduct = await listarCatalogoProductosUseCase.ejecutarBuscarProducto(p.productoId);
+      if (!dbProduct) {
+        throw Errores.productoNoEncontrado(p.productoId);
+      }
+      mappedProductos.push({
+        productoId: dbProduct.id_producto,
+        cantidad: p.cantidad,
+      });
+    }
+
+    const resultado = await crearSolicitudUseCase.ejecutar({
+      id_usuario: data.id_usuario,
+      ubicacion_destino: data.ubicacion_destino,
+      prioridad: data.prioridad,
+      productos: mappedProductos,
+      fecha_estimada: data.fecha_estimada,
+    });
+
+    revalidatePath("/admin/dashboard");
+    return {
+      success: true,
+      data: {
+        id: resultado.solicitud.id_solicitud,
+        estado: resultado.solicitud.estado,
+        asignada: resultado.asignada,
+        stockFaltante: resultado.stockFaltante,
+      },
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Lista todas las solicitudes para el dashboard del admin.
+ * Reemplaza el anterior fetch a /api/admin/solicitudes para mantener
+ * el patrón consistente de server actions.
+ */
+export async function listarSolicitudesAdminAction(estado?: string) {
+  const { userId, sessionClaims } = await auth();
+  const rol = sessionClaims?.metadata?.rol;
+
+  if (!userId || rol !== "admin") {
+    return { success: false, error: "No autorizado. Se requiere rol admin." };
+  }
+
+  try {
+    const { listarSolicitudesAdminUseCase } = await import("../container");
+    const solicitudes = await listarSolicitudesAdminUseCase.ejecutar(estado);
+
+    const data = solicitudes.map((s) => ({
+      id: s.id_solicitud,
+      solicitanteId: s.id_usuario,
+      latDestino: s.ubicacion_destino.coordinates[1],
+      lonDestino: s.ubicacion_destino.coordinates[0],
+      prioridad: s.prioridad,
+      productos: s.productos,
+      estado: s.estado,
+      remitenteId: s.id_remitente,
+      motivoCancelacion: s.motivoCancelacion,
+      motivoAnulacion: s.motivoAnulacion,
+      fechaCreacion: s.fecha_solicitada.toISOString(),
+      fechaActualizacion: s.fechaActualizacion.toISOString(),
+    }));
+
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Consulta el detalle completo de una solicitud para el panel admin,
  * incluyendo el historial de cambios de estado (CU-20).
  * Solo accesible por admin.
@@ -420,7 +513,7 @@ export async function consultarDetalleSolicitudAdminAction(solicitudId: string) 
       data: {
         id: solicitud.id_solicitud,
         solicitanteId: solicitud.id_usuario,
-        remitenteId: solicitud.id_base,
+        remitenteId: solicitud.id_remitente,
         ubicacion_destino: solicitud.ubicacion_destino,
         prioridad: solicitud.prioridad,
         productos: solicitud.productos,

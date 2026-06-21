@@ -34,6 +34,18 @@ export async function rechazarCuentaAction(usuarioId: string) {
   }
 }
 
+export async function obtenerSolicitantesAction() {
+  try {
+    const usuarios = await listarUsuariosUseCase.ejecutar();
+    const data = usuarios
+      .filter((u) => u.rol === "SOLICITANTE" && u.estadoCuenta === "APROBADA")
+      .map((u) => ({ id: u.id, nombre: u.nombre || "Solicitante sin nombre" }));
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 export async function obtenerRemitentesAprobadosAction() {
   try {
     const usuarios = await listarUsuariosUseCase.ejecutar();

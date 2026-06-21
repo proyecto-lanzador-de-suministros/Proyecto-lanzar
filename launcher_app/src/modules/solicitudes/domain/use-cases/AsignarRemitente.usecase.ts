@@ -52,9 +52,14 @@ export class AsignarRemitenteUseCase {
     }
 
     const estadoAnterior = solicitud.estado;
-    ////!!!! TODO : porqué se mapea id_remitente -> id_base ??? (solicitud.asignar(base_id))
-    // 3. Asignar — la entidad valida la transición (Creada → Asignada)
-    solicitud.asignar(remitenteId);
+    const esReasignacion = !!solicitud.id_remitente;
+
+    // 3. Asignar o reasignar — la entidad valida la transición
+    if (esReasignacion) {
+      solicitud.reasignar(remitenteId);
+    } else {
+      solicitud.asignar(remitenteId);
+    }
 
     // 4. Persistir
     await this.solicitudRepository.actualizar(solicitud);

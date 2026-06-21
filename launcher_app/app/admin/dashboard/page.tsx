@@ -11,8 +11,9 @@ import {
   registrarEnCaminoAction,
   registrarLanzadaAction,
   confirmarRecibidaAction,
+  listarSolicitudesAdminAction,
 } from "@/src/actions/solicitudes.actions";
-import { obtenerRemitentesAprobadosAction } from "@/src/actions/usuarios.actions";
+import { obtenerRemitentesAprobadosAction, obtenerSolicitantesAction } from "@/src/actions/usuarios.actions";
 
 import StatsCards from "@/app/components/dashboard/StatsCards";
 import GraficaDona from "@/app/components/dashboard/GraficaDona";
@@ -21,6 +22,7 @@ import ActividadReciente from "@/app/components/dashboard/ActividadReciente";
 import AccionesYAlertas from "@/app/components/dashboard/AccionesYAlertas";
 import TablaSolicitudes from "@/app/components/dashboard/TablaSolicitudes";
 import ModalGestionSolicitud from "@/app/components/dashboard/ModalGestionSolicitud";
+import ModalCrearSolicitudAdmin from "@/app/components/dashboard/ModalCrearSolicitudAdmin";
 import { RemitenteOption, SolicitudJSON } from "@/app/components/dashboard/types";
 
 export default function AdminDashboard() {
@@ -29,17 +31,19 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [modalSolicitud, setModalSolicitud] = useState<SolicitudJSON | null>(null);
   const [remitentesAprobados, setRemitentesAprobados] = useState<RemitenteOption[]>([]);
+  const [mostrarCrear, setMostrarCrear] = useState(false);
+  const [solicitantes, setSolicitantes] = useState<{ id: string; nombre: string }[]>([]);
 
   const fetchSolicitudes = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/solicitudes");
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error ?? "Error al obtener las solicitudes.");
+      const res = await listarSolicitudesAdminAction();
+      if (res.success && res.data) {
+        setSolicitudes(res.data);
+      } else {
+        throw new Error(res.error ?? "Error al obtener las solicitudes.");
       }
-      setSolicitudes(await res.json());
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error desconocido.");
     } finally {
@@ -51,6 +55,9 @@ export default function AdminDashboard() {
     fetchSolicitudes();
     obtenerRemitentesAprobadosAction().then((res) => {
       if (res.success && res.data) setRemitentesAprobados(res.data);
+    });
+    obtenerSolicitantesAction().then((res) => {
+      if (res.success && res.data) setSolicitantes(res.data);
     });
   }, []);
 
@@ -136,11 +143,19 @@ export default function AdminDashboard() {
   return (
     <div className="flex-1 bg-[#F4F6F9] overflow-y-auto">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-5">
-        <h1 className="text-2xl font-bold text-[#1A1A2E]">Panel de control</h1>
-        <p className="text-sm text-[#6B7280] mt-0.5">
-          Resumen general de la actividad del sistema.
-        </p>
+      <div className="bg-white border-b border-gray-200 px-8 py-5 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[#1A1A2E]">Panel de control</h1>
+          <p className="text-sm text-[#6B7280] mt-0.5">
+            Resumen general de la actividad del sistema.
+          </p>
+        </div>
+        <button
+          onClick={() => setMostrarCrear(true)}
+          className="bg-[#1565C0] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#0D47A1] transition flex items-center gap-2"
+        >
+          + Nueva solicitud
+        </button>
       </div>
 
       <div className="p-6 md:p-8 space-y-6">
@@ -190,6 +205,14 @@ export default function AdminDashboard() {
           onAnular={handleAnular}
           onCancelar={handleCancelar}
           onAvanzarEstado={handleAvanzarEstado}
+        />
+      )}
+
+      {mostrarCrear && (
+        <ModalCrearSolicitudAdmin
+          usuarios={solicitantes}
+          onClose={() => setMostrarCrear(false)}
+          onCreada={fetchSolicitudes}
         />
       )}
     </div>

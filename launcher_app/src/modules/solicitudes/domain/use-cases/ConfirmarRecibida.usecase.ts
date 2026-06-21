@@ -53,8 +53,8 @@ export class ConfirmarRecibidaUseCase {
     });
 
     // Notificar al remitente (CU-16, postcondición)
-    if (solicitud.id_base) {
-      await this.notificarRecepcion.ejecutar(solicitudId, solicitud.id_base);
+    if (solicitud.id_remitente) {
+      await this.notificarRecepcion.ejecutar(solicitudId, solicitud.id_remitente);
     }
   }
 }

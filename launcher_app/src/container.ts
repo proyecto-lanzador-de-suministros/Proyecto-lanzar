@@ -24,6 +24,7 @@ import { CrearCuentaUseCase } from "./modules/usuarios/domain/use-cases/CrearCue
 import { ListarUsuariosUseCase } from "./modules/usuarios/domain/use-cases/ListarUsuarios.usecase";
 import { ListarBasesRemitentesUseCase } from "./modules/usuarios/domain/use-cases/ListarBasesRemitentes.usecase";
 import { ActualizarBaseRemitenteUseCase } from "./modules/usuarios/domain/use-cases/ActualizarBaseRemitente.usecase";
+import { CrearBaseRemitenteUseCase } from "./modules/usuarios/domain/use-cases/CrearBaseRemitente.usecase";
 import { PrismaSolicitudesRepository } from "./modules/solicitudes/infrastructure/adapters/PrismaSolicitudRepository";
 import { PrismaStockRepository } from "./modules/stock/infrastructure/adapters/PrismaStockRepository";
 import { ConsultarStockUseCase } from "./modules/stock/domain/use-cases/ConsultarStock.usecase";
@@ -108,6 +109,11 @@ export const listarUsuariosUseCase = new ListarUsuariosUseCase(usuarioRepository
 export const listarBasesRemitentesUseCase = new ListarBasesRemitentesUseCase(usuarioRepository);
 
 export const actualizarBaseRemitenteUseCase = new ActualizarBaseRemitenteUseCase(usuarioRepository);
+
+export const crearBaseRemitenteUseCase = new CrearBaseRemitenteUseCase(
+  usuarioRepository,
+  clerkSyncAdapter,
+);
 
 // ── Solicitudes ─────────────────────────────────────────────────────────────
 

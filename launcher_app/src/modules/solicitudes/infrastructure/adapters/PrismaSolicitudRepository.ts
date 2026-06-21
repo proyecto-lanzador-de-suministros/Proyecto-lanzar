@@ -28,7 +28,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
         latitud_destino: solicitud.ubicacion_destino.coordinates[1],
         longitud_destino: solicitud.ubicacion_destino.coordinates[0],
         id_solicitante: solicitud.id_usuario,
-        id_remitente: solicitud.id_base ?? null,
+        id_remitente: solicitud.id_remitente ?? null,
         // fecha_creacion la pone Prisma con @default(now())
       },
     });
@@ -43,7 +43,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
         latitud_destino: solicitud.ubicacion_destino.coordinates[1],
         longitud_destino: solicitud.ubicacion_destino.coordinates[0],
         id_solicitante: solicitud.id_usuario,
-        id_remitente: solicitud.id_base ?? null,
+        id_remitente: solicitud.id_remitente ?? null,
         motivo_cancelacion: solicitud.motivoCancelacion ?? null,
         motivo_anulacion: solicitud.motivoAnulacion ?? null,
       },
@@ -100,7 +100,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
     extras?: {
       motivoCancelacion?: string;
       motivoAnulacion?: string;
-      id_base?: string;
+      id_remitente?: string;
       fecha_entrega?: Date;
     },
   ): Promise<void> {
@@ -108,7 +108,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
       where: { id_solicitud: id },
       data: {
         estado_actual: nuevoEstado,
-        ...(extras?.id_base !== undefined && { id_remitente: extras.id_base }),
+        ...(extras?.id_remitente !== undefined && { id_remitente: extras.id_remitente }),
         ...(extras?.motivoCancelacion !== undefined && {
           motivo_cancelacion: extras.motivoCancelacion,
         }),
@@ -124,7 +124,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
     return Solicitud.reconstruir({
       id_solicitud: row.id_solicitud,
       id_usuario: row.id_solicitante,
-      id_base: row.id_remitente ?? undefined,
+      id_remitente: row.id_remitente ?? undefined,
       ubicacion_destino: {
         type: "Point",
         coordinates: [row.longitud_destino, row.latitud_destino],

@@ -1,4 +1,4 @@
-import { ForManagingUsuarios, BaseRemitenteData, ActualizarBaseRemitenteInput } from "../../domain/ports/forManagingUsuarios.port";
+import { ForManagingUsuarios, BaseRemitenteData, ActualizarBaseRemitenteInput, CrearBaseRemitenteInput } from "../../domain/ports/forManagingUsuarios.port";
 import { Usuario, EstadoCuenta, RolUsuario } from "../../domain/entities/Usuario";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 
@@ -69,6 +69,34 @@ export class PrismaUsuarioRepository implements ForManagingUsuarios {
         ...(datos.longitud_base !== undefined && { longitud_base: datos.longitud_base }),
         ...(datos.capacidad_pista !== undefined && { capacidad_pista: datos.capacidad_pista }),
       },
+    });
+  }
+
+  async baseExiste(id: string): Promise<boolean> {
+    const count = await prisma.remitente.count({
+      where: { id_remitente: id },
+    });
+    return count > 0;
+  }
+
+  async crearBaseRemitente(id: string, datos: CrearBaseRemitenteInput): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.usuario.create({
+        data: {
+          id_usuario: id,
+          estado_cuenta: "APROBADA",
+        },
+      });
+
+      await tx.remitente.create({
+        data: {
+          id_remitente: id,
+          nombre_base: datos.nombre_base,
+          latitud_base: datos.latitud_base,
+          longitud_base: datos.longitud_base,
+          capacidad_pista: datos.capacidad_pista,
+        },
+      });
     });
   }
 
