@@ -50,9 +50,9 @@ export class CrearBaseRemitenteUseCase {
     });
 
     const perfil: CrearBaseRemitenteInput = {
-      nombre_base: datos.nombreBase,
-      latitud_base: datos.latitudBase,
-      longitud_base: datos.longitudBase,
+      nombre: datos.nombreBase,
+      latitud: datos.latitudBase,
+      longitud: datos.longitudBase,
       capacidad_pista: datos.capacidadPista,
     };
 

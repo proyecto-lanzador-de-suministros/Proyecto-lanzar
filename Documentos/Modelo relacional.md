@@ -1,38 +1,50 @@
 **Modelo Relacional**
 
-* **BASE** (*id\_base[key]*, nombre, latitud, longitud, dirección)  
-    
-* **USUARIO** (*id\_usuario[key]*, nombre, email, rol, Teléfono, *id\_base*)   
-  * FK usuario(id\_base) referencia a BASE(id\_base).
+* **USUARIO** (*id_usuario[key]*, contrasena, estado_cuenta, *administradorId_admin*)
+  * FK usuario(administradorId_admin) referencia a ADMINISTRADOR(id_admin).
 
+* **SOLICITANTE** (*id_solicitante[key]*, nombre, contacto)
+  * FK solicitante(id_solicitante) referencia a USUARIO(id_usuario) (ON DELETE CASCADE).
 
-* **SOLICITUD** (*id\_solicitud[key]*, fecha\_solicitada, fecha\_entrega, fecha\_estimada, estado, prioridad, ubicacion\_detino, *id\_usuario*)   
-  *  FK solicitud(id\_usuario) referencia a USUARIO(id\_usuario).   
-      
-* **ENVIO** (*id\_envio[key]*, fecha\_hora, estado\_envio, clima, entrega\_real, cod\_seguimiento, fecha\_salida*, id\_base*, *id\_solicitud*)   
-  * FK envio(id\_base) referencia a BASE(id\_base).  
-  * FK envio(id\_solicitud) referencia a SOLICITUD(id\_solicitud).  
-      
-* **CONTENEDOR** (*id\_contenedor[key]*, tipo\_paracaidas, peso\_max, *id\_envio*)  
-  *  FK contenedor(id\_envio) referencia a ENVIO(id\_envio).  
-      
-* **PRODUCTO** (*id\_producto[key]*, nombre, descripcion, peso\_kg, categoria)
+* **ADMINISTRADOR** (*id_admin[key]*, nombre, usuario, permisos_rol)
 
+* **REMITENTE** (*id_remitente[key]*, nombre_base, latitud_base, longitud_base, capacidad_pista)
+  * FK remitente(id_remitente) referencia a USUARIO(id_usuario) (ON DELETE CASCADE).
 
-* **STOCK-BASE** (*id\_stock[key]*, cantidad\_disponible, cantida\_reservada, *id\_base*, *id\_producto*)   
-  *  FK stock-base(id\_base) referencia a BASE(id\_base).   
-  *  FK stock-base(id\_producto) referencia a PRODUCTO(id\_producto).  
-      
-* **DETALLE-SOLICITUD** (*id\_detalle[key]*, cantidad\_aprobada, cantidad\_solicitada, *id\_solicitud*, *id\_producto*)   
-  *  FK detalle-solicitud(id\_solicitud) referencia a SOLICITUD(id\_solicitud).   
-  * FK detalle-solicitud(id\_producto) referencia a PRODUCTO(id\_producto).  
-      
-* **HISTORIAL-ESTADO** (*id\_historial[key]*, fecha\_hora, est\_ant, est\_nue, *id\_solicitud*, *id\_usuario*)   
-  *  FK historial-estado(id\_solicitud) referencia a SOLICITUD(id\_solicitud).   
-  *  FK historial-estado(id\_usuario) referencia a USUARIO(id\_usuario).   
-      
-* **NOTIFICACION** (*id\_notificacion[key]*, mensaje, fecha, leida, tipo, canal\_envio, enviada\_at, *id\_solicitud*, *id\_usuario*)   
-  * FK notificacion(id\_solicitud) referencia a SOLICITUD(id\_solicitud).   
-  *  FK notificacion(id\_usuario) referencia a USUARIO(id\_usuario). 
+* **BASE** (*id_base[key]*, nombre, latitud, longitud, dirección)
 
-  
+* **SOLICITUD** (*id_solicitud[key]*, fecha_creacion, estado_actual, prioridad, latitud_destino, longitud_destino, motivo_cancelacion, motivo_anulacion, *id_solicitante*, *id_admin*, *id_remitente*)
+  * FK solicitud(id_solicitante) referencia a SOLICITANTE(id_solicitante).
+  * FK solicitud(id_admin) referencia a ADMINISTRADOR(id_admin).
+  * FK solicitud(id_remitente) referencia a REMITENTE(id_remitente).
+
+* **ENVIO** (*id_envio[key]*, estado_envio, codigo_seguimiento, matricula_avion, piloto, latitud_calculada, longitud_calculada, altitud, datos_clima, fecha_hora, fecha_salida, entrega_real, *id_base*, *id_solicitud*)
+  * FK envio(id_base) referencia a BASE(id_base).
+  * FK envio(id_solicitud) referencia a SOLICITUD(id_solicitud).
+
+* **CONTENEDOR** (*id_contenedor[key]*, tipo_paracaidas, peso_maximo, estado_mecanico, *id_envio*)
+  * FK contenedor(id_envio) referencia a ENVIO(id_envio).
+
+* **PRODUCTO** (*id_producto[key]*, nombre, descripcion, peso_unitario, categoria)
+
+* **STOCK-BASE** (*id_stock[key]*, cantidad_disponible, cantidad_reservada, *id_remitente*, *id_producto*)
+  * FK stock-base(id_remitente) referencia a REMITENTE(id_remitente).
+  * FK stock-base(id_producto) referencia a PRODUCTO(id_producto).
+  * NOTA: Pendiente migrar FK de Remitente a Base.
+
+* **DETALLE-SOLICITUD** (*id_detalle[key]*, cantidad_pedida, *id_solicitud*, *id_producto*)
+  * FK detalle-solicitud(id_solicitud) referencia a SOLICITUD(id_solicitud).
+  * FK detalle-solicitud(id_producto) referencia a PRODUCTO(id_producto).
+
+* **HISTORIAL-ESTADO** (*id_historial[key]*, fecha_hora, est_ant, est_nue, *id_solicitud*, *id_usuario*)
+  * FK historial-estado(id_solicitud) referencia a SOLICITUD(id_solicitud).
+  * FK historial-estado(id_usuario) referencia a USUARIO(id_usuario).
+
+* **HISTORIAL-STOCK** (*id_historial_stock[key]*, cantidad_anterior, cantidad_nueva, fecha_hora, *id_remitente*, *id_producto*, *id_actor*)
+  * FK historial-stock(id_remitente) referencia a REMITENTE(id_remitente).
+  * FK historial-stock(id_producto) referencia a PRODUCTO(id_producto).
+  * FK historial-stock(id_actor) referencia a USUARIO(id_usuario).
+
+* **NOTIFICACION** (*id_notificacion[key]*, mensaje, leida, fecha_hora, *id_solicitud*, *id_usuario_destino*)
+  * FK notificacion(id_solicitud) referencia a SOLICITUD(id_solicitud).
+  * FK notificacion(id_usuario_destino) referencia a USUARIO(id_usuario).

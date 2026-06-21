@@ -71,7 +71,7 @@ describe("Server Actions - Stock", () => {
         userId: "test-admin-1",
         sessionClaims: { metadata: { rol: "admin" } },
       });
-      const idBase = await seedBaseRemitente(prisma);
+      const { idBase } = await seedBaseRemitente(prisma);
       await seedProductos(prisma, idBase);
 
       const { consultarStockBaseAction } = await import("@/src/actions/stock.actions");
@@ -88,7 +88,7 @@ describe("Server Actions - Stock", () => {
         userId: "test-admin-1",
         sessionClaims: { metadata: { rol: "admin" } },
       });
-      const idBase = await seedBaseRemitente(prisma);
+      const { idBase } = await seedBaseRemitente(prisma);
       const { prod1 } = await seedProductos(prisma, idBase);
 
       const { actualizarStockAction } = await import("@/src/actions/stock.actions");
@@ -97,7 +97,7 @@ describe("Server Actions - Stock", () => {
       expect(result.success).toBe(true);
 
       const stock = await prisma.stock_Base.findFirst({
-        where: { id_remitente: idBase, id_producto: prod1.id_producto },
+        where: { id_base: idBase, id_producto: prod1.id_producto },
       });
       expect(stock?.cantidad_disponible).toBe(200);
     });

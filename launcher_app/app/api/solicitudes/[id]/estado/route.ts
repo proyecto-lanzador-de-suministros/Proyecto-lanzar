@@ -46,7 +46,7 @@ export async function PATCH(
       );
     }
 
-    if (rol === "remitente" && solicitud.id_remitente !== userId) {
+    if (rol === "remitente" && solicitud.id_base !== userId) {
       return NextResponse.json(
         { error: { code: "FORBIDDEN", message: "No tienes permiso para modificar esta solicitud." } },
         { status: 403 }

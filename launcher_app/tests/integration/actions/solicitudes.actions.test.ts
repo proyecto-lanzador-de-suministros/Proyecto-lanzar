@@ -25,12 +25,12 @@ describe("Server Actions - Solicitudes", () => {
         userId: "test-solicitante-1",
         sessionClaims: { metadata: { rol: "solicitante" } },
       });
-      const idBase = await seedBaseRemitente(prisma, { id: "base-default-id" });
+      const { idBase } = await seedBaseRemitente(prisma, { id: "base-default-id" });
       const { prod1 } = await seedProductos(prisma, idBase);
 
       const { crearSolicitudAction } = await import("@/src/actions/solicitudes.actions");
       const result = await crearSolicitudAction({
-        ubicacion_destino: { lat: -34.6037, lng: -58.3816 },
+        ubicacion_destino: { type: "Point", coordinates: [-58.3816, -34.6037] },
         prioridad: "Media",
         productos: [{ productoId: prod1.id_producto, cantidad: 5 }],
       });
@@ -51,7 +51,7 @@ describe("Server Actions - Solicitudes", () => {
 
       const { crearSolicitudAction } = await import("@/src/actions/solicitudes.actions");
       const result = await crearSolicitudAction({
-        ubicacion_destino: { lat: -34.6037, lng: -58.3816 },
+        ubicacion_destino: { type: "Point", coordinates: [-58.3816, -34.6037] },
         prioridad: "Media",
         productos: [{ productoId: "prod-1", cantidad: 5 }],
       });
@@ -65,7 +65,7 @@ describe("Server Actions - Solicitudes", () => {
 
       const { crearSolicitudAction } = await import("@/src/actions/solicitudes.actions");
       const result = await crearSolicitudAction({
-        ubicacion_destino: { lat: -34.6037, lng: -58.3816 },
+        ubicacion_destino: { type: "Point", coordinates: [-58.3816, -34.6037] },
         prioridad: "Media",
         productos: [{ productoId: "prod-1", cantidad: 5 }],
       });
@@ -81,8 +81,15 @@ describe("Server Actions - Solicitudes", () => {
         userId: "test-admin-1",
         sessionClaims: { metadata: { rol: "admin" } },
       });
+      await prisma.usuario.create({
+        data: {
+          id_usuario: "test-admin-1",
+          estado_cuenta: "APROBADA",
+          administrador: { create: { nombre: "Admin", usuario: "admin", permisos_rol: "admin" } },
+        },
+      });
       const { idSolicitud } = await crearSolicitudConFixture(prisma, "Creada");
-      const idRemitente = await seedBaseRemitente(prisma);
+      const { idBase, idRemitente } = await seedBaseRemitente(prisma);
 
       const { asignarRemitenteAction } = await import("@/src/actions/solicitudes.actions");
       const formData = new FormData();
@@ -92,7 +99,7 @@ describe("Server Actions - Solicitudes", () => {
       expect(result.success).toBe(true);
 
       const solicitud = await prisma.solicitud.findUnique({ where: { id_solicitud: idSolicitud } });
-      expect(solicitud?.id_remitente).toBe(idRemitente);
+      expect(solicitud?.id_base).toBe(idBase);
     });
 
     it("rechaza si el rol no es admin", async () => {
@@ -130,6 +137,13 @@ describe("Server Actions - Solicitudes", () => {
       mockAuth.mockResolvedValue({
         userId: "test-admin-1",
         sessionClaims: { metadata: { rol: "admin" } },
+      });
+      await prisma.usuario.create({
+        data: {
+          id_usuario: "test-admin-1",
+          estado_cuenta: "APROBADA",
+          administrador: { create: { nombre: "Admin", usuario: "admin", permisos_rol: "admin" } },
+        },
       });
       const { idSolicitud } = await crearSolicitudConFixture(prisma, "Asignada");
 
@@ -211,6 +225,185 @@ describe("Server Actions - Solicitudes", () => {
   });
 });
 
+describe("crearSolicitudAdminAction", () => {
+  let prisma: PrismaClient;
+
+  beforeEach(async () => {
+    prisma = crearPrismaTest(process.env.DATABASE_URL_TEST!);
+    await limpiarBase(prisma);
+  });
+
+  afterEach(async () => {
+    await limpiarBase(prisma);
+    await prisma.$disconnect();
+  });
+
+  it("crea una solicitud para otro usuario como admin", async () => {
+    mockAuth.mockResolvedValue({
+      userId: "test-admin-1",
+      sessionClaims: { metadata: { rol: "admin" } },
+    });
+    await prisma.usuario.create({
+      data: {
+        id_usuario: "test-admin-1",
+        estado_cuenta: "APROBADA",
+        administrador: { create: { nombre: "Admin", usuario: "admin", permisos_rol: "admin" } },
+      },
+    });
+    const idUsuario = crypto.randomUUID();
+    await prisma.usuario.create({
+      data: {
+        id_usuario: idUsuario,
+        estado_cuenta: "APROBADA",
+        solicitante: { create: { nombre: "Test", contacto: "t@t.com" } },
+      },
+    });
+    const { idBase } = await seedBaseRemitente(prisma, { id: "base-admin-test" });
+    const { prod1 } = await seedProductos(prisma, idBase);
+
+    const { crearSolicitudAdminAction } = await import("@/src/actions/solicitudes.actions");
+    const result = await crearSolicitudAdminAction({
+      id_usuario: idUsuario,
+      ubicacion_destino: { type: "Point", coordinates: [-58.3816, -34.6037] },
+      prioridad: "Media",
+      productos: [{ productoId: prod1.id_producto, cantidad: 3 }],
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data).toBeDefined();
+
+    const solicitudes = await prisma.solicitud.findMany();
+    expect(solicitudes).toHaveLength(1);
+    expect(solicitudes[0].id_solicitante).toBe(idUsuario);
+  });
+
+  it("rechaza si el rol no es admin", async () => {
+    mockAuth.mockResolvedValue({
+      userId: "test-solicitante-1",
+      sessionClaims: { metadata: { rol: "solicitante" } },
+    });
+
+    const { crearSolicitudAdminAction } = await import("@/src/actions/solicitudes.actions");
+    const result = await crearSolicitudAdminAction({
+      id_usuario: "some-id",
+      ubicacion_destino: { type: "Point", coordinates: [-58.3816, -34.6037] },
+      prioridad: "Media",
+      productos: [{ productoId: "prod-1", cantidad: 1 }],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("No autorizado");
+  });
+});
+
+describe("listarSolicitudesAdminAction", () => {
+  let prisma: PrismaClient;
+
+  beforeEach(async () => {
+    prisma = crearPrismaTest(process.env.DATABASE_URL_TEST!);
+    await limpiarBase(prisma);
+  });
+
+  afterEach(async () => {
+    await limpiarBase(prisma);
+    await prisma.$disconnect();
+  });
+
+  it("lista todas las solicitudes para admin", async () => {
+    mockAuth.mockResolvedValue({
+      userId: "test-admin-1",
+      sessionClaims: { metadata: { rol: "admin" } },
+    });
+    await crearSolicitudConFixture(prisma, "Creada");
+
+    const { listarSolicitudesAdminAction } = await import("@/src/actions/solicitudes.actions");
+    const result = await listarSolicitudesAdminAction();
+
+    expect(result.success).toBe(true);
+    expect(result.data).toBeInstanceOf(Array);
+    expect(result.data!.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("filtra solicitudes por estado", async () => {
+    mockAuth.mockResolvedValue({
+      userId: "test-admin-1",
+      sessionClaims: { metadata: { rol: "admin" } },
+    });
+    await crearSolicitudConFixture(prisma, "Creada");
+    await crearSolicitudConFixture(prisma, "Asignada");
+
+    const { listarSolicitudesAdminAction } = await import("@/src/actions/solicitudes.actions");
+    const result = await listarSolicitudesAdminAction("Creada");
+
+    expect(result.success).toBe(true);
+    expect(result.data).toBeInstanceOf(Array);
+    expect(result.data!.length).toBe(1);
+  });
+
+  it("rechaza si el rol no es admin", async () => {
+    mockAuth.mockResolvedValue({
+      userId: "test-remitente-1",
+      sessionClaims: { metadata: { rol: "remitente" } },
+    });
+
+    const { listarSolicitudesAdminAction } = await import("@/src/actions/solicitudes.actions");
+    const result = await listarSolicitudesAdminAction();
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("No autorizado");
+  });
+});
+
+describe("reasignarRemitente", () => {
+  let prisma: PrismaClient;
+
+  beforeEach(async () => {
+    prisma = crearPrismaTest(process.env.DATABASE_URL_TEST!);
+    await limpiarBase(prisma);
+  });
+
+  afterEach(async () => {
+    await limpiarBase(prisma);
+    await prisma.$disconnect();
+  });
+
+  it("reasigna un remitente distinto a una solicitud ya asignada", async () => {
+    mockAuth.mockResolvedValue({
+      userId: "test-admin-1",
+      sessionClaims: { metadata: { rol: "admin" } },
+    });
+    await prisma.usuario.create({
+      data: {
+        id_usuario: "test-admin-1",
+        estado_cuenta: "APROBADA",
+        administrador: { create: { nombre: "Admin", usuario: "admin", permisos_rol: "admin" } },
+      },
+    });
+    const { idSolicitud } = await crearSolicitudConFixture(prisma, "Creada");
+    const { idBase: baseA, idRemitente: remA } = await seedBaseRemitente(prisma, { id: "base-reasigna-a" });
+    const { idBase: baseB, idRemitente: remB } = await seedBaseRemitente(prisma, { id: "base-reasigna-b" });
+
+    // Primera asignación
+    const { asignarRemitenteAction } = await import("@/src/actions/solicitudes.actions");
+    const formDataA = new FormData();
+    formDataA.set("remitenteId", remA);
+    const res1 = await asignarRemitenteAction(idSolicitud, formDataA);
+    expect(res1.success).toBe(true);
+
+    const solicitud1 = await prisma.solicitud.findUnique({ where: { id_solicitud: idSolicitud } });
+    expect(solicitud1?.id_base).toBe(baseA);
+
+    // Reasignación a otra base
+    const formDataB = new FormData();
+    formDataB.set("remitenteId", remB);
+    const res2 = await asignarRemitenteAction(idSolicitud, formDataB);
+    expect(res2.success).toBe(true);
+
+    const solicitud2 = await prisma.solicitud.findUnique({ where: { id_solicitud: idSolicitud } });
+    expect(solicitud2?.id_base).toBe(baseB);
+  });
+});
+
 async function crearSolicitudConFixture(prisma: PrismaClient, estado: string) {
   const idUsuario = crypto.randomUUID();
   const idSolicitud = crypto.randomUUID();
@@ -221,7 +414,6 @@ async function crearSolicitudConFixture(prisma: PrismaClient, estado: string) {
       estado_cuenta: "APROBADA",
       solicitante: {
         create: {
-          id_solicitante: idUsuario,
           nombre: "Solicitante Test",
           contacto: "test@test.com",
         },

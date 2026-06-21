@@ -42,24 +42,33 @@ export async function seedBaseRemitente(prisma: PrismaClient, overrides?: {
   nombre_base?: string;
   estado_cuenta?: string;
 }) {
-  const id = overrides?.id ?? crypto.randomUUID();
+  const baseId = overrides?.id ?? crypto.randomUUID();
+  const userId = crypto.randomUUID();
+
+  await prisma.base.create({
+    data: {
+      id_base: baseId,
+      nombre: overrides?.nombre_base ?? "Base Test",
+      latitud: -38.7183,
+      longitud: -62.2663,
+      direccion: "Test Address",
+      capacidad_pista: "Grande",
+    },
+  });
 
   await prisma.usuario.create({
     data: {
-      id_usuario: id,
+      id_usuario: userId,
       estado_cuenta: overrides?.estado_cuenta ?? "APROBADA",
       remitente: {
         create: {
-          nombre_base: overrides?.nombre_base ?? "Base Test",
-          latitud_base: -38.7183,
-          longitud_base: -62.2663,
-          capacidad_pista: "Grande",
+          id_base: baseId,
         },
       },
     },
   });
 
-  return id;
+  return { idBase: baseId, idRemitente: userId };
 }
 
 export async function seedAdmin(prisma: PrismaClient) {
@@ -71,7 +80,6 @@ export async function seedAdmin(prisma: PrismaClient) {
       estado_cuenta: "APROBADA",
       administrador: {
         create: {
-          id_admin: id,
           nombre: "Admin Test",
           usuario: "admin_test",
           permisos_rol: "admin",
@@ -105,8 +113,8 @@ export async function seedProductos(prisma: PrismaClient, idBase?: string) {
   if (idBase) {
     await prisma.stock_Base.createMany({
       data: [
-        { id_remitente: idBase, id_producto: prod1.id_producto, cantidad_disponible: 100 },
-        { id_remitente: idBase, id_producto: prod2.id_producto, cantidad_disponible: 150 },
+        { id_base: idBase, id_producto: prod1.id_producto, cantidad_disponible: 100 },
+        { id_base: idBase, id_producto: prod2.id_producto, cantidad_disponible: 150 },
       ],
     });
   }
@@ -117,6 +125,7 @@ export async function seedProductos(prisma: PrismaClient, idBase?: string) {
 export async function limpiarBase(prisma: PrismaClient) {
   await prisma.notificacion.deleteMany();
   await prisma.historial_Estado.deleteMany();
+  await prisma.historial_Stock.deleteMany();
   await prisma.detalle_Solicitud.deleteMany();
   await prisma.contenedor.deleteMany();
   await prisma.envio.deleteMany();
@@ -126,5 +135,6 @@ export async function limpiarBase(prisma: PrismaClient) {
   await prisma.solicitante.deleteMany();
   await prisma.administrador.deleteMany();
   await prisma.remitente.deleteMany();
+  await prisma.base.deleteMany();
   await prisma.usuario.deleteMany();
 }

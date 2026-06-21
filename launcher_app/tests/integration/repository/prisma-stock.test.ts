@@ -20,7 +20,7 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: idProducto,
           cantidad_disponible: 10,
         },
@@ -54,7 +54,7 @@ describe("PrismaStockRepository (integration)", () => {
       await repo.actualizarCantidad(idRemitente, idProducto, 15);
 
       const stock = await prisma.stock_Base.findFirst({
-        where: { id_remitente: idRemitente, id_producto: idProducto },
+        where: { id_base: idRemitente, id_producto: idProducto },
       });
       expect(stock).not.toBeNull();
       expect(stock!.cantidad_disponible).toBe(15);
@@ -66,7 +66,7 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: idProducto,
           cantidad_disponible: 10,
         },
@@ -75,7 +75,7 @@ describe("PrismaStockRepository (integration)", () => {
       await repo.actualizarCantidad(idRemitente, idProducto, 25);
 
       const stock = await prisma.stock_Base.findFirst({
-        where: { id_remitente: idRemitente, id_producto: idProducto },
+        where: { id_base: idRemitente, id_producto: idProducto },
       });
       expect(stock!.cantidad_disponible).toBe(25);
     });
@@ -91,7 +91,7 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: idProducto,
           cantidad_disponible: 10,
         },
@@ -106,7 +106,7 @@ describe("PrismaStockRepository (integration)", () => {
       expect(resultado.id_base).toBe(idRemitente);
 
       const stock = await prisma.stock_Base.findFirst({
-        where: { id_remitente: idRemitente, id_producto: idProducto },
+        where: { id_base: idRemitente, id_producto: idProducto },
       });
       expect(stock!.cantidad_disponible).toBe(7);
     });
@@ -117,7 +117,7 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: idProducto,
           cantidad_disponible: 2,
         },
@@ -143,14 +143,14 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: p1,
           cantidad_disponible: 10,
         },
       });
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: p2,
           cantidad_disponible: 0,
         },
@@ -183,14 +183,14 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: cerca,
+          id_base: cerca,
           id_producto: idProducto,
           cantidad_disponible: 5,
         },
       });
       await prisma.stock_Base.create({
         data: {
-          id_remitente: lejos,
+          id_base: lejos,
           id_producto: idProducto,
           cantidad_disponible: 5,
         },
@@ -220,7 +220,7 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: lejos,
+          id_base: lejos,
           id_producto: idProducto,
           cantidad_disponible: 10,
         },
@@ -243,7 +243,7 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: idProducto,
           cantidad_disponible: 5,
         },
@@ -255,7 +255,7 @@ describe("PrismaStockRepository (integration)", () => {
       });
 
       const stock = await prisma.stock_Base.findFirst({
-        where: { id_remitente: idRemitente, id_producto: idProducto },
+        where: { id_base: idRemitente, id_producto: idProducto },
       });
       expect(stock!.cantidad_disponible).toBe(8);
     });
@@ -271,14 +271,14 @@ describe("PrismaStockRepository (integration)", () => {
 
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: p1,
           cantidad_disponible: 10,
         },
       });
       await prisma.stock_Base.create({
         data: {
-          id_remitente: idRemitente,
+          id_base: idRemitente,
           id_producto: p2,
           cantidad_disponible: 20,
         },
@@ -293,10 +293,10 @@ describe("PrismaStockRepository (integration)", () => {
       });
 
       const s1 = await prisma.stock_Base.findFirst({
-        where: { id_remitente: idRemitente, id_producto: p1 },
+        where: { id_base: idRemitente, id_producto: p1 },
       });
       const s2 = await prisma.stock_Base.findFirst({
-        where: { id_remitente: idRemitente, id_producto: p2 },
+        where: { id_base: idRemitente, id_producto: p2 },
       });
       expect(s1!.cantidad_disponible).toBe(14);
       expect(s2!.cantidad_disponible).toBe(26);

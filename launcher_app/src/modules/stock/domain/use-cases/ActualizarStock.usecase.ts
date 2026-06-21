@@ -56,7 +56,7 @@ export class ActualizarStockUseCase {
     // Best-effort: si falla el registro de auditoría no debe revertir el cambio de stock.
     try {
       await this.historialStockRepository.registrar({
-        id_remitente: input.id_base,
+        id_base: input.id_base,
         id_producto: input.productoId,
         cantidadAnterior,
         cantidadNueva: cantidadResultante,

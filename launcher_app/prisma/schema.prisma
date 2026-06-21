@@ -17,15 +17,14 @@ model Usuario {
   estado_cuenta String  @default("PENDIENTE") // PENDIENTE, APROBADA, RECHAZADA
 
   // Relaciones de herencia (1 a 1)
-  solicitante   Solicitante?
-  administrador Administrador? @relation(fields: [administradorId_admin], references: [id_admin])
-  remitente     Remitente?
+  solicitante    Solicitante?
+  administrador  Administrador?
+  remitente      Remitente?
 
   // Trazabilidad y Notificaciones
-  historiales_estado    Historial_Estado[]
-  historiales_stock     Historial_Stock[]
-  notificaciones        Notificacion[]
-  administradorId_admin String?
+  historiales_estado Historial_Estado[]
+  historiales_stock  Historial_Stock[]
+  notificaciones     Notificacion[]
 }
 
 model Solicitante {
@@ -43,21 +42,35 @@ model Administrador {
   usuario      String // Nombre de usuario en el sistema
   permisos_rol String
 
-  solicitudes Solicitud[]
-  usuarios    Usuario[]
+  cuenta_usuario Usuario     @relation(fields: [id_admin], references: [id_usuario], onDelete: Cascade)
+  solicitudes    Solicitud[]
 }
 
 model Remitente {
-  id_remitente    String @id
-  nombre_base     String
-  latitud_base    Float
-  longitud_base   Float
+  id_remitente String @id
+  id_base      String
+
+  usuario Usuario @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
+  base    Base    @relation(fields: [id_base], references: [id_base])
+}
+
+// ==========================================
+// Bases operativas (ubicaciones físicas)
+// ==========================================
+
+model Base {
+  id_base   String @id @default(uuid())
+  nombre    String
+  latitud   Float
+  longitud  Float
+  direccion String
   capacidad_pista String
 
-  usuario           Usuario           @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
+  remitentes        Remitente[]
   stock_bases       Stock_Base[]
-  solicitudes       Solicitud[]
   historiales_stock Historial_Stock[]
+  solicitudes       Solicitud[]
+  envios            Envio[]
 }
 
 // ==========================================
@@ -69,7 +82,7 @@ model Producto {
   nombre        String
   descripcion   String?
   peso_unitario Float
-  categoria     String? // reemplaza relación con Tipo
+  categoria     String?
 
   stocks             Stock_Base[]
   detalles_solicitud Detalle_Solicitud[]
@@ -78,27 +91,27 @@ model Producto {
 
 model Stock_Base {
   id_stock            String @id @default(uuid())
-  id_remitente        String
+  id_base             String
   id_producto         String
   cantidad_disponible Int
   cantidad_reservada  Int    @default(0)
 
-  remitente Remitente @relation(fields: [id_remitente], references: [id_remitente])
-  producto  Producto  @relation(fields: [id_producto], references: [id_producto])
+  base    Base     @relation(fields: [id_base], references: [id_base])
+  producto Producto @relation(fields: [id_producto], references: [id_producto])
 }
 
 model Historial_Stock {
   id_historial_stock String   @id @default(uuid())
-  id_remitente       String
+  id_base            String
   id_producto        String
   cantidad_anterior  Int
   cantidad_nueva     Int
   id_actor           String
   fecha_hora         DateTime @default(now())
 
-  remitente Remitente @relation(fields: [id_remitente], references: [id_remitente])
-  producto  Producto  @relation(fields: [id_producto], references: [id_producto])
-  actor     Usuario   @relation(fields: [id_actor], references: [id_usuario])
+  base    Base     @relation(fields: [id_base], references: [id_base])
+  producto Producto @relation(fields: [id_producto], references: [id_producto])
+  actor   Usuario  @relation(fields: [id_actor], references: [id_usuario])
 }
 
 // ==========================================
@@ -114,13 +127,13 @@ model Solicitud {
   longitud_destino   Float
   id_solicitante     String
   id_admin           String? // Nullable porque se asigna al aprobar (CU-09)
-  id_remitente       String? // Nullable porque se asigna al aprobar (CU-09)
+  id_base            String? // Nullable porque se asigna al aprobar (CU-09)
   motivo_cancelacion String?
   motivo_anulacion   String?
 
   solicitante Solicitante    @relation(fields: [id_solicitante], references: [id_solicitante])
   admin       Administrador? @relation(fields: [id_admin], references: [id_admin])
-  remitente   Remitente?     @relation(fields: [id_remitente], references: [id_remitente])
+  base        Base?          @relation(fields: [id_base], references: [id_base])
 
   detalles       Detalle_Solicitud[]
   historiales    Historial_Estado[]
@@ -153,6 +166,7 @@ model Historial_Estado {
 model Notificacion {
   id_notificacion    String   @id @default(uuid())
   mensaje            String
+  leida              Boolean  @default(false)
   fecha_hora         DateTime @default(now())
   id_solicitud       String?
   id_usuario_destino String
@@ -165,35 +179,19 @@ model Notificacion {
 // Entregas Físicas (ADR-007)
 // ==========================================
 
-// TODO: Modelo Base - requerido por FK en Envio
-// Implementar según diagrama ER cuando se migre Stock_Base de Remitente a Base
-model Base {
-  id_base   String @id @default(uuid())
-  nombre    String
-  latitud   Float
-  longitud  Float
-  direccion String
-
-  envios Envio[]
-  // TODO: stock_bases Stock_Base[] — migrar Stock_Base.id_remitente → Stock_Base.id_base
-}
-
 model Envio {
   id_envio     String @id @default(uuid())
   id_solicitud String
-  id_base      String // FK a Base (consistente con diagrama ER)
+  id_base      String
 
-  // Datos de vuelo (absorbidos de Vuelo)
   matricula_avion String?
   piloto          String?
 
-  // Datos de lanzamiento (absorbidos de Lanzamiento)
   latitud_calculada  Float?
   longitud_calculada Float?
   altitud            Float?
   datos_clima        Json?
 
-  // Campos originales del ER
   estado_envio       String    @default("programado")
   codigo_seguimiento String?
   fecha_hora         DateTime?

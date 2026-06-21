@@ -35,11 +35,11 @@ export default function ModalGestionSolicitud({
   const [motivoCancelacion, setMotivoCancelacion] = useState("");
 
   const puedeAsignarRemitente =
-    !solicitud.remitenteId &&
+    !solicitud.baseId &&
     (solicitud.estado === EstadoSolicitud.Creada || solicitud.estado === EstadoSolicitud.Asignada);
 
   const puedeReasignarRemitente =
-    !!solicitud.remitenteId && solicitud.estado === EstadoSolicitud.Asignada;
+    !!solicitud.baseId && solicitud.estado === EstadoSolicitud.Asignada;
 
   const puedeAnular =
     solicitud.estado !== EstadoSolicitud.Completada &&
@@ -177,7 +177,7 @@ export default function ModalGestionSolicitud({
             </div>
             {puedeReasignarRemitente && (
               <p className="text-[11px] text-[#6B7280] mt-2">
-                Actual: {remitentesAprobados.find((r) => r.id === solicitud.remitenteId)?.nombre ?? solicitud.remitenteId}
+                Actual: {remitentesAprobados.find((r) => r.id === solicitud.baseId)?.nombre ?? solicitud.baseId}
               </p>
             )}
           </div>

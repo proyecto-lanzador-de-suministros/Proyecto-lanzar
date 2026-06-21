@@ -363,7 +363,7 @@ export async function obtenerSolicitudesSolicitanteAction() {
     const data = solicitudesDomain.map((s) => ({
       id: s.id_solicitud,
       id_usuario: s.id_usuario,
-      id_base: s.id_remitente,
+      id_base: s.id_base,
       ubicacion_destino: s.ubicacion_destino,
       prioridad: s.prioridad,
       productos: s.productos,
@@ -478,7 +478,7 @@ export async function listarSolicitudesAdminAction(estado?: string) {
       prioridad: s.prioridad,
       productos: s.productos,
       estado: s.estado,
-      remitenteId: s.id_remitente,
+      baseId: s.id_base,
       motivoCancelacion: s.motivoCancelacion,
       motivoAnulacion: s.motivoAnulacion,
       fechaCreacion: s.fecha_solicitada.toISOString(),
@@ -513,7 +513,7 @@ export async function consultarDetalleSolicitudAdminAction(solicitudId: string) 
       data: {
         id: solicitud.id_solicitud,
         solicitanteId: solicitud.id_usuario,
-        remitenteId: solicitud.id_remitente,
+        baseId: solicitud.id_base,
         ubicacion_destino: solicitud.ubicacion_destino,
         prioridad: solicitud.prioridad,
         productos: solicitud.productos,

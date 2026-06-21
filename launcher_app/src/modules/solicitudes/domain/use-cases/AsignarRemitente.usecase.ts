@@ -12,15 +12,6 @@ export class AsignarRemitenteUseCase {
     private readonly historial: ForManagingHistorial,
   ) {}
 
-  /**
-   * Asigna un remitente aprobado a una solicitud (CU-09).
-   * Valida en el backend que el remitente exista y esté APROBADO,
-   * independientemente de lo que filtre el frontend.
-   *
-   * @param solicitudId  UUID de la solicitud.
-   * @param remitenteId  UUID del remitente a asignar.
-   * @param actorId      ID del admin que ejecuta la asignación (para el historial).
-   */
   async ejecutar(
     solicitudId: string,
     remitenteId: string,
@@ -44,7 +35,13 @@ export class AsignarRemitenteUseCase {
       );
     }
 
-    // 2. Obtener la solicitud
+    // 2. Resolver la base que gestiona el remitente
+    const baseId = await this.usuarioRepository.obtenerBaseDeRemitente(remitenteId);
+    if (!baseId) {
+      throw Errores.remitenteNoEncontrado(remitenteId);
+    }
+
+    // 3. Obtener la solicitud
     const solicitud = await this.solicitudRepository.buscarPorId(solicitudId);
 
     if (!solicitud) {
@@ -52,19 +49,19 @@ export class AsignarRemitenteUseCase {
     }
 
     const estadoAnterior = solicitud.estado;
-    const esReasignacion = !!solicitud.id_remitente;
 
-    // 3. Asignar o reasignar — la entidad valida la transición
+    // 4. Asignar o reasignar — la entidad valida la transición
+    const esReasignacion = !!solicitud.id_base;
     if (esReasignacion) {
-      solicitud.reasignar(remitenteId);
+      solicitud.reasignar(baseId);
     } else {
-      solicitud.asignar(remitenteId);
+      solicitud.asignar(baseId);
     }
 
-    // 4. Persistir
+    // 5. Persistir
     await this.solicitudRepository.actualizar(solicitud);
 
-    // 5. Registrar en el historial de auditoría
+    // 6. Registrar en el historial de auditoría
     await this.historial.registrar({
       solicitudId,
       estadoAnterior,
@@ -72,7 +69,7 @@ export class AsignarRemitenteUseCase {
       actorId,
     });
 
-    // 6. Notificar al solicitante y al remitente (CU-09, paso 5)
+    // 7. Notificar al solicitante y al remitente
     await this.notificarAsignacion.ejecutar(
       solicitudId,
       solicitud.id_usuario,

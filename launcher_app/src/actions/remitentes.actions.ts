@@ -23,9 +23,9 @@ export async function listarRemitentesAction() {
 export async function actualizarBaseRemitenteAction(
   id_remitente: string,
   datos: {
-    nombre_base?: string;
-    latitud_base?: number;
-    longitud_base?: number;
+    nombre?: string;
+    latitud?: number;
+    longitud?: number;
     capacidad_pista?: string;
   },
 ) {

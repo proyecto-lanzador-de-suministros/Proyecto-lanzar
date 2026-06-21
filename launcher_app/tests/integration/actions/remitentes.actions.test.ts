@@ -55,20 +55,20 @@ describe("Server Actions - Remitentes", () => {
         userId: "test-admin-1",
         sessionClaims: { metadata: { rol: "admin" } },
       });
-      const idBase = await seedBaseRemitente(prisma);
+      const { idBase, idRemitente } = await seedBaseRemitente(prisma);
 
       const { actualizarBaseRemitenteAction } = await import("@/src/actions/remitentes.actions");
-      const result = await actualizarBaseRemitenteAction(idBase, {
-        nombre_base: "Base Actualizada",
-        latitud_base: -34.6037,
-        longitud_base: -58.3816,
+      const result = await actualizarBaseRemitenteAction(idRemitente, {
+        nombre: "Base Actualizada",
+        latitud: -34.6037,
+        longitud: -58.3816,
       });
 
       expect(result.success).toBe(true);
 
-      const remitente = await prisma.remitente.findUnique({ where: { id_remitente: idBase } });
-      expect(remitente?.nombre_base).toBe("Base Actualizada");
-      expect(remitente?.latitud_base).toBe(-34.6037);
+      const base = await prisma.base.findUnique({ where: { id_base: idBase } });
+      expect(base?.nombre).toBe("Base Actualizada");
+      expect(base?.latitud).toBe(-34.6037);
     });
   });
 });

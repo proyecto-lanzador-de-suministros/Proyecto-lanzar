@@ -48,9 +48,9 @@ describe("GET /api/solicitudes/[id]", () => {
       data: {
         id_usuario: idUsuario,
         estado_cuenta: "APROBADA",
-        solicitante: {
-          create: { id_solicitante: idUsuario, nombre: "Test", contacto: "t@t.com" },
-        },
+          solicitante: {
+            create: { nombre: "Test", contacto: "t@t.com" },
+          },
       },
     });
 
@@ -87,7 +87,7 @@ describe("GET /api/solicitudes/[id]", () => {
         id_usuario: idUsuario1,
         estado_cuenta: "APROBADA",
         solicitante: {
-          create: { id_solicitante: idUsuario1, nombre: "Dueño", contacto: "a@a.com" },
+          create: { nombre: "Dueño", contacto: "a@a.com" },
         },
       },
     });
@@ -136,9 +136,9 @@ describe("GET /api/solicitudes/[id]", () => {
       data: {
         id_usuario: idUsuario,
         estado_cuenta: "APROBADA",
-        solicitante: {
-          create: { id_solicitante: idUsuario, nombre: "Test", contacto: "t@t.com" },
-        },
+          solicitante: {
+            create: { nombre: "Test", contacto: "t@t.com" },
+          },
       },
     });
 

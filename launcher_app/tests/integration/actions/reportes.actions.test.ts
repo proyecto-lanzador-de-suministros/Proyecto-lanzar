@@ -31,7 +31,7 @@ describe("Server Actions - Reportes", () => {
         data: {
           id_usuario: idUsuario,
           estado_cuenta: "APROBADA",
-          solicitante: { create: { id_solicitante: idUsuario, nombre: "Test", contacto: "t@t.com" } },
+          solicitante: { create: { nombre: "Test", contacto: "t@t.com" } },
         },
       });
 
@@ -75,7 +75,7 @@ describe("Server Actions - Reportes", () => {
         userId: "test-admin-1",
         sessionClaims: { metadata: { rol: "admin" } },
       });
-      const idBase = await seedBaseRemitente(prisma);
+      const { idBase } = await seedBaseRemitente(prisma);
       await seedProductos(prisma, idBase);
 
       const { obtenerReporteStockAction } = await import("@/src/actions/reportes.actions");

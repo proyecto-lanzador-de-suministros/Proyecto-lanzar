@@ -5,7 +5,7 @@ describe("Stock", () => {
   describe("crear", () => {
     it("crea stock con cantidad reservada en 0", () => {
       const stock = Stock.crear({
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 100,
       });
@@ -20,7 +20,7 @@ describe("Stock", () => {
     it("reconstruye stock desde datos existentes", () => {
       const stock = Stock.reconstruir({
         id: "stk-001",
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 80,
         cantidadReservada: 20,
@@ -35,7 +35,7 @@ describe("Stock", () => {
   describe("reservar", () => {
     it("reserva cantidad válida", () => {
       const stock = Stock.crear({
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 100,
       });
@@ -48,7 +48,7 @@ describe("Stock", () => {
 
     it("lanza error si cantidad es 0 o negativa", () => {
       const stock = Stock.crear({
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 100,
       });
@@ -59,7 +59,7 @@ describe("Stock", () => {
 
     it("lanza error si stock insuficiente", () => {
       const stock = Stock.crear({
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 10,
       });
@@ -72,7 +72,7 @@ describe("Stock", () => {
     it("libera cantidad reservada", () => {
       const stock = Stock.reconstruir({
         id: "stk-001",
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 70,
         cantidadReservada: 30,
@@ -87,7 +87,7 @@ describe("Stock", () => {
     it("lanza error si cantidad es 0 o negativa", () => {
       const stock = Stock.reconstruir({
         id: "stk-001",
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 70,
         cantidadReservada: 30,
@@ -100,7 +100,7 @@ describe("Stock", () => {
   describe("reponer", () => {
     it("reponer cantidad al stock disponible", () => {
       const stock = Stock.crear({
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 50,
       });
@@ -113,7 +113,7 @@ describe("Stock", () => {
 
     it("lanza error si cantidad es 0 o negativa", () => {
       const stock = Stock.crear({
-        remitenteId: "rem-001",
+        baseId: "rem-001",
         productoId: "prod-001",
         cantidadDisponible: 50,
       });

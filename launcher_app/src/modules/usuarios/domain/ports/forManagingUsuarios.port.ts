@@ -2,25 +2,26 @@ import { Usuario } from "../entities/Usuario";
 
 export interface BaseRemitenteData {
   id_remitente: string;
-  nombre_base: string;
-  latitud_base: number;
-  longitud_base: number;
+  id_base: string;
+  nombre: string;
+  latitud: number;
+  longitud: number;
   capacidad_pista: string;
   estado_cuenta: string;
   configuracionPendiente: boolean;
 }
 
 export interface ActualizarBaseRemitenteInput {
-  nombre_base?: string;
-  latitud_base?: number;
-  longitud_base?: number;
+  nombre?: string;
+  latitud?: number;
+  longitud?: number;
   capacidad_pista?: string;
 }
 
 export interface CrearBaseRemitenteInput {
-  nombre_base: string;
-  latitud_base: number;
-  longitud_base: number;
+  nombre: string;
+  latitud: number;
+  longitud: number;
   capacidad_pista: string;
 }
 
@@ -32,6 +33,8 @@ export interface ForManagingUsuarios {
   eliminar(id: string): Promise<void>;
   listarBasesRemitentes(): Promise<BaseRemitenteData[]>;
   actualizarBaseRemitente(id: string, datos: ActualizarBaseRemitenteInput): Promise<void>;
+  /** Resuelve la base que gestiona un remitente a partir de su ID de usuario */
+  obtenerBaseDeRemitente(remitenteId: string): Promise<string | null>;
   crearBaseRemitente(id: string, datos: CrearBaseRemitenteInput): Promise<void>;
   baseExiste(id: string): Promise<boolean>;
 }

@@ -37,7 +37,7 @@ export class PrismaTestDataRepository implements ForManagingTestData {
   }
 
   async ensureTestDataSeeded(): Promise<string> {
-    const baseCount = await prisma.remitente.count();
+    const baseCount = await prisma.base.count();
     const productCount = await prisma.producto.count();
 
     let defaultBaseId = "";
@@ -54,22 +54,31 @@ export class PrismaTestDataRepository implements ForManagingTestData {
           },
         });
 
-        const base = await tx.remitente.upsert({
+        const base = await tx.base.create({
+          data: {
+            id_base: "base-default-location",
+            nombre: "Base Central Bahía Blanca",
+            latitud: -38.7183,
+            longitud: -62.2663,
+            capacidad_pista: "Grande",
+            direccion: "Bahía Blanca, Argentina",
+          },
+        });
+
+        await tx.remitente.upsert({
           where: { id_remitente: baseUserId },
           update: {},
           create: {
             id_remitente: baseUserId,
-            nombre_base: "Base Central Bahía Blanca",
-            latitud_base: -38.7183,
-            longitud_base: -62.2663,
-            capacidad_pista: "Grande",
+            id_base: base.id_base,
           },
         });
-        defaultBaseId = base.id_remitente;
+
+        defaultBaseId = base.id_base;
       });
     } else {
-      const base = await prisma.remitente.findFirst();
-      defaultBaseId = base!.id_remitente;
+      const base = await prisma.base.findFirst();
+      defaultBaseId = base!.id_base;
     }
 
     if (productCount === 0) {
@@ -103,9 +112,9 @@ export class PrismaTestDataRepository implements ForManagingTestData {
 
         await tx.stock_Base.createMany({
           data: [
-            { id_remitente: defaultBaseId, id_producto: prod1.id_producto, cantidad_disponible: 100 },
-            { id_remitente: defaultBaseId, id_producto: prod2.id_producto, cantidad_disponible: 150 },
-            { id_remitente: defaultBaseId, id_producto: prod3.id_producto, cantidad_disponible: 200 },
+            { id_base: defaultBaseId, id_producto: prod1.id_producto, cantidad_disponible: 100 },
+            { id_base: defaultBaseId, id_producto: prod2.id_producto, cantidad_disponible: 150 },
+            { id_base: defaultBaseId, id_producto: prod3.id_producto, cantidad_disponible: 200 },
           ],
         });
       });
