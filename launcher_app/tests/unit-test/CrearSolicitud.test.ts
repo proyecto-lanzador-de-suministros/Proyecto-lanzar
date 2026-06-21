@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { CrearSolicitud } from "../domain/use-cases/CrearSolicitud.usecase";
-import { ControlarSolicitud } from "../domain/use-cases/ControlarSolicitud.usecase";
+import { CrearSolicitud } from "@/src/modules/solicitudes/domain/use-cases/CrearSolicitud.usecase";
+import { ControlarSolicitud } from "@/src/modules/solicitudes/domain/use-cases/ControlarSolicitud.usecase";
 import { NotificarSolicitudCreada } from "@/src/modules/notificaciones/domain/use-cases/NotificarSolicitudCreada.usecase";
-import { PrismaSolicitudesRepository } from "../infrastructure/adapters/PrismaSolicitudRepository";
+import { PrismaSolicitudesRepository } from "@/src/modules/solicitudes/infrastructure/adapters/PrismaSolicitudRepository";
 import {
   PrioridadSolicitud,
   EstadoSolicitud,
-} from "../domain/entities/Solicitud";
+} from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 vi.mock("@/src/infrastructure/db/prisma.client", () => ({

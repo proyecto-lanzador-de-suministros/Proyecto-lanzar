@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { CambiarEstadoSolicitudUseCase } from "../domain/use-cases/CambiarEstadoSolicitud.usecase";
-import { EstadoSolicitud } from "../domain/entities/Solicitud";
-import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
+import { CambiarEstadoSolicitudUseCase } from "@/src/modules/solicitudes/domain/use-cases/CambiarEstadoSolicitud.usecase";
+import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import type { ForManagingSolicitudes } from "@/src/modules/solicitudes/domain/ports/forManagingSolicitudes.port";
 
 describe("CambiarEstadoSolicitudUseCase", () => {
   let repoMock: { actualizarEstado: ReturnType<typeof vi.fn> };

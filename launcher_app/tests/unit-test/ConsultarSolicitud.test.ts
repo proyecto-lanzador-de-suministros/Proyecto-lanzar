@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ConsultarSolicitud } from "../domain/use-cases/ConsultarSolicitud.usecase";
-import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
-import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
+import { ConsultarSolicitud } from "@/src/modules/solicitudes/domain/use-cases/ConsultarSolicitud.usecase";
+import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import type { ForManagingSolicitudes } from "@/src/modules/solicitudes/domain/ports/forManagingSolicitudes.port";
 
 describe("ConsultarSolicitud", () => {
   let repoMock: { buscarPorId: ReturnType<typeof vi.fn> };

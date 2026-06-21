@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { CancelarSolicitud } from "../domain/use-cases/CancelarSolicitud.usecase";
-import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
-import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
+import { CancelarSolicitud } from "@/src/modules/solicitudes/domain/use-cases/CancelarSolicitud.usecase";
+import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import type { ForManagingSolicitudes } from "@/src/modules/solicitudes/domain/ports/forManagingSolicitudes.port";
 import type { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
 
 describe("CancelarSolicitud", () => {

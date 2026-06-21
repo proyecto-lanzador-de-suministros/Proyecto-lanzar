@@ -1,27 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ConfirmarRecibidaUseCase } from "../domain/use-cases/ConfirmarRecibida.usecase";
-import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
-import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
+import { RegistrarEnCaminoUseCase } from "@/src/modules/solicitudes/domain/use-cases/RegistrarEnCamino.usecase";
+import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import type { ForManagingSolicitudes } from "@/src/modules/solicitudes/domain/ports/forManagingSolicitudes.port";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
-import { NotificarRecepcion } from "@/src/modules/notificaciones/domain/use-cases/NotificarRecepcion.usecase";
+import { NotificarEnCamino } from "@/src/modules/notificaciones/domain/use-cases/NotificarEnCamino.usecase";
 
-describe("ConfirmarRecibidaUseCase", () => {
+describe("RegistrarEnCaminoUseCase", () => {
   let repoMock: {
     buscarPorId: ReturnType<typeof vi.fn>;
     actualizarEstado: ReturnType<typeof vi.fn>;
   };
   let notifierMock: { notificar: ReturnType<typeof vi.fn> };
   let historialMock: { registrar: ReturnType<typeof vi.fn> };
-  let useCase: ConfirmarRecibidaUseCase;
+  let useCase: RegistrarEnCaminoUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repoMock = { buscarPorId: vi.fn(), actualizarEstado: vi.fn() };
     notifierMock = { notificar: vi.fn() };
     historialMock = { registrar: vi.fn() };
-    useCase = new ConfirmarRecibidaUseCase(
+    useCase = new RegistrarEnCaminoUseCase(
       repoMock as unknown as ForManagingSolicitudes,
-      new NotificarRecepcion(notifierMock as any),
+      new NotificarEnCamino(notifierMock as any),
       historialMock as unknown as ForManagingHistorial,
     );
   });
@@ -37,34 +37,34 @@ describe("ConfirmarRecibidaUseCase", () => {
     fechaActualizacion: new Date("2026-01-01"),
   };
 
-  it("confirma recepción de la solicitud, registra historial y notifica al remitente (Solicitante)", async () => {
-    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.Lanzada });
+  it("marca la solicitud como en camino, registra historial y notifica al solicitante", async () => {
+    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.Lista });
     repoMock.buscarPorId.mockResolvedValue(solicitud);
 
     await useCase.ejecutar({
       solicitudId: "sol-001",
-      actorId: "usr-001",
-      rol: "solicitante",
+      actorId: "rem-001",
+      rol: "remitente",
     });
 
-    expect(repoMock.actualizarEstado).toHaveBeenCalledWith("sol-001", EstadoSolicitud.Completada);
+    expect(repoMock.actualizarEstado).toHaveBeenCalledWith("sol-001", EstadoSolicitud.EnCamino);
     
     expect(historialMock.registrar).toHaveBeenCalledWith({
       solicitudId: "sol-001",
-      estadoAnterior: EstadoSolicitud.Lanzada,
-      estadoNuevo: EstadoSolicitud.Completada,
-      actorId: "usr-001",
+      estadoAnterior: EstadoSolicitud.Lista,
+      estadoNuevo: EstadoSolicitud.EnCamino,
+      actorId: "rem-001",
     });
 
     expect(notifierMock.notificar).toHaveBeenCalledWith({
-      destinatario: "rem-001",
+      destinatario: "usr-001",
       solicitudId: "sol-001",
-      estado: EstadoSolicitud.Completada,
+      estado: EstadoSolicitud.EnCamino,
     });
   });
 
-  it("confirma recepción de la solicitud como Admin", async () => {
-    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.Lanzada });
+  it("marca la solicitud como en camino como Admin", async () => {
+    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.Lista });
     repoMock.buscarPorId.mockResolvedValue(solicitud);
 
     await useCase.ejecutar({
@@ -73,31 +73,31 @@ describe("ConfirmarRecibidaUseCase", () => {
       rol: "admin",
     });
 
-    expect(repoMock.actualizarEstado).toHaveBeenCalledWith("sol-001", EstadoSolicitud.Completada);
+    expect(repoMock.actualizarEstado).toHaveBeenCalledWith("sol-001", EstadoSolicitud.EnCamino);
   });
 
-  it("lanza error si el solicitante no es el dueño", async () => {
-    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.Lanzada, id_usuario: "usr-002" });
+  it("lanza error si el remitente no es el asignado", async () => {
+    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.Lista, id_base: "rem-002" });
     repoMock.buscarPorId.mockResolvedValue(solicitud);
 
     await expect(
       useCase.ejecutar({
         solicitudId: "sol-001",
-        actorId: "usr-001",
-        rol: "solicitante",
+        actorId: "rem-001",
+        rol: "remitente",
       }),
     ).rejects.toMatchObject({ code: "PERMISO_DENEGADO" });
   });
 
   it("lanza error si la transición de estado es inválida", async () => {
-    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.EnCamino });
+    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.EnPreparacion });
     repoMock.buscarPorId.mockResolvedValue(solicitud);
 
     await expect(
       useCase.ejecutar({
         solicitudId: "sol-001",
-        actorId: "usr-001",
-        rol: "solicitante",
+        actorId: "rem-001",
+        rol: "remitente",
       }),
     ).rejects.toMatchObject({ code: "TRANSICION_INVALIDA" });
   });

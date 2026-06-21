@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { PrismaSolicitudesRepository } from "../infrastructure/adapters/PrismaSolicitudRepository";
+import { PrismaSolicitudesRepository } from "@/src/modules/solicitudes/infrastructure/adapters/PrismaSolicitudRepository";
 import {
   EstadoSolicitud,
   PrioridadSolicitud,
   Solicitud,
-} from "../domain/entities/Solicitud";
+} from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 vi.mock("@/src/infrastructure/db/prisma.client", () => ({
   prisma: {

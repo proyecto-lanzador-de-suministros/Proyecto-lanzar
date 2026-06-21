@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AsignarRemitenteUseCase } from "../domain/use-cases/AsignarRemitente.usecase";
-import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
+import { AsignarRemitenteUseCase } from "@/src/modules/solicitudes/domain/use-cases/AsignarRemitente.usecase";
+import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { Usuario } from "@/src/modules/usuarios/domain/entities/Usuario";
-import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
+import type { ForManagingSolicitudes } from "@/src/modules/solicitudes/domain/ports/forManagingSolicitudes.port";
 import type { ForManagingUsuarios } from "@/src/modules/usuarios/domain/ports/forManagingUsuarios.port";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 import { NotificarAsignacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarAsignacion.usecase";

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ConsultarSolicitudesPendientes } from "../domain/use-cases/ConsultarSolicitudesPendientes.usecase";
-import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
-import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
+import { ConsultarSolicitudesPendientes } from "@/src/modules/solicitudes/domain/use-cases/ConsultarSolicitudesPendientes.usecase";
+import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import type { ForManagingSolicitudes } from "@/src/modules/solicitudes/domain/ports/forManagingSolicitudes.port";
 
 describe("ConsultarSolicitudesPendientes", () => {
   let repoMock: {

@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ListarSolicitudesAdminUseCase } from "../domain/use-cases/ListarSolicitudesAdmin.usecase";
-import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "../domain/entities/Solicitud";
-import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
+import { ObtenerSolicitudesUseCase } from "@/src/modules/solicitudes/domain/use-cases/ObtenerSolicitudes.usecase";
+import { Solicitud, PrioridadSolicitud, EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
+import type { ForManagingSolicitudes } from "@/src/modules/solicitudes/domain/ports/forManagingSolicitudes.port";
 
-describe("ListarSolicitudesAdminUseCase", () => {
+describe("ObtenerSolicitudesUseCase", () => {
   let repoMock: { listarTodas: ReturnType<typeof vi.fn> };
-  let useCase: ListarSolicitudesAdminUseCase;
+  let useCase: ObtenerSolicitudesUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repoMock = { listarTodas: vi.fn() };
-    useCase = new ListarSolicitudesAdminUseCase(
+    useCase = new ObtenerSolicitudesUseCase(
       repoMock as unknown as ForManagingSolicitudes,
     );
   });
@@ -40,9 +40,9 @@ describe("ListarSolicitudesAdminUseCase", () => {
   it("lista solicitudes filtradas por estado", async () => {
     repoMock.listarTodas.mockResolvedValue([]);
 
-    await useCase.ejecutar("Asignada");
+    await useCase.ejecutar(EstadoSolicitud.Asignada);
 
-    expect(repoMock.listarTodas).toHaveBeenCalledWith("Asignada");
+    expect(repoMock.listarTodas).toHaveBeenCalledWith(EstadoSolicitud.Asignada);
   });
 
   it("retorna array vacío si no hay solicitudes", async () => {

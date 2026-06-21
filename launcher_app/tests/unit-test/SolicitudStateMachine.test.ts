@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Solicitud, EstadoSolicitud, PrioridadSolicitud } from "../domain/entities/Solicitud";
+import { Solicitud, EstadoSolicitud, PrioridadSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { DomainError } from "@/src/modules/errors/domain/DomainError";
-import type { ForManagingSolicitudes } from "../domain/ports/forManagingSolicitudes.port";
+import type { ForManagingSolicitudes } from "@/src/modules/solicitudes/domain/ports/forManagingSolicitudes.port";
 import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 import type { ForNotifying } from "@/src/modules/notificaciones/domain/ports/forNotifying.port";
 import { NotificarEnPreparacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarEnPreparacion.usecase";
@@ -12,13 +12,13 @@ import { NotificarRecepcion } from "@/src/modules/notificaciones/domain/use-case
 import { NotificarAnulacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarAnulacion.usecase";
 import type { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
 
-import { RegistrarEnPreparacionUseCase } from "../domain/use-cases/RegistrarEnPreparacion.usecase";
-import { RegistrarListaUseCase } from "../domain/use-cases/RegistrarLista.usecase";
-import { RegistrarEnCaminoUseCase } from "../domain/use-cases/RegistrarEnCamino.usecase";
-import { RegistrarLanzadaUseCase } from "../domain/use-cases/RegistrarLanzada.usecase";
-import { ConfirmarRecibidaUseCase } from "../domain/use-cases/ConfirmarRecibida.usecase";
-import { CancelarSolicitud } from "../domain/use-cases/CancelarSolicitud.usecase";
-import { AnularSolicitudUseCase } from "../domain/use-cases/AnularSolicitud.usecase";
+import { RegistrarEnPreparacionUseCase } from "@/src/modules/solicitudes/domain/use-cases/RegistrarEnPreparacion.usecase";
+import { RegistrarListaUseCase } from "@/src/modules/solicitudes/domain/use-cases/RegistrarLista.usecase";
+import { RegistrarEnCaminoUseCase } from "@/src/modules/solicitudes/domain/use-cases/RegistrarEnCamino.usecase";
+import { RegistrarLanzadaUseCase } from "@/src/modules/solicitudes/domain/use-cases/RegistrarLanzada.usecase";
+import { ConfirmarRecibidaUseCase } from "@/src/modules/solicitudes/domain/use-cases/ConfirmarRecibida.usecase";
+import { CancelarSolicitud } from "@/src/modules/solicitudes/domain/use-cases/CancelarSolicitud.usecase";
+import { AnularSolicitudUseCase } from "@/src/modules/solicitudes/domain/use-cases/AnularSolicitud.usecase";
 
 // =============================================================================
 // Helpers
