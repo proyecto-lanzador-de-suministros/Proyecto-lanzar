@@ -1,6 +1,6 @@
 **Modelo Relacional**
 
-* **BASE** (*id\_base[key]*, nombre, latitud, longitud, dirección)  
+* **BASE** (*id\_base[key]*, nombre, posicion_base, dirección)  
     
 * **USUARIO** (*id\_usuario[key]*, nombre, email, rol, Teléfono, *id\_base*)   
   * FK usuario(id\_base) referencia a BASE(id\_base).
