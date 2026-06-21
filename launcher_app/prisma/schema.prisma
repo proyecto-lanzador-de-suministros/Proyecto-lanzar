@@ -26,7 +26,6 @@ model Usuario {
   historiales_stock     Historial_Stock[]   
   notificaciones        Notificacion[]
   administradorId_admin String?
-  administradorUsuarios AdministradorUsuario[]
 }
 
 model Solicitante {
@@ -44,16 +43,8 @@ model Administrador {
   usuario      String // Nombre de usuario en el sistema
   permisos_rol String
 
-  usuario_rel AdministradorUsuario @relation(fields: [id_admin], references: [id_usuario], onDelete: Cascade)
   solicitudes Solicitud[]
   usuarios    Usuario[]
-}
-
-// Definimos la relación de Administrador explicitamente para evitar ambigüedades en Prisma
-model AdministradorUsuario {
-  id_usuario    String         @id
-  administrador Administrador?
-  usuario       Usuario        @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 }
 
 model Remitente {
@@ -66,8 +57,6 @@ model Remitente {
   usuario           Usuario           @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
   stock_bases       Stock_Base[]
   solicitudes       Solicitud[]
-  vuelos            Vuelo[]
-  lanzamientos      Lanzamiento[]
   historiales_stock Historial_Stock[]   
 }
 
@@ -75,22 +64,13 @@ model Remitente {
 // Catálogo e Inventario - CU-17, CU-18
 // ==========================================
 
-model Tipo {
-  id_tipo          String @id @default(uuid())
-  nombre_categoria String
-  peso_prioridad   Int
-
-  productos Producto[]
-}
-
 model Producto {
   id_producto   String  @id @default(uuid())
   nombre        String
   descripcion   String?
   peso_unitario Float
-  id_tipo       String
+  categoria     String?  // reemplaza relación con Tipo
 
-  tipo               Tipo                @relation(fields: [id_tipo], references: [id_tipo])
   stocks             Stock_Base[]
   detalles_solicitud Detalle_Solicitud[]
   historiales_stock  Historial_Stock[]   
@@ -144,7 +124,7 @@ model Solicitud {
   detalles       Detalle_Solicitud[]
   historiales    Historial_Estado[]
   notificaciones Notificacion[]
-  lanzamientos   Lanzamiento[]
+  envios         Envio[]
 }
 
 model Detalle_Solicitud {
@@ -185,30 +165,43 @@ model Notificacion {
 // Entregas Físicas (ADR-007)
 // ==========================================
 
-model Vuelo {
-  id_vuelo             String @id @default(uuid())
-  matricula_avion      String
-  piloto               String
-  combustible_estimado Float
-  id_remitente         String
+// TODO: Modelo Base - requerido por FK en Envio
+// Implementar según diagrama ER cuando se migre Stock_Base de Remitente a Base
+model Base {
+  id_base   String @id @default(uuid())
+  nombre    String
+  latitud   Float
+  longitud  Float
+  direccion String
 
-  remitente    Remitente     @relation(fields: [id_remitente], references: [id_remitente])
-  lanzamientos Lanzamiento[]
+  envios Envio[]
+  // TODO: stock_bases Stock_Base[] — migrar Stock_Base.id_remitente → Stock_Base.id_base
 }
 
-model Lanzamiento {
-  id_lanzamiento     String @id @default(uuid())
-  latitud_calculada  Float
-  longitud_calculada Float
-  altitud            Float
-  datos_clima_api    Json // Aprovechamos JSON en PostgreSQL (ADR-002)
-  id_vuelo           String
-  id_solicitud       String
-  id_remitente       String
-
-  vuelo        Vuelo        @relation(fields: [id_vuelo], references: [id_vuelo])
-  solicitud    Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
-  remitente    Remitente    @relation(fields: [id_remitente], references: [id_remitente])
+model Envio {
+  id_envio            String   @id @default(uuid())
+  id_solicitud        String
+  id_base             String   // FK a Base (consistente con diagrama ER)
+  
+  // Datos de vuelo (absorbidos de Vuelo)
+  matricula_avion     String?
+  piloto              String?
+  
+  // Datos de lanzamiento (absorbidos de Lanzamiento)
+  latitud_calculada   Float?
+  longitud_calculada  Float?
+  altitud             Float?
+  datos_clima         Json?
+  
+  // Campos originales del ER
+  estado_envio        String   @default("programado")
+  codigo_seguimiento  String?
+  fecha_hora          DateTime?
+  fecha_salida        DateTime?
+  entrega_real        DateTime?
+  
+  solicitud   Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
+  base        Base         @relation(fields: [id_base], references: [id_base])
   contenedores Contenedor[]
 }
 
@@ -217,7 +210,7 @@ model Contenedor {
   tipo_paracaidas String
   peso_maximo     Float
   estado_mecanico String
-  id_lanzamiento  String
+  id_envio        String
 
-  lanzamiento Lanzamiento @relation(fields: [id_lanzamiento], references: [id_lanzamiento], onDelete: Cascade)
+  envio Envio @relation(fields: [id_envio], references: [id_envio], onDelete: Cascade)
 }
