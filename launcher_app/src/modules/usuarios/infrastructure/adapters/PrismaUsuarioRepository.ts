@@ -89,8 +89,8 @@ export class PrismaUsuarioRepository implements ForManagingUsuarios {
   }
 
   async baseExiste(id: string): Promise<boolean> {
-    const count = await prisma.remitente.count({
-      where: { id_remitente: id },
+    const count = await prisma.base.count({
+      where: { id_base: id },
     });
     return count > 0;
   }
