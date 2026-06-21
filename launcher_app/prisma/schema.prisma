@@ -7,189 +7,210 @@ datasource db {
   provider = "postgresql"
 }
 
+// ==========================================
+// Usuarios y Roles (Herencia) - CU-01 a CU-05
+// ==========================================
+
 model Usuario {
-  id_usuario            String                @id @default(uuid())
-  administradorId_admin String?
-  contrasena            String?
-  estado_cuenta         String                @default("PENDIENTE")
-  AdministradorUsuario  AdministradorUsuario?
-  historiales_estado    Historial_Estado[]
-  historiales_stock     Historial_Stock[]
-  notificaciones        Notificacion[]
-  remitente             Remitente?
-  solicitante           Solicitante?
-  Administrador         Administrador?        @relation(fields: [administradorId_admin], references: [id_admin])
+  id_usuario    String  @id @default(uuid()) // Será el ID provisto por Clerk (ADR-006)
+  nombre        String? // Nombre visible. En producción viene de Clerk; se puede setear directo en seed/dev
+  email         String? // Email. Opcional porque Clerk es source of truth en producción
+  contrasena    String? // Opcional ya que la autenticación se delega a Clerk. Útil para seed/dev offline
+  estado_cuenta String  @default("PENDIENTE") // PENDIENTE, APROBADA, RECHAZADA
+
+  // Relaciones de herencia (1 a 1)
+  solicitante    Solicitante?
+  administrador  Administrador?
+  remitente      Remitente?
+
+  // Trazabilidad y Notificaciones
+  historiales_estado Historial_Estado[]
+  historiales_stock  Historial_Stock[]
+  notificaciones     Notificacion[]
 }
 
 model Solicitante {
-  id_solicitante String      @id
+  id_solicitante String @id
   nombre         String
   contacto       String
-  usuario        Usuario     @relation(fields: [id_solicitante], references: [id_usuario], onDelete: Cascade)
-  solicitudes    Solicitud[]
+
+  usuario     Usuario     @relation(fields: [id_solicitante], references: [id_usuario], onDelete: Cascade)
+  solicitudes Solicitud[]
 }
 
 model Administrador {
-  id_admin       String               @id
-  nombre         String
-  permisos_rol   String
-  usuario        String
-  cuenta_usuario AdministradorUsuario @relation(fields: [id_admin], references: [id_usuario], onDelete: Cascade)
+  id_admin     String @id
+  nombre       String
+  usuario      String // Nombre de usuario en el sistema
+  permisos_rol String
+
+  cuenta_usuario Usuario     @relation(fields: [id_admin], references: [id_usuario], onDelete: Cascade)
   solicitudes    Solicitud[]
-  Usuario        Usuario[]
 }
 
 model Remitente {
-  id_remitente    String            @id
-  nombre_base     String
-  latitud_base    Float
-  longitud_base   Float
-  capacidad_pista String
-  Historial_Stock Historial_Stock[]
-  Lanzamiento     Lanzamiento[]
-  usuario         Usuario           @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
-  Solicitud       Solicitud[]
-  Stock_Base      Stock_Base[]
-  Vuelo           Vuelo[]
+  id_remitente String @id
+  id_base      String
+
+  usuario Usuario @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
+  base    Base    @relation(fields: [id_base], references: [id_base])
 }
 
+// ==========================================
+// Bases operativas (ubicaciones físicas)
+// ==========================================
+
+model Base {
+  id_base   String @id @default(uuid())
+  nombre    String
+  latitud   Float
+  longitud  Float
+  direccion String
+  capacidad_pista String
+
+  remitentes        Remitente[]
+  stock_bases       Stock_Base[]
+  historiales_stock Historial_Stock[]
+  solicitudes       Solicitud[]
+  envios            Envio[]
+}
+
+// ==========================================
+// Catálogo e Inventario - CU-17, CU-18
+// ==========================================
+
 model Producto {
-  id_producto        String              @id @default(uuid())
-  nombre             String
-  descripcion        String?
-  peso_unitario      Float
-  id_tipo            String
+  id_producto   String  @id @default(uuid())
+  nombre        String
+  descripcion   String?
+  peso_unitario Float
+  categoria     String?
+
+  stocks             Stock_Base[]
   detalles_solicitud Detalle_Solicitud[]
   historiales_stock  Historial_Stock[]
-  Tipo               Tipo                @relation(fields: [id_tipo], references: [id_tipo])
-  stocks             Stock_Base[]
 }
 
 model Stock_Base {
-  id_stock            String    @id @default(uuid())
-  id_remitente        String
+  id_stock            String @id @default(uuid())
+  id_base             String
   id_producto         String
   cantidad_disponible Int
-  producto            Producto  @relation(fields: [id_producto], references: [id_producto])
-  Remitente           Remitente @relation(fields: [id_remitente], references: [id_remitente])
+  cantidad_reservada  Int    @default(0)
+
+  base    Base     @relation(fields: [id_base], references: [id_base])
+  producto Producto @relation(fields: [id_producto], references: [id_producto])
 }
 
 model Historial_Stock {
-  id_historial_stock String    @id @default(uuid())
-  id_remitente       String
+  id_historial_stock String   @id @default(uuid())
+  id_base            String
   id_producto        String
   cantidad_anterior  Int
   cantidad_nueva     Int
-  fecha_hora         DateTime  @default(now())
   id_actor           String
-  actor              Usuario   @relation(fields: [id_actor], references: [id_usuario])
-  producto           Producto  @relation(fields: [id_producto], references: [id_producto])
-  Remitente          Remitente @relation(fields: [id_remitente], references: [id_remitente])
+  fecha_hora         DateTime @default(now())
+
+  base    Base     @relation(fields: [id_base], references: [id_base])
+  producto Producto @relation(fields: [id_producto], references: [id_producto])
+  actor   Usuario  @relation(fields: [id_actor], references: [id_usuario])
 }
 
+// ==========================================
+// Solicitudes y Logística - CU-08 a CU-20
+// ==========================================
+
 model Solicitud {
-  id_solicitud       String              @id @default(uuid())
-  fecha_creacion     DateTime            @default(now())
+  id_solicitud       String   @id @default(uuid())
+  fecha_creacion     DateTime @default(now())
   estado_actual      String
   prioridad          String
   latitud_destino    Float
   longitud_destino   Float
   id_solicitante     String
-  id_admin           String?
-  id_remitente       String?
-  motivo_anulacion   String?
+  id_admin           String? // Nullable porque se asigna al aprobar (CU-09)
+  id_base            String? // Nullable porque se asigna al aprobar (CU-09)
   motivo_cancelacion String?
-  detalles           Detalle_Solicitud[]
-  historiales        Historial_Estado[]
-  Lanzamiento        Lanzamiento[]
-  notificaciones     Notificacion[]
-  admin              Administrador?      @relation(fields: [id_admin], references: [id_admin])
-  Remitente          Remitente?          @relation(fields: [id_remitente], references: [id_remitente])
-  solicitante        Solicitante         @relation(fields: [id_solicitante], references: [id_solicitante])
+  motivo_anulacion   String?
+
+  solicitante Solicitante    @relation(fields: [id_solicitante], references: [id_solicitante])
+  admin       Administrador? @relation(fields: [id_admin], references: [id_admin])
+  base        Base?          @relation(fields: [id_base], references: [id_base])
+
+  detalles       Detalle_Solicitud[]
+  historiales    Historial_Estado[]
+  notificaciones Notificacion[]
+  envios         Envio[]
 }
 
 model Detalle_Solicitud {
-  id_detalle      String    @id @default(uuid())
+  id_detalle      String @id @default(uuid())
   id_solicitud    String
   id_producto     String
   cantidad_pedida Int
-  producto        Producto  @relation(fields: [id_producto], references: [id_producto])
-  solicitud       Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+
+  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  producto  Producto  @relation(fields: [id_producto], references: [id_producto])
 }
 
 model Historial_Estado {
-  id_historial    String    @id @default(uuid())
-  fecha_hora      DateTime  @default(now())
+  id_historial    String   @id @default(uuid())
+  fecha_hora      DateTime @default(now())
   estado_anterior String?
   estado_nuevo    String
   id_solicitud    String
   id_usuario      String
-  solicitud       Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
-  usuario         Usuario   @relation(fields: [id_usuario], references: [id_usuario])
+
+  solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  usuario   Usuario   @relation(fields: [id_usuario], references: [id_usuario])
 }
 
 model Notificacion {
-  id_notificacion    String     @id @default(uuid())
+  id_notificacion    String   @id @default(uuid())
   mensaje            String
-  fecha_hora         DateTime   @default(now())
+  leida              Boolean  @default(false)
+  fecha_hora         DateTime @default(now())
   id_solicitud       String?
   id_usuario_destino String
-  solicitud          Solicitud? @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
-  usuario_destino    Usuario    @relation(fields: [id_usuario_destino], references: [id_usuario], onDelete: Cascade)
+
+  solicitud       Solicitud? @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  usuario_destino Usuario    @relation(fields: [id_usuario_destino], references: [id_usuario], onDelete: Cascade)
+}
+
+// ==========================================
+// Entregas Físicas (ADR-007)
+// ==========================================
+
+model Envio {
+  id_envio     String @id @default(uuid())
+  id_solicitud String
+  id_base      String
+
+  matricula_avion String?
+  piloto          String?
+
+  latitud_calculada  Float?
+  longitud_calculada Float?
+  altitud            Float?
+  datos_clima        Json?
+
+  estado_envio       String    @default("programado")
+  codigo_seguimiento String?
+  fecha_hora         DateTime?
+  fecha_salida       DateTime?
+  entrega_real       DateTime?
+
+  solicitud    Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
+  base         Base         @relation(fields: [id_base], references: [id_base])
+  contenedores Contenedor[]
 }
 
 model Contenedor {
-  id_contenedor   String      @id @default(uuid())
+  id_contenedor   String @id @default(uuid())
   tipo_paracaidas String
   peso_maximo     Float
   estado_mecanico String
-  id_lanzamiento  String
-  Lanzamiento     Lanzamiento @relation(fields: [id_lanzamiento], references: [id_lanzamiento], onDelete: Cascade)
-}
+  id_envio        String
 
-model AdministradorUsuario {
-  id_usuario    String         @id
-  administrador Administrador?
-  Usuario       Usuario        @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-}
-
-model Lanzamiento {
-  id_lanzamiento     String       @id
-  latitud_calculada  Float
-  longitud_calculada Float
-  altitud            Float
-  datos_clima_api    Json
-  id_vuelo           String
-  id_solicitud       String
-  id_remitente       String
-  Contenedor         Contenedor[]
-  Remitente          Remitente    @relation(fields: [id_remitente], references: [id_remitente])
-  Solicitud          Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
-  Vuelo              Vuelo        @relation(fields: [id_vuelo], references: [id_vuelo])
-}
-
-model Tipo {
-  id_tipo          String     @id
-  nombre_categoria String
-  peso_prioridad   Int
-  Producto         Producto[]
-}
-
-model Vuelo {
-  id_vuelo             String        @id
-  matricula_avion      String
-  piloto               String
-  combustible_estimado Float
-  id_remitente         String
-  Lanzamiento          Lanzamiento[]
-  Remitente            Remitente     @relation(fields: [id_remitente], references: [id_remitente])
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model spatial_ref_sys {
-  srid      Int     @id
-  auth_name String? @db.VarChar(256)
-  auth_srid Int?
-  srtext    String? @db.VarChar(2048)
-  proj4text String? @db.VarChar(2048)
+  envio Envio @relation(fields: [id_envio], references: [id_envio], onDelete: Cascade)
 }

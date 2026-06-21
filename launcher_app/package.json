@@ -7,8 +7,7 @@
     "build": "prisma generate && next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest",
-    "db:seed": "tsx prisma/seed.ts"
+    "test": "vitest"
   },
   "dependencies": {
     "@clerk/backend": "^3.8.2",
@@ -40,7 +39,6 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "testcontainers": "^12.0.3",
-    "tsx": "^4.22.4",
     "typescript": "^5",
     "vitest": "^4.1.8"
   }
