@@ -5,7 +5,7 @@
 // ============================================================
 
 import type { PuntoGeometria } from "@/src/types/geometria";
-import { Trayectoria } from "../entities/Trayectoria";
+import { CondicionesClimaticas, Trayectoria } from "../entities/Trayectoria";
 import type { ForCalculatingTrajectory } from "../ports/forCalculatingTrajectory.port";
 import type { ForGettingWeather } from "../ports/forGettingWeather.port";
 
@@ -14,6 +14,7 @@ export interface CalcularTrayectoriaInput {
   destino: PuntoGeometria;
   peso_total_kg: number;
   altitud_liberacion_m: number;
+  condiciones_climaticas: CondicionesClimaticas;
   tipo_paracaidas?: string;
 }
 
@@ -26,7 +27,8 @@ export class CalcularTrayectoria {
   async ejecutar(input: CalcularTrayectoriaInput): Promise<Trayectoria> {
     const [lon, lat] = input.destino.coordinates;
 
-    const condicionesClimaticas = await this.weatherService.obtenerPorCoordenadas(lat, lon);
+    const condicionesClimaticas =
+      await this.weatherService.obtenerPorCoordenadas(lat, lon);
 
     const resultado = await this.trajectoryCalculator.calcular({
       peso_total_kg: input.peso_total_kg,

@@ -13,8 +13,8 @@ export interface CondicionesClimaticas {
   direccion_viento_grados: number;
   presion_atmosferica_hPa: number;
   altitud_terreno_m: number;
+  temperatura_c: number;
 }
-
 export interface TrayectoriaProps {
   id_trayectoria: string;
   id_envio: string;

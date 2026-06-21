@@ -13,11 +13,15 @@ const METROS_POR_GRADO_LAT = 111_320;
 const VIENTO_MAXIMO_SEGURO = 15;
 
 export class TrajectoryCalculatorAdapter implements ForCalculatingTrajectory {
-  async calcular(input: CalcularTrayectoriaInput): Promise<ResultadoTrayectoria> {
+  async calcular(
+    input: CalcularTrayectoriaInput,
+  ): Promise<ResultadoTrayectoria> {
     const tiempoCaida = Math.sqrt((2 * input.altitud_liberacion_m) / GRAVEDAD);
 
-    const drift = input.condiciones_climaticas.velocidad_viento_ms * tiempoCaida;
-    const dirRad = (input.condiciones_climaticas.direccion_viento_grados * Math.PI) / 180;
+    const drift =
+      input.condiciones_climaticas.velocidad_viento_ms * tiempoCaida;
+    const dirRad =
+      (input.condiciones_climaticas.direccion_viento_grados * Math.PI) / 180;
 
     const offsetNorte = drift * Math.cos(dirRad);
     const offsetEste = drift * Math.sin(dirRad);
@@ -26,7 +30,8 @@ export class TrajectoryCalculatorAdapter implements ForCalculatingTrajectory {
     const latRad = (latDest * Math.PI) / 180;
 
     const latLanzamiento = latDest + offsetNorte / METROS_POR_GRADO_LAT;
-    const lonLanzamiento = lonDest + offsetEste / (METROS_POR_GRADO_LAT * Math.cos(latRad));
+    const lonLanzamiento =
+      lonDest + offsetEste / (METROS_POR_GRADO_LAT * Math.cos(latRad));
 
     const puntoLanzamiento: PuntoGeometria = {
       type: "Point",
