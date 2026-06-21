@@ -1,27 +1,22 @@
 import { ForManagingUsuarios } from "../ports/forManagingUsuarios.port";
 import { ForSyncingExternalAuth } from "@/src/modules/auth/domain/ports/forSyncingExternalAuth.port";
+import { ForNotifyingCuenta } from "@/src/modules/notificaciones/domain/ports/forNotifyingCuenta.port";
 
 export class RechazarCuentaUseCase {
   constructor(
     private readonly usuarioRepository: ForManagingUsuarios,
     private readonly externalAuth: ForSyncingExternalAuth,
+    private readonly notificarCuenta: ForNotifyingCuenta,
   ) {}
 
   /**
-   * Rechaza una cuenta pendiente (CU-02, Caso A).
-   * Simétrico a AprobarCuentaUseCase: actualiza el estado en Postgres
-   * y sincroniza el metadato en Clerk para que el JWT del usuario
-   * refleje el rechazo sin necesidad de un nuevo login (ADR-006).
+   * Rechaza una cuenta pendiente (CU-02, Caso A). Simétrico a AprobarCuentaUseCase:
+   * actualiza el estado en Postgres, sincroniza el metadato en Clerk (ADR-006)
+   * y notifica al usuario del resultado (CU-02, postcondición 3).
    *
    * A diferencia de AprobarCuentaUseCase, NO crea ningún perfil por rol
    * (Remitente/Solicitante/Administrador) — el rechazo es justamente
    * la decisión de no habilitar ese perfil.
-   *
-   * Limitación conocida: el modelo Notificacion requiere id_solicitud
-   * (FK no-nullable a Solicitud), así que no existe hoy una forma de
-   * notificar el rechazo por el canal de notificaciones existente sin
-   * una migración de esquema. Queda pendiente para cuando se decida
-   * extender ese modelo.
    */
   async ejecutar(usuarioId: string): Promise<void> {
     const usuario = await this.usuarioRepository.buscarPorId(usuarioId);
@@ -41,5 +36,12 @@ export class RechazarCuentaUseCase {
     await this.externalAuth.actualizarMetadatos(usuarioId, {
       status: "rechazada",
     });
+
+    // Notificar al usuario — best-effort
+    try {
+      await this.notificarCuenta.notificarRechazo(usuarioId);
+    } catch {
+      // fire-and-forget
+    }
   }
 }

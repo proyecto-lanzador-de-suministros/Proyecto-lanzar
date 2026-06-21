@@ -82,11 +82,13 @@ export const cerrarSesionUseCase = new CerrarSesion(authAdapter);
 export const aprobarCuentaUseCase = new AprobarCuentaUseCase(
   usuarioRepository,
   clerkSyncAdapter,
+  notificationAdapter,
 );
 
 export const rechazarCuentaUseCase = new RechazarCuentaUseCase(
   usuarioRepository,
   clerkSyncAdapter,
+  notificationAdapter,
 );
 
 export const eliminarCuentaUseCase = new EliminarCuentaUseCase(

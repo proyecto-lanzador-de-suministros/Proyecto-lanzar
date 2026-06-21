@@ -156,11 +156,11 @@ model Notificacion {
   id_notificacion    String   @id @default(uuid())
   mensaje            String
   fecha_hora         DateTime @default(now())
-  id_solicitud       String
+  id_solicitud       String?
   id_usuario_destino String
 
-  solicitud       Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
-  usuario_destino Usuario   @relation(fields: [id_usuario_destino], references: [id_usuario], onDelete: Cascade)
+  solicitud       Solicitud? @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
+  usuario_destino Usuario    @relation(fields: [id_usuario_destino], references: [id_usuario], onDelete: Cascade)
 }
 
 // ==========================================

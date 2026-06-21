@@ -2,7 +2,7 @@ export interface NotificacionEntry {
   id_notificacion: string;
   mensaje: string;
   fecha_hora: string;
-  id_solicitud: string;
+  id_solicitud: string | null;
   id_usuario_destino: string;
 }
 
@@ -10,7 +10,7 @@ export interface NotificacionGlobalEntry {
   id: string;
   mensaje: string;
   fechaHora: string;
-  solicitudId: string;
+  solicitudId: string | null;
   destinatarioId: string;
   destinatarioNombre: string;
 }

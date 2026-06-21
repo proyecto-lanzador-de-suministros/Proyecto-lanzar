@@ -8,7 +8,7 @@ interface NotificacionGlobalJSON {
   id: string;
   mensaje: string;
   fechaHora: string;
-  solicitudId: string;
+  solicitudId: string | null;
   destinatarioId: string;
   destinatarioNombre: string;
 }
@@ -105,12 +105,16 @@ export default function AdminNotificacionesPage() {
                         {n.mensaje}
                       </td>
                       <td className="px-6 py-4">
-                        <Link
-                          href={`/admin/solicitudes/${n.solicitudId}`}
-                          className="font-mono text-xs text-[#1565C0] hover:underline"
-                        >
-                          #{n.solicitudId.substring(0, 8).toUpperCase()}
-                        </Link>
+                        {n.solicitudId ? (
+                          <Link
+                            href={`/admin/solicitudes/${n.solicitudId}`}
+                            className="font-mono text-xs text-[#1565C0] hover:underline"
+                          >
+                            #{n.solicitudId.substring(0, 8).toUpperCase()}
+                          </Link>
+                        ) : (
+                          <span className="text-[11px] text-[#6B7280] italic">Cuenta de usuario</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-[#1A1A2E] text-xs">
                         {n.destinatarioNombre}

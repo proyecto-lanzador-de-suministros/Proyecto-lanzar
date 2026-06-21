@@ -7,7 +7,7 @@ interface NotificationJSON {
   id_notificacion: string;
   mensaje: string;
   fecha_hora: string;
-  id_solicitud: string;
+  id_solicitud: string | null;
 }
 
 export default function NotificacionesPage() {
@@ -84,8 +84,12 @@ export default function NotificacionesPage() {
                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug">{n.mensaje}</p>
                 <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-400">
                   <span>{formatDate(n.fecha_hora)}</span>
-                  <span>•</span>
-                  <span className="font-mono">Solicitud #{n.id_solicitud.substring(0, 8).toUpperCase()}</span>
+                  {n.id_solicitud && (
+                    <>
+                      <span>•</span>
+                      <span className="font-mono">Solicitud #{n.id_solicitud.substring(0, 8).toUpperCase()}</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
