@@ -8,13 +8,13 @@ import { prisma } from "@/src/infrastructure/db/prisma.client";
 const PAGE_SIZE_DEFAULT = 20;
 
 interface DestinatarioRelaciones {
-  remitente: { nombre_base: string } | null;
+  remitente: { base: { nombre: string } } | null;
   administrador: { nombre: string } | null;
   solicitante: { nombre: string } | null;
 }
 
 function resolverNombreDestinatario(usuario: DestinatarioRelaciones): string {
-  if (usuario.remitente) return usuario.remitente.nombre_base;
+  if (usuario.remitente) return usuario.remitente.base.nombre;
   if (usuario.administrador) return usuario.administrador.nombre;
   if (usuario.solicitante) return usuario.solicitante.nombre;
   return "Usuario sin nombre";
@@ -30,6 +30,7 @@ export class PrismaNotificacionesRepository implements ForManagingNotificaciones
     return notificaciones.map((n) => ({
       id_notificacion: n.id_notificacion,
       mensaje: n.mensaje,
+      leida: n.leida,
       fecha_hora: n.fecha_hora.toISOString(),
       id_solicitud: n.id_solicitud,
       id_usuario_destino: n.id_usuario_destino,
@@ -45,12 +46,13 @@ export class PrismaNotificacionesRepository implements ForManagingNotificaciones
         select: {
           id_notificacion: true,
           mensaje: true,
+          leida: true,
           fecha_hora: true,
           id_solicitud: true,
           id_usuario_destino: true,
           usuario_destino: {
             select: {
-              remitente: { select: { nombre_base: true } },
+              remitente: { select: { base: { select: { nombre: true } } } },
               administrador: { select: { nombre: true } },
               solicitante: { select: { nombre: true } },
             },
@@ -63,6 +65,7 @@ export class PrismaNotificacionesRepository implements ForManagingNotificaciones
     const data = notificaciones.map((n) => ({
       id: n.id_notificacion,
       mensaje: n.mensaje,
+      leida: n.leida,
       fechaHora: n.fecha_hora.toISOString(),
       solicitudId: n.id_solicitud,
       destinatarioId: n.id_usuario_destino,

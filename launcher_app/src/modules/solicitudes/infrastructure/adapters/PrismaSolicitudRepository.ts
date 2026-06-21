@@ -1,8 +1,3 @@
-// ============================================================
-// Adaptador: PrismaSolicitudesRepository
-// Traduce entre el modelo Prisma y la entidad de dominio.
-// ============================================================
-
 import { ForManagingSolicitudes } from "../../domain/ports/forManagingSolicitudes.port";
 import {
   Solicitud,
@@ -13,7 +8,6 @@ import { prisma } from "@/src/infrastructure/db/prisma.client";
 
 import { Prisma } from "../../../../generated/prisma";
 
-// El tipo de una solicitud con detalles incluidos:
 type SolicitudConDetalles = Prisma.SolicitudGetPayload<{
   include: { detalles: true };
 }>;
@@ -28,8 +22,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
         latitud_destino: solicitud.ubicacion_destino.coordinates[1],
         longitud_destino: solicitud.ubicacion_destino.coordinates[0],
         id_solicitante: solicitud.id_usuario,
-        id_remitente: solicitud.id_base ?? null,
-        // fecha_creacion la pone Prisma con @default(now())
+        id_base: solicitud.id_base ?? null,
       },
     });
   }
@@ -43,7 +36,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
         latitud_destino: solicitud.ubicacion_destino.coordinates[1],
         longitud_destino: solicitud.ubicacion_destino.coordinates[0],
         id_solicitante: solicitud.id_usuario,
-        id_remitente: solicitud.id_base ?? null,
+        id_base: solicitud.id_base ?? null,
         motivo_cancelacion: solicitud.motivoCancelacion ?? null,
         motivo_anulacion: solicitud.motivoAnulacion ?? null,
       },
@@ -78,7 +71,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
 
   async listarPorBase(id_base: string): Promise<Solicitud[]> {
     const rows = await prisma.solicitud.findMany({
-      where: { id_remitente: id_base },
+      where: { id_base },
       include: { detalles: true },
       orderBy: { fecha_creacion: "desc" },
     });
@@ -87,7 +80,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
 
   async listarPendientes(id_base: string): Promise<Solicitud[]> {
     const rows = await prisma.solicitud.findMany({
-      where: { id_remitente: id_base, estado_actual: EstadoSolicitud.Asignada },
+      where: { id_base, estado_actual: EstadoSolicitud.Asignada },
       include: { detalles: true },
       orderBy: { fecha_creacion: "asc" },
     });
@@ -108,7 +101,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
       where: { id_solicitud: id },
       data: {
         estado_actual: nuevoEstado,
-        ...(extras?.id_base !== undefined && { id_remitente: extras.id_base }),
+        ...(extras?.id_base !== undefined && { id_base: extras.id_base }),
         ...(extras?.motivoCancelacion !== undefined && {
           motivo_cancelacion: extras.motivoCancelacion,
         }),
@@ -119,12 +112,11 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
     });
   }
 
-  // ── Mapper Prisma → Dominio ─────────────────────────────────────────────
   private mapToDomain(row: SolicitudConDetalles): Solicitud {
     return Solicitud.reconstruir({
       id_solicitud: row.id_solicitud,
       id_usuario: row.id_solicitante,
-      id_base: row.id_remitente ?? undefined,
+      id_base: row.id_base ?? undefined,
       ubicacion_destino: {
         type: "Point",
         coordinates: [row.longitud_destino, row.latitud_destino],

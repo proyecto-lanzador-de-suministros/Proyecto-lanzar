@@ -17,14 +17,14 @@ export class PrismaProductosRepository implements ForManagingProductos {
   }
 
   async listarBases(): Promise<BaseParaStock[]> {
-    const remitentes = await prisma.remitente.findMany({
-      select: { id_remitente: true, nombre_base: true },
-      orderBy: { nombre_base: "asc" },
+    const bases = await prisma.base.findMany({
+      select: { id_base: true, nombre: true },
+      orderBy: { nombre: "asc" },
     });
 
-    return remitentes.map((r) => ({
-      id: r.id_remitente,
-      nombre: r.nombre_base,
+    return bases.map((b) => ({
+      id: b.id_base,
+      nombre: b.nombre,
     }));
   }
 

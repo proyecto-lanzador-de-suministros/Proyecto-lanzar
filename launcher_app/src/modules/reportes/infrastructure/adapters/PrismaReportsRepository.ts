@@ -27,7 +27,7 @@ export class PrismaReportsRepository implements ForGeneratingReports {
         fecha_creacion: true,
         estado_actual: true,
         prioridad: true,
-        remitente: { select: { nombre_base: true } },
+        base: { select: { nombre: true } },
       },
     });
 
@@ -36,7 +36,7 @@ export class PrismaReportsRepository implements ForGeneratingReports {
       fechaCreacion: s.fecha_creacion.toISOString(),
       estado: s.estado_actual as EstadoSolicitud,
       prioridad: s.prioridad as PrioridadSolicitud,
-      baseAsignada: s.remitente?.nombre_base ?? "Sin asignar",
+      baseAsignada: s.base?.nombre ?? "Sin asignar",
     }));
 
     const porEstado: Record<string, number> = {};
@@ -55,15 +55,15 @@ export class PrismaReportsRepository implements ForGeneratingReports {
   async generarReporteStock(): Promise<FilaStockReporte[]> {
     const stock = await prisma.stock_Base.findMany({
       include: {
-        remitente: { select: { nombre_base: true } },
+        base: { select: { nombre: true } },
         producto: { select: { nombre: true } },
       },
-      orderBy: [{ remitente: { nombre_base: "asc" } }, { producto: { nombre: "asc" } }],
+      orderBy: [{ base: { nombre: "asc" } }, { producto: { nombre: "asc" } }],
     });
 
     return stock.map((s) => ({
       id: s.id_stock,
-      base: s.remitente.nombre_base,
+      base: s.base.nombre,
       producto: s.producto.nombre,
       cantidadDisponible: s.cantidad_disponible,
     }));

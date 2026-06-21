@@ -12,13 +12,13 @@ import { prisma } from "@/src/infrastructure/db/prisma.client";
 const PAGE_SIZE_DEFAULT = 20;
 
 interface ActorRelaciones {
-  remitente: { nombre_base: string } | null;
+  remitente: { base: { nombre: string } } | null;
   administrador: { nombre: string } | null;
   solicitante: { nombre: string } | null;
 }
 
 function resolverNombreActor(usuario: ActorRelaciones): string {
-  if (usuario.remitente) return usuario.remitente.nombre_base;
+  if (usuario.remitente) return usuario.remitente.base.nombre;
   if (usuario.administrador) return usuario.administrador.nombre;
   if (usuario.solicitante) return usuario.solicitante.nombre;
   return "Usuario sin nombre";
@@ -75,7 +75,7 @@ export class PrismaHistorialRepository implements ForManagingHistorial {
           solicitud: { select: { latitud_destino: true, longitud_destino: true } },
           usuario: {
             select: {
-              remitente: { select: { nombre_base: true } },
+              remitente: { select: { base: { select: { nombre: true } } } },
               administrador: { select: { nombre: true } },
               solicitante: { select: { nombre: true } },
             },
