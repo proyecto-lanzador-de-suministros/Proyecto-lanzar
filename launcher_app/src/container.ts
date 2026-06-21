@@ -48,7 +48,8 @@ import { PrismaProductosRepository } from "./modules/stock/infrastructure/adapte
 import { ListarCatalogoProductosUseCase } from "./modules/stock/domain/use-cases/ListarCatalogoProductos.usecase";
 import { PrismaNotificacionesRepository } from "./modules/notificaciones/infrastructure/adapters/PrismaNotificacionesRepository";
 import { ListarNotificacionesUseCase } from "./modules/notificaciones/domain/use-cases/ListarNotificaciones.usecase";
-
+import { PrismaHistorialStockRepository } from "./modules/stock/infrastructure/adapters/PrismaHistorialStockRepository";
+import { ListarHistorialStockUseCase } from "./modules/stock/domain/use-cases/ListarHistorialStock.usecase";
 // ── Infraestructura compartida ──────────────────────────────────────────────
 
 export const authAdapter = new ClerkAuthAdapter();
@@ -108,12 +109,15 @@ export const controlarSolicitudUseCase = new ControlarSolicitud(
   solicitudRepository,
   stockRepository,
   notificarRechazo,
+  notificarAsignacion,
+  historialRepository,
 );
 
 export const crearSolicitudUseCase = new CrearSolicitud(
   solicitudRepository,
   controlarSolicitudUseCase,
   notificarSolicitudCreada,
+  historialRepository,
 );
 
 const notificarCancelacion = new NotificarCancelacion(notificationAdapter);
@@ -122,6 +126,7 @@ export const cancelarSolicitudUseCase = new CancelarSolicitud(
   solicitudRepository,
   stockRepository,
   notificarCancelacion,
+  historialRepository,
 );
 
 export const consultarSolicitudUseCase = new ConsultarSolicitudUseCase(solicitudRepository);
@@ -192,8 +197,11 @@ export const inicializarDatosPruebaUseCase = new InicializarDatosPruebaUseCase(
 
 export const consultarStockUseCase = new ConsultarStockUseCase(stockRepository);
 
-export const actualizarStockUseCase = new ActualizarStockUseCase(stockRepository);
+export const historialStockRepository = new PrismaHistorialStockRepository();
 
+export const actualizarStockUseCase = new ActualizarStockUseCase(stockRepository, historialStockRepository);
+
+export const listarHistorialStockUseCase = new ListarHistorialStockUseCase(historialStockRepository);
 // ── Productos (Catálogo) ─────────────────────────────────────────────────────
 
 const productosRepository = new PrismaProductosRepository();

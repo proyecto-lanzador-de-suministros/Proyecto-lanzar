@@ -8,6 +8,7 @@ import { Solicitud, PrioridadSolicitud, ProductoSolicitado } from "../entities/S
 import type { PuntoGeometria } from "@/src/types/geometria";
 import { ControlarSolicitud } from "./ControlarSolicitud.usecase";
 import { NotificarSolicitudCreada } from "@/src/modules/notificaciones/domain/use-cases/NotificarSolicitudCreada.usecase";
+import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 
 export interface CrearSolicitudInput {
   id_usuario: string;
@@ -19,8 +20,8 @@ export interface CrearSolicitudInput {
 
 export interface CrearSolicitudOutput {
   solicitud: Solicitud;
-  asignada: boolean;       // true si hubo stock, false si fue rechazada
-  stockFaltante?: string[]; // IDs de productos sin stock suficiente
+  asignada: boolean;
+  stockFaltante?: string[];
 }
 
 export class CrearSolicitud {
@@ -28,10 +29,10 @@ export class CrearSolicitud {
     private readonly repo: ForManagingSolicitudes,
     private readonly controlarSolicitud: ControlarSolicitud,
     private readonly notificarCreada: NotificarSolicitudCreada,
+    private readonly historial: ForManagingHistorial,
   ) {}
 
   async ejecutar(input: CrearSolicitudInput): Promise<CrearSolicitudOutput> {
-    // 1. Crear la entidad en estado "Creada" — acá se validan productos y cantidades
     const solicitud = Solicitud.crear({
       id_solicitud: crypto.randomUUID(),
       id_usuario: input.id_usuario,
@@ -41,17 +42,26 @@ export class CrearSolicitud {
       fecha_estimada: input.fecha_estimada,
     });
 
-    // 2. Persistir en estado "creada"
     await this.repo.guardar(solicitud);
 
-    // 3. Notificar al solicitante — best-effort, no debe romper el flujo
+    // Registrar la creación en el historial de auditoría (CU-08).
+    // Sin estado anterior: es el primer evento de la solicitud.
+    try {
+      await this.historial.registrar({
+        solicitudId: solicitud.id_solicitud,
+        estadoNuevo: solicitud.estado,
+        actorId: solicitud.id_usuario,
+      });
+    } catch {
+      // fire-and-forget
+    }
+
     try {
       await this.notificarCreada.ejecutar(solicitud.id_solicitud, solicitud.id_usuario);
     } catch {
-      // fire-and-forget: la notificación es best-effort
+      // fire-and-forget
     }
 
-    // 4. Delegar control de stock y asignación a CU-09
     const resultado = await this.controlarSolicitud.ejecutar(solicitud);
 
     return resultado;

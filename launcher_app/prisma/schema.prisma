@@ -23,6 +23,7 @@ model Usuario {
 
   // Trazabilidad y Notificaciones
   historiales_estado    Historial_Estado[]
+  historiales_stock     Historial_Stock[]   
   notificaciones        Notificacion[]
   administradorId_admin String?
   administradorUsuarios AdministradorUsuario[]
@@ -62,11 +63,12 @@ model Remitente {
   longitud_base   Float
   capacidad_pista String
 
-  usuario      Usuario       @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
-  stock_bases  Stock_Base[]
-  solicitudes  Solicitud[]
-  vuelos       Vuelo[]
-  lanzamientos Lanzamiento[]
+  usuario           Usuario           @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
+  stock_bases       Stock_Base[]
+  solicitudes       Solicitud[]
+  vuelos            Vuelo[]
+  lanzamientos      Lanzamiento[]
+  historiales_stock Historial_Stock[]   
 }
 
 // ==========================================
@@ -91,6 +93,7 @@ model Producto {
   tipo               Tipo                @relation(fields: [id_tipo], references: [id_tipo])
   stocks             Stock_Base[]
   detalles_solicitud Detalle_Solicitud[]
+  historiales_stock  Historial_Stock[]   
 }
 
 model Stock_Base {
@@ -101,6 +104,20 @@ model Stock_Base {
 
   remitente Remitente @relation(fields: [id_remitente], references: [id_remitente])
   producto  Producto  @relation(fields: [id_producto], references: [id_producto])
+}
+
+model Historial_Stock {
+  id_historial_stock String   @id @default(uuid())
+  id_remitente       String
+  id_producto        String
+  cantidad_anterior  Int
+  cantidad_nueva     Int
+  id_actor           String
+  fecha_hora         DateTime @default(now())
+
+  remitente Remitente @relation(fields: [id_remitente], references: [id_remitente])
+  producto  Producto  @relation(fields: [id_producto], references: [id_producto])
+  actor     Usuario   @relation(fields: [id_actor], references: [id_usuario])
 }
 
 // ==========================================
@@ -143,13 +160,14 @@ model Detalle_Solicitud {
 model Historial_Estado {
   id_historial    String   @id @default(uuid())
   fecha_hora      DateTime @default(now())
-  estado_anterior String
+  estado_anterior String?
   estado_nuevo    String
   id_solicitud    String
   id_usuario      String
 
   solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
   usuario   Usuario   @relation(fields: [id_usuario], references: [id_usuario])
+  
 }
 
 model Notificacion {

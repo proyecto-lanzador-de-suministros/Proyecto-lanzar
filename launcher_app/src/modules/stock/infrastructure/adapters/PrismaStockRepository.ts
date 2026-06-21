@@ -66,21 +66,27 @@ export class PrismaStockRepository implements ForManagingStock {
 
   /**
    * CU-17: Consulta el stock disponible de una base, incluyendo el nombre
-   * del producto para que la UI no tenga que resolver IDs por separado.
+   * del producto. Devuelve TODOS los productos del catálogo, no solo los
+   * que ya tienen una fila en Stock_Base: si la base nunca cargó stock de
+   * un producto, aparece con cantidad_disponible: 0 (CU-17, excepción Caso A).
    */
   async consultarPorBase(id_base: string): Promise<StockItem[]> {
-    const rows = await prisma.stock_Base.findMany({
-      where: { id_remitente: id_base },
-      include: { producto: true },
-      orderBy: { producto: { nombre: "asc" } },
-    });
+    const [productos, filasStock] = await Promise.all([
+      prisma.producto.findMany({ orderBy: { nombre: "asc" } }),
+      prisma.stock_Base.findMany({ where: { id_remitente: id_base } }),
+    ]);
 
-    return rows.map((row) => ({
-      productoId: row.id_producto,
-      nombreProducto: row.producto.nombre,
-      cantidad_disponible: row.cantidad_disponible,
-      cantidad_reservada: 0, // el schema actual no tiene cantidad_reservada
-    }));
+    const stockPorProducto = new Map(filasStock.map((fila) => [fila.id_producto, fila]));
+
+    return productos.map((producto) => {
+      const fila = stockPorProducto.get(producto.id_producto);
+      return {
+        productoId: producto.id_producto,
+        nombreProducto: producto.nombre,
+        cantidad_disponible: fila?.cantidad_disponible ?? 0,
+        cantidad_reservada: 0, // el schema actual no tiene cantidad_reservada
+      };
+    });
   }
 
   /**

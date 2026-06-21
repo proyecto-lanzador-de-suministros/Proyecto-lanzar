@@ -8,7 +8,7 @@ import {
   EstadoSolicitud,
 } from "../domain/entities/Solicitud";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
-
+import type { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 vi.mock("@/src/infrastructure/db/prisma.client", () => ({
   prisma: {
     solicitud: {
@@ -35,6 +35,7 @@ describe("CrearSolicitud", () => {
   let repo: PrismaSolicitudesRepository;
   let controlarSolicitudMock: { ejecutar: ReturnType<typeof vi.fn> };
   let notificarCreadaMock: { ejecutar: ReturnType<typeof vi.fn> };
+  let historialMock: { registrar: ReturnType<typeof vi.fn> };
   let useCase: CrearSolicitud;
 
   beforeEach(() => {
@@ -42,10 +43,12 @@ describe("CrearSolicitud", () => {
     repo = new PrismaSolicitudesRepository();
     controlarSolicitudMock = { ejecutar: vi.fn() };
     notificarCreadaMock = { ejecutar: vi.fn() };
+    historialMock = { registrar: vi.fn() };
     useCase = new CrearSolicitud(
       repo,
       controlarSolicitudMock as unknown as ControlarSolicitud,
       notificarCreadaMock as unknown as NotificarSolicitudCreada,
+      historialMock as unknown as ForManagingHistorial,
     );
   });
 

@@ -9,10 +9,11 @@ import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { Solicitud } from "../entities/Solicitud";
 import { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
 import { NotificarCancelacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarCancelacion.usecase";
+import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 
 export interface CancelarSolicitudInput {
   id_solicitud: string;
-  id_usuario: string;     // quien cancela (para verificar pertenencia)
+  id_usuario: string;
   rol: "solicitante" | "admin";
   motivo?: string;
 }
@@ -22,25 +23,24 @@ export class CancelarSolicitud {
     private readonly repo: ForManagingSolicitudes,
     private readonly stock: ForManagingStock,
     private readonly notificarCancelacion: NotificarCancelacion,
-) {}
+    private readonly historial: ForManagingHistorial,
+  ) {}
 
   async ejecutar(input: CancelarSolicitudInput): Promise<Solicitud> {
-    // 1. Buscar la solicitud
     const solicitud = await this.repo.buscarPorId(input.id_solicitud);
 
     if (!solicitud) {
       throw Errores.solicitudNoEncontrada(input.id_solicitud);
     }
 
-    // 2. Verificar pertenencia si es solicitante
     if (input.rol === "solicitante" && solicitud.id_usuario !== input.id_usuario) {
       throw Errores.permisoDenegado("solicitante", input.rol);
     }
 
-    // 3. La entidad valida que el estado permita cancelación
+    const estadoAnterior = solicitud.estado;
+
     solicitud.cancelar(input.motivo);
 
-    // 4. Liberar stock si había base asignada
     if (solicitud.id_base) {
       await this.stock.liberarReserva({
         id_base: solicitud.id_base,
@@ -48,14 +48,24 @@ export class CancelarSolicitud {
       });
     }
 
-    // 5. Persistir el nuevo estado
     await this.repo.actualizarEstado(
       solicitud.id_solicitud,
       solicitud.estado,
       { motivoCancelacion: input.motivo },
     );
 
-    // 6. Notificar al solicitante — best-effort
+    try {
+      await this.historial.registrar({
+        solicitudId: solicitud.id_solicitud,
+        estadoAnterior,
+        estadoNuevo: solicitud.estado,
+        actorId: input.id_usuario,
+        motivo: input.motivo,
+      });
+    } catch {
+      // fire-and-forget
+    }
+
     try {
       await this.notificarCancelacion.ejecutar(
         solicitud.id_solicitud,

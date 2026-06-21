@@ -1,8 +1,12 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { consultarStockUseCase, actualizarStockUseCase, listarCatalogoProductosUseCase } from "../container";
-
+import {
+  consultarStockUseCase,
+  actualizarStockUseCase,
+  listarCatalogoProductosUseCase,
+  listarHistorialStockUseCase,
+} from "../container";
 /**
  * Consulta el stock de una base específica (CU-17).
  * Admin puede consultar cualquier base; remitente solo la propia
@@ -65,8 +69,45 @@ export async function actualizarStockAction(
       productoId,
       modo,
       valor,
+      actorId: userId,
     });
     return { success: true, data: resultado };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * CU-18 (postcondición): historial de quién cambió el stock, cuándo y
+ * con qué valores. Mismas reglas de autorización que consultar/actualizar.
+ */
+export async function listarHistorialStockAction(id_base: string) {
+  const { userId, sessionClaims } = await auth();
+  const rol = sessionClaims?.metadata?.rol;
+
+  if (!userId) {
+    return { success: false, error: "No autenticado." };
+  }
+  if (rol === "remitente" && userId !== id_base) {
+    return { success: false, error: "Solo podés consultar el historial de tu propia base." };
+  }
+  if (rol !== "admin" && rol !== "remitente") {
+    return { success: false, error: "No autorizado." };
+  }
+
+  try {
+    const data = await listarHistorialStockUseCase.ejecutar(id_base);
+    return {
+      success: true,
+      data: data.map((h) => ({
+        id: h.id,
+        nombreProducto: h.nombreProducto,
+        cantidadAnterior: h.cantidadAnterior,
+        cantidadNueva: h.cantidadNueva,
+        actorNombre: h.actorNombre,
+        fechaHora: h.fechaHora.toISOString(),
+      })),
+    };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

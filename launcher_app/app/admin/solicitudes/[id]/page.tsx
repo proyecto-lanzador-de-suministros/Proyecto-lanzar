@@ -9,7 +9,7 @@ import { ETIQUETAS_ESTADO, getPrioridadColor, getStatusColor } from "@/app/compo
 interface HistorialEntryJSON {
   id: string;
   actorId: string;
-  estadoAnterior: EstadoSolicitud;
+  estadoAnterior?: EstadoSolicitud;
   estadoNuevo: EstadoSolicitud;
   fechaHora: string;
 }
@@ -176,12 +176,20 @@ export default function AdminDetalleSolicitudPage() {
                     <div key={h.id} className="relative">
                       <span className="absolute -left-[31px] top-1 bg-white border-2 border-[#1565C0] w-3.5 h-3.5 rounded-full" />
                       <div className="flex items-center gap-2 text-sm flex-wrap">
-                        <span className="font-semibold text-[#1A1A2E]">
-                          {ETIQUETAS_ESTADO[h.estadoAnterior]}
-                        </span>
-                        <svg className="w-3.5 h-3.5 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
+                        {h.estadoAnterior ? (
+                          <>
+                            <span className="font-semibold text-[#1A1A2E]">
+                              {ETIQUETAS_ESTADO[h.estadoAnterior]}
+                            </span>
+                            <svg className="w-3.5 h-3.5 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                          </>
+                        ) : (
+                          <span className="text-[10px] font-bold uppercase text-[#4CAF50] bg-green-50 border border-green-200 rounded-full px-2 py-0.5">
+                            Creación
+                          </span>
+                        )}
                         <span className="font-semibold text-[#1A1A2E]">
                           {ETIQUETAS_ESTADO[h.estadoNuevo]}
                         </span>

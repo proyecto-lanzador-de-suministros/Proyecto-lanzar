@@ -30,7 +30,7 @@ export class PrismaHistorialRepository implements ForManagingHistorial {
       data: {
         id_solicitud: params.solicitudId,
         id_usuario: params.actorId,
-        estado_anterior: params.estadoAnterior,
+        estado_anterior: params.estadoAnterior ?? null,
         estado_nuevo: params.estadoNuevo,
       },
     });
@@ -46,7 +46,7 @@ export class PrismaHistorialRepository implements ForManagingHistorial {
       id: row.id_historial,
       solicitudId: row.id_solicitud,
       actorId: row.id_usuario,
-      estadoAnterior: row.estado_anterior as EstadoSolicitud,
+      estadoAnterior: row.estado_anterior ? (row.estado_anterior as EstadoSolicitud) : undefined,
       estadoNuevo: row.estado_nuevo as EstadoSolicitud,
       fechaHora: row.fecha_hora,
     }));
@@ -72,9 +72,7 @@ export class PrismaHistorialRepository implements ForManagingHistorial {
           estado_anterior: true,
           estado_nuevo: true,
           fecha_hora: true,
-          solicitud: {
-            select: { latitud_destino: true, longitud_destino: true },
-          },
+          solicitud: { select: { latitud_destino: true, longitud_destino: true } },
           usuario: {
             select: {
               remitente: { select: { nombre_base: true } },
@@ -92,22 +90,15 @@ export class PrismaHistorialRepository implements ForManagingHistorial {
       solicitudId: e.id_solicitud,
       actorId: e.id_usuario,
       actorNombre: resolverNombreActor(e.usuario as ActorRelaciones),
-      estadoAnterior: e.estado_anterior as EstadoSolicitud,
+      estadoAnterior: e.estado_anterior ? (e.estado_anterior as EstadoSolicitud) : undefined,
       estadoNuevo: e.estado_nuevo as EstadoSolicitud,
       fechaHora: e.fecha_hora,
-      destino: {
-        lat: e.solicitud.latitud_destino,
-        lon: e.solicitud.longitud_destino,
-      },
+      destino: { lat: e.solicitud.latitud_destino, lon: e.solicitud.longitud_destino },
     }));
 
     return {
       data,
-      paginacion: {
-        pagina,
-        totalPaginas: Math.max(1, Math.ceil(total / pageSize)),
-        total,
-      },
+      paginacion: { pagina, totalPaginas: Math.max(1, Math.ceil(total / pageSize)), total },
     };
   }
 }
