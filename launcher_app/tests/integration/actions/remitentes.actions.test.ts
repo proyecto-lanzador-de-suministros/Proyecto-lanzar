@@ -55,10 +55,10 @@ describe("Server Actions - Remitentes", () => {
         userId: "test-admin-1",
         sessionClaims: { metadata: { rol: "admin" } },
       });
-      const idBase = await seedBaseRemitente(prisma);
+      const { idBase, idRemitente } = await seedBaseRemitente(prisma);
 
       const { actualizarBaseRemitenteAction } = await import("@/src/actions/remitentes.actions");
-      const result = await actualizarBaseRemitenteAction(idBase, {
+      const result = await actualizarBaseRemitenteAction(idRemitente, {
         nombre: "Base Actualizada",
         latitud: -34.6037,
         longitud: -58.3816,

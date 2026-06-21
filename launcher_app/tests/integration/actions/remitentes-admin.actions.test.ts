@@ -37,6 +37,7 @@ describe("Server Actions - Admin Remitentes (Crear)", () => {
         capacidadPista: "Grande",
       });
 
+      if (!result.success) console.log("ERROR:", result.error);
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
       expect(result.data!.id).toBeDefined();

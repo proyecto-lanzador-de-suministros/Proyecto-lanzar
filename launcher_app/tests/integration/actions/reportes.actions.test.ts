@@ -75,7 +75,7 @@ describe("Server Actions - Reportes", () => {
         userId: "test-admin-1",
         sessionClaims: { metadata: { rol: "admin" } },
       });
-      const idBase = await seedBaseRemitente(prisma);
+      const { idBase } = await seedBaseRemitente(prisma);
       await seedProductos(prisma, idBase);
 
       const { obtenerReporteStockAction } = await import("@/src/actions/reportes.actions");

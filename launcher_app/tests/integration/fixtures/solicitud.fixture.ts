@@ -68,7 +68,7 @@ export async function seedBaseRemitente(prisma: PrismaClient, overrides?: {
     },
   });
 
-  return baseId;
+  return { idBase: baseId, idRemitente: userId };
 }
 
 export async function seedAdmin(prisma: PrismaClient) {
