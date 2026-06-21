@@ -12,9 +12,9 @@ datasource db {
 // ==========================================
 
 model Usuario {
-  id_usuario String  @id @default(uuid()) // Será el ID provisto por Clerk (ADR-006)
-  contrasena String? // Opcional ya que la autenticación se delega a Clerk
-  estado_cuenta String @default("PENDIENTE") // PENDIENTE, APROBADA, RECHAZADA
+  id_usuario    String  @id @default(uuid()) // Será el ID provisto por Clerk (ADR-006)
+  contrasena    String? // Opcional ya que la autenticación se delega a Clerk
+  estado_cuenta String  @default("PENDIENTE") // PENDIENTE, APROBADA, RECHAZADA
 
   // Relaciones de herencia (1 a 1)
   solicitante   Solicitante?
@@ -23,7 +23,7 @@ model Usuario {
 
   // Trazabilidad y Notificaciones
   historiales_estado    Historial_Estado[]
-  historiales_stock     Historial_Stock[]   
+  historiales_stock     Historial_Stock[]
   notificaciones        Notificacion[]
   administradorId_admin String?
 }
@@ -57,7 +57,7 @@ model Remitente {
   usuario           Usuario           @relation(fields: [id_remitente], references: [id_usuario], onDelete: Cascade)
   stock_bases       Stock_Base[]
   solicitudes       Solicitud[]
-  historiales_stock Historial_Stock[]   
+  historiales_stock Historial_Stock[]
 }
 
 // ==========================================
@@ -69,11 +69,11 @@ model Producto {
   nombre        String
   descripcion   String?
   peso_unitario Float
-  categoria     String?  // reemplaza relación con Tipo
+  categoria     String? // reemplaza relación con Tipo
 
   stocks             Stock_Base[]
   detalles_solicitud Detalle_Solicitud[]
-  historiales_stock  Historial_Stock[]   
+  historiales_stock  Historial_Stock[]
 }
 
 model Stock_Base {
@@ -105,17 +105,17 @@ model Historial_Stock {
 // ==========================================
 
 model Solicitud {
-  id_solicitud     String   @id @default(uuid())
-  fecha_creacion   DateTime @default(now())
-  estado_actual    String
-  prioridad        String
-  latitud_destino  Float
-  longitud_destino Float
-  id_solicitante   String
-  id_admin         String? // Nullable porque se asigna al aprobar (CU-09)
-  id_remitente     String? // Nullable porque se asigna al aprobar (CU-09)
+  id_solicitud       String   @id @default(uuid())
+  fecha_creacion     DateTime @default(now())
+  estado_actual      String
+  prioridad          String
+  latitud_destino    Float
+  longitud_destino   Float
+  id_solicitante     String
+  id_admin           String? // Nullable porque se asigna al aprobar (CU-09)
+  id_remitente       String? // Nullable porque se asigna al aprobar (CU-09)
   motivo_cancelacion String?
-  motivo_anulacion   String? 
+  motivo_anulacion   String?
 
   solicitante Solicitante    @relation(fields: [id_solicitante], references: [id_solicitante])
   admin       Administrador? @relation(fields: [id_admin], references: [id_admin])
@@ -147,7 +147,6 @@ model Historial_Estado {
 
   solicitud Solicitud @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: Cascade)
   usuario   Usuario   @relation(fields: [id_usuario], references: [id_usuario])
-  
 }
 
 model Notificacion {
@@ -179,29 +178,29 @@ model Base {
 }
 
 model Envio {
-  id_envio            String   @id @default(uuid())
-  id_solicitud        String
-  id_base             String   // FK a Base (consistente con diagrama ER)
-  
+  id_envio     String @id @default(uuid())
+  id_solicitud String
+  id_base      String // FK a Base (consistente con diagrama ER)
+
   // Datos de vuelo (absorbidos de Vuelo)
-  matricula_avion     String?
-  piloto              String?
-  
+  matricula_avion String?
+  piloto          String?
+
   // Datos de lanzamiento (absorbidos de Lanzamiento)
-  latitud_calculada   Float?
-  longitud_calculada  Float?
-  altitud             Float?
-  datos_clima         Json?
-  
+  latitud_calculada  Float?
+  longitud_calculada Float?
+  altitud            Float?
+  datos_clima        Json?
+
   // Campos originales del ER
-  estado_envio        String   @default("programado")
-  codigo_seguimiento  String?
-  fecha_hora          DateTime?
-  fecha_salida        DateTime?
-  entrega_real        DateTime?
-  
-  solicitud   Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
-  base        Base         @relation(fields: [id_base], references: [id_base])
+  estado_envio       String    @default("programado")
+  codigo_seguimiento String?
+  fecha_hora         DateTime?
+  fecha_salida       DateTime?
+  entrega_real       DateTime?
+
+  solicitud    Solicitud    @relation(fields: [id_solicitud], references: [id_solicitud])
+  base         Base         @relation(fields: [id_base], references: [id_base])
   contenedores Contenedor[]
 }
 
