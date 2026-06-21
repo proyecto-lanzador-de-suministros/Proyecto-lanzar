@@ -8,6 +8,8 @@
 erDiagram
     Usuario {
         string id_usuario PK
+        string nombre "Opcional, vía Clerk en prod"
+        string email "Opcional"
         string estado_cuenta "PENDIENTE | APROBADA | RECHAZADA"
     }
 
@@ -26,10 +28,7 @@ erDiagram
 
     Remitente {
         string id_remitente PK, FK
-        string nombre_base
-        float latitud_base
-        float longitud_base
-        string capacidad_pista
+        string id_base FK
     }
 
     Base {
@@ -38,13 +37,14 @@ erDiagram
         float latitud
         float longitud
         string direccion
+        string capacidad_pista
     }
 
     Solicitud {
         string id_solicitud PK
         string id_solicitante FK
-        string id_admin FK
-        string id_remitente FK
+        string id_admin FK "nullable"
+        string id_base FK "nullable, asignada al aprobar"
         datetime fecha_creacion
         string estado_actual
         string prioridad
@@ -83,7 +83,7 @@ erDiagram
 
     StockBase {
         string id_stock PK
-        string id_remitente FK
+        string id_base FK
         string id_producto FK
         int cantidad_disponible
         int cantidad_reservada
@@ -114,7 +114,7 @@ erDiagram
 
     HistorialStock {
         string id_historial_stock PK
-        string id_remitente FK
+        string id_base FK
         string id_producto FK
         string id_actor FK
         int cantidad_anterior
@@ -124,7 +124,7 @@ erDiagram
 
     Notificacion {
         string id_notificacion PK
-        string id_solicitud FK
+        string id_solicitud FK "nullable"
         string id_usuario_destino FK
         string mensaje
         boolean leida
@@ -139,16 +139,16 @@ erDiagram
     Usuario ||--o{ HistorialStock : "Actor"
     
     Solicitante ||--o{ Solicitud : "Realiza"
-    Remitente ||--o{ StockBase : "Gestiona stock"
-    Remitente ||--o{ HistorialStock : "Registra cambios"
-    Remitente ||--o{ Solicitud : "Atiende"
+    Remitente ||--o{ Base : "opera en"
     
     Administrador ||--o{ Solicitud : "Gestiona"
 
-    Solicitud ||--o{ Envio : "Deriva En"
-    Base ||--o{ StockBase : "Se almacena en" "TODO: migrar"
+    Base ||--o{ StockBase : "almacena"
     Base ||--o{ Envio : "Posee"
+    Base ||--o{ Solicitud : "atiende"
+    Base ||--o{ HistorialStock : "audita stock"
     
+    Solicitud ||--o{ Envio : "Deriva En"
     Solicitud ||--o{ DetalleSolicitud : "Compone"
     Solicitud ||--o{ HistorialEstado : "Registra Cambios"
     Solicitud ||--o{ Notificacion : "Genera Aviso"
