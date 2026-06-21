@@ -420,7 +420,7 @@ export async function consultarDetalleSolicitudAdminAction(solicitudId: string) 
       data: {
         id: solicitud.id_solicitud,
         solicitanteId: solicitud.id_usuario,
-        remitenteId: solicitud.id_base,
+        baseId: solicitud.id_base,
         ubicacion_destino: solicitud.ubicacion_destino,
         prioridad: solicitud.prioridad,
         productos: solicitud.productos,

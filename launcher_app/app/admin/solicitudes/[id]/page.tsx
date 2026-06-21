@@ -17,7 +17,7 @@ interface HistorialEntryJSON {
 interface DetalleSolicitudJSON {
   id: string;
   solicitanteId: string;
-  remitenteId?: string;
+  baseId?: string;
   ubicacion_destino: { type: "Point"; coordinates: [number, number] };
   prioridad: PrioridadSolicitud;
   productos: { productoId: string; cantidad: number }[];
@@ -112,9 +112,9 @@ export default function AdminDetalleSolicitudPage() {
                   <p className="font-mono text-[#1A1A2E]">{detalle.solicitanteId.substring(0, 16)}…</p>
                 </div>
                 <div>
-                  <p className="text-[#6B7280] text-xs mb-1">Remitente asignado</p>
+                  <p className="text-[#6B7280] text-xs mb-1">Base asignada</p>
                   <p className="font-mono text-[#1A1A2E]">
-                    {detalle.remitenteId ? `${detalle.remitenteId.substring(0, 16)}…` : "Sin asignar"}
+                    {detalle.baseId ? `${detalle.baseId.substring(0, 16)}…` : "Sin asignar"}
                   </p>
                 </div>
                 <div>

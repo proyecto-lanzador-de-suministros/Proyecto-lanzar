@@ -35,7 +35,7 @@ export default function ModalGestionSolicitud({
   const [motivoCancelacion, setMotivoCancelacion] = useState("");
 
   const puedeAsignarRemitente =
-    !solicitud.remitenteId &&
+    !solicitud.baseId &&
     (solicitud.estado === EstadoSolicitud.Creada || solicitud.estado === EstadoSolicitud.Asignada);
 
   const puedeAnular =

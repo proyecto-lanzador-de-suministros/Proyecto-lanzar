@@ -43,15 +43,21 @@ export async function aprobarUsuario(userId: string, rol: string) {
     });
 
     if (rol === "remitente") {
+      const base = await tx.base.create({
+        data: {
+          nombre: `Base Logística ${fullName}`,
+          latitud: 0,
+          longitud: 0,
+          direccion: "",
+          capacidad_pista: "pendiente",
+        },
+      });
       await tx.remitente.upsert({
         where: { id_remitente: userId },
         update: {},
         create: {
           id_remitente: userId,
-          nombre_base: `Base Logística ${fullName}`,
-          latitud_base: 0,
-          longitud_base: 0,
-          capacidad_pista: "pendiente",
+          id_base: base.id_base,
         },
       });
     } else if (rol === "solicitante") {
@@ -112,9 +118,9 @@ export async function obtenerDetalleCuentaAction(usuarioId: string, rolNormaliza
     } else if (rolNormalizado === "remitente") {
       const remitente = await prisma.remitente.findUnique({
         where: { id_remitente: usuarioId },
-        select: { nombre_base: true, capacidad_pista: true, latitud_base: true, longitud_base: true },
+        select: { base: { select: { nombre: true, latitud: true, longitud: true, capacidad_pista: true } } },
       });
-      datos = remitente ?? {};
+      datos = remitente?.base ?? {};
     }
 
     return { success: true, data: { email, ...datos } };
@@ -268,13 +274,19 @@ export async function crearUsuarioAction(datos: {
       });
 
       if (datos.rol === "remitente") {
+        const base = await tx.base.create({
+          data: {
+            nombre: `Base Logística ${datos.nombre}`,
+            latitud: 0,
+            longitud: 0,
+            direccion: "",
+            capacidad_pista: "pendiente",
+          },
+        });
         await tx.remitente.create({
           data: {
             id_remitente: userId,
-            nombre_base: `Base Logística ${datos.nombre}`,
-            latitud_base: 0,
-            longitud_base: 0,
-            capacidad_pista: "pendiente",
+            id_base: base.id_base,
           },
         });
       } else if (datos.rol === "solicitante") {

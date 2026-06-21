@@ -19,7 +19,7 @@ export interface SolicitudJSON {
   prioridad: PrioridadSolicitud;
   productos: ProductoSolicitado[];
   estado: EstadoSolicitud;
-  remitenteId?: string;
+  baseId?: string;
   motivoCancelacion?: string;
   motivoAnulacion?: string;
   fechaCreacion: string;

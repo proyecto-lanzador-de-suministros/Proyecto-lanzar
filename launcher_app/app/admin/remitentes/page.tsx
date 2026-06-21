@@ -9,9 +9,10 @@ import CoverageMap from "@/app/components/map/CoverageMap";
 
 interface RemitenteBaseJSON {
   id_remitente: string;
-  nombre_base: string;
-  latitud_base: number;
-  longitud_base: number;
+  id_base: string;
+  nombre: string;
+  latitud: number;
+  longitud: number;
   capacidad_pista: string;
   estado_cuenta: string;
   configuracionPendiente: boolean;
@@ -50,10 +51,10 @@ export default function AdminRemitentesPage() {
 
   const abrirEdicion = (r: RemitenteBaseJSON) => {
     setEditando(r);
-    setFormNombre(r.nombre_base);
+    setFormNombre(r.nombre);
     setFormCapacidad(r.capacidad_pista);
-    setFormLat(String(r.latitud_base));
-    setFormLon(String(r.longitud_base));
+    setFormLat(String(r.latitud));
+    setFormLon(String(r.longitud));
     setErrorModal(null);
   };
 
@@ -83,10 +84,10 @@ export default function AdminRemitentesPage() {
     setErrorModal(null);
 
     const res = await actualizarBaseRemitenteAction(editando.id_remitente, {
-      nombre_base: formNombre.trim(),
+      nombre: formNombre.trim(),
       capacidad_pista: formCapacidad,
-      latitud_base: lat,
-      longitud_base: lon,
+      latitud: lat,
+      longitud: lon,
     });
 
     if (res.success) {
@@ -105,7 +106,6 @@ export default function AdminRemitentesPage() {
 
   return (
     <div className="flex-1 bg-[#F4F6F9] overflow-y-auto">
-      {/* Header */}
       <div className="bg-white border-b border-gray-200 px-8 py-5">
         <h1 className="text-2xl font-bold text-[#1A1A2E]">Gestión de remitentes</h1>
         <p className="text-sm text-[#6B7280] mt-0.5">
@@ -157,7 +157,7 @@ export default function AdminRemitentesPage() {
                   {remitentes.map((r) => (
                     <tr key={r.id_remitente} className="hover:bg-[#F8FAFC] transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-medium text-[#1A1A2E]">{r.nombre_base}</p>
+                        <p className="font-medium text-[#1A1A2E]">{r.nombre}</p>
                         <p className="text-[11px] text-[#6B7280] font-mono mt-0.5">
                           #{r.id_remitente.substring(0, 8)}
                         </p>
@@ -178,7 +178,7 @@ export default function AdminRemitentesPage() {
                           </span>
                         ) : (
                           <span className="font-mono text-xs text-[#1A1A2E]">
-                            {r.latitud_base.toFixed(4)}, {r.longitud_base.toFixed(4)}
+                            {r.latitud.toFixed(4)}, {r.longitud.toFixed(4)}
                           </span>
                         )}
                       </td>
@@ -206,7 +206,6 @@ export default function AdminRemitentesPage() {
         </div>
       </div>
 
-      {/* Modal de edición */}
       {editando && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
