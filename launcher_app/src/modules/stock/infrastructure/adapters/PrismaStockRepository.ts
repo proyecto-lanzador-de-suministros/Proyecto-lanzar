@@ -84,7 +84,7 @@ export class PrismaStockRepository implements ForManagingStock {
         productoId: producto.id_producto,
         nombreProducto: producto.nombre,
         cantidad_disponible: fila?.cantidad_disponible ?? 0,
-        cantidad_reservada: 0, // el schema actual no tiene cantidad_reservada
+        cantidad_reservada: fila?.cantidad_reservada ?? 0,
       };
     });
   }
