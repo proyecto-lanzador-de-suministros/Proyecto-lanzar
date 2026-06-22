@@ -66,7 +66,6 @@ src/modules/<modulo>/
 | Endpoint | Método | Documentado | Implementado | ¿Dónde? | Estado |
 |----------|--------|------------|--------------|---------|--------|
 | `/usuarios` | GET | ✅ | ✅ | `app/api/usuarios/route.ts` | ✅ Implementado |
-| `/usuarios/{id}/rol` | PATCH | ✅ | ❌ | Solo Server Action | ❌ No implementado |
 | `/solicitudes` | POST | ✅ | ✅ | `app/api/solicitudes/route.ts` | ✅ |
 | `/solicitudes` | GET | ✅ | ✅ | `app/api/solicitudes/route.ts` | ✅ |
 | `/solicitudes/{id}` | GET | ✅ | ✅ | `app/api/solicitudes/[id]/route.ts` | ✅ |
@@ -78,7 +77,7 @@ src/modules/<modulo>/
 | `/vuelos` | GET | ✅ | ❌ | No existe | ❌ No implementado |
 | `/vuelos/{id}/contenedores` | POST | ✅ | ❌ | No existe | ❌ No implementado |
 
-**Totales:** 12 documentados → 9 implementados como REST (75%) + 1 implementado como Server Action (PATCH /usuarios/{id}/rol). Adicionalmente existen 4 endpoints no documentados en OpenAPI: `/envios`, `/envios/{id}/contenedores`, `/admin/solicitudes`, `/auth/login`.
+**Totales:** 11 documentados → 9 implementados como REST (82%). Adicionalmente existen 4 endpoints no documentados en OpenAPI: `/envios`, `/envios/{id}/contenedores`, `/admin/solicitudes`, `/auth/login`.
 
 ### 2.2 Server Actions (no documentadas en OpenAPI)
 

@@ -39,33 +39,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/Usuario'
 
-  /usuarios/{id}/rol:
-    patch:
-      summary: Modificar el rol de un usuario (Solo Admin)
-      tags: [Usuarios]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                rol:
-                  type: string
-                  enum: [solicitante, remitente, admin]
-      responses:
-        '200':
-          description: Rol actualizado
-        '403':
-          description: No autorizado
-
   # ==========================================
   # MÓDULO: SOLICITUDES E HISTORIAL
   # ==========================================

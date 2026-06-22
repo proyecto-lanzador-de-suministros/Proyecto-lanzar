@@ -156,7 +156,6 @@ El archivo `api.yaml` (OpenAPI 3.0.3) define el **contrato REST oficial** del si
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
 | `/usuarios` | GET | Listar usuarios |
-| `/usuarios/{id}/rol` | PATCH | Modificar rol |
 | `/solicitudes` | POST | Crear solicitud |
 | `/solicitudes` | GET | Listar solicitudes (filtrables) |
 | `/solicitudes/{id}` | GET | Detalle de solicitud |
@@ -188,7 +187,7 @@ Faltan implementar como REST:
 - `GET /bases/{id}/stock`
 - `PUT /bases/{id}/stock`
 - Toda la sección de `vuelos` y `contenedores`
-- `GET /usuarios` y `PATCH /usuarios/{id}/rol`
+- `GET /usuarios`
 
 ### Lo que está implementado como Server Actions
 
