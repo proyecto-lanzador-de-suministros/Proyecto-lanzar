@@ -24,8 +24,6 @@ export default function SolicitanteLayout({
     }
   }, [isLoaded, user, router]);
 
-  if (!isLoaded) return null;
-
   const fetchNotifCount = () => {
     obtenerNotificacionesAction().then((res) => {
       if (res.success && res.data) {
@@ -41,6 +39,8 @@ export default function SolicitanteLayout({
     const interval = setInterval(fetchNotifCount, 15000);
     return () => clearInterval(interval);
   }, [pathname]);
+
+  if (!isLoaded) return null;
 
   return (
     <DashboardShell

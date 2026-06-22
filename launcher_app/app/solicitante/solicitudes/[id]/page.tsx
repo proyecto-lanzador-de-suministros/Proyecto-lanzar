@@ -102,7 +102,7 @@ export default function SolicitanteSolicitudPage() {
   };
 
   useEffect(() => {
-    if (solicitudId) fetchData();
+    Promise.resolve().then(() => { if (solicitudId) fetchData(); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [solicitudId]);
 

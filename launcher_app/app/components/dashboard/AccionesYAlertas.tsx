@@ -2,6 +2,7 @@
 
 // Acciones rápidas (links a otras secciones) y alertas derivadas del estado actual de las solicitudes.
 import React from "react";
+import Link from "next/link";
 
 interface AccionesYAlertasProps {
   pendientes: number;
@@ -52,14 +53,14 @@ export default function AccionesYAlertas({
         </h2>
         <div className="divide-y divide-gray-100">
           {[
-            { label: "Gestionar solicitudes", href: "#solicitudes" },
-            { label: "Enviar notificación", href: "#notificaciones" },
-            { label: "Generar reporte", href: "#reportes" },
+            { label: "Gestionar solicitudes", href: "/admin/dashboard#solicitudes" },
+            { label: "Enviar notificación", href: "/admin/notificaciones" },
+            { label: "Generar reporte", href: "/admin/reportes" },
           ].map((a) => (
-            <a
+            <Link
               key={a.label}
               href={a.href}
-              className="flex items-center justify-between py-3 text-sm text-[#1A1A2E] hover:text-[#1565C0] transition-colors group"
+              className="flex items-center justify-between py-3 text-sm text-[#1A1A2E] hover:text-[#1565C0] transition-colors group no-underline"
             >
               {a.label}
               <svg
@@ -70,7 +71,7 @@ export default function AccionesYAlertas({
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

@@ -64,6 +64,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
   }
 
   async listarTodas(estadoFiltro?: string): Promise<Solicitud[]> {
+    //console.log("listar todas:");
     const rows = await prisma.solicitud.findMany({
       where: estadoFiltro ? { estado: estadoFiltro } : undefined,
       include: { detalles: true },
@@ -116,8 +117,9 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
   }
 
   private mapToDomain(row: SolicitudConDetalles): Solicitud {
+    //console.log(row);
     const ubicacion = row.ubicacion_destino
-      ? JSON.parse(row.ubicacion_destino) as { lat: number; lon: number }
+      ? (JSON.parse(row.ubicacion_destino) as { lat: number; lon: number })
       : { lat: 0, lon: 0 };
     return Solicitud.reconstruir({
       id_solicitud: row.id_solicitud,

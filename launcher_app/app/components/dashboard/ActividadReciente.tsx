@@ -2,6 +2,7 @@
 
 // Panel de actividad reciente derivada de las solicitudes (creación, entrega, cancelación).
 import React from "react";
+import Link from "next/link";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { ETIQUETAS_ESTADO } from "./constants";
 import { ActividadItem, SolicitudJSON } from "./types";
@@ -110,12 +111,15 @@ export default function ActividadReciente({ solicitudes, loading }: ActividadRec
               </div>
             </div>
           ))}
-          <button className="text-xs text-[#1565C0] font-semibold flex items-center gap-1 mt-2 hover:underline">
+          <Link
+            href="/admin/dashboard#solicitudes"
+            className="text-xs text-[#1565C0] font-semibold flex items-center gap-1 mt-2 hover:underline"
+          >
             Ver todas las actividades
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-          </button>
+          </Link>
         </div>
       )}
     </div>
