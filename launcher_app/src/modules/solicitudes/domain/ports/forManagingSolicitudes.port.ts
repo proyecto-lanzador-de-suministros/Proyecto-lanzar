@@ -15,7 +15,7 @@ export interface ForManagingSolicitudes {
     extras?: {
       motivoCancelacion?: string;
       motivoAnulacion?: string;
-      id_remitente?: string;
+      id_base?: string;
       fecha_entrega?: Date;
       cantidad_cajas?: number;
     }

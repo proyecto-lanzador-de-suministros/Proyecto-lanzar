@@ -1,19 +1,39 @@
-// app/components/dashboard/StockCard.tsx
-import ProgressBar from "@/app/components/ui/ProgressBar";
+"use client";
 
-// TODO: reemplazar por datos reales
-const STOCK_MOCK = {
-  disponibles: 23,
-  total: 50,
-  ultimaReposicion: "10/05/2024",
-};
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import ProgressBar from "@/app/components/ui/ProgressBar";
+import { consultarStockBaseAction } from "@/src/actions/stock.actions";
+import { obtenerMiBaseAction } from "@/src/actions/remitente-acciones.actions";
 
 export default function StockCard() {
-  const porcentaje = Math.round(
-    (STOCK_MOCK.disponibles / STOCK_MOCK.total) * 100,
-  );
-  const variant =
-    porcentaje > 50 ? "success" : porcentaje > 20 ? "warning" : "danger";
+  const router = useRouter();
+  const [disponibles, setDisponibles] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const baseRes = await obtenerMiBaseAction();
+      if (!baseRes.success || !baseRes.data?.id_base) return;
+      const stockRes = await consultarStockBaseAction(baseRes.data.id_base);
+      if (stockRes.success && stockRes.data) {
+        const totalStock = stockRes.data.reduce((acc: number, item: any) => acc + item.cantidad_disponible + item.cantidad_reservada, 0);
+        setDisponibles(stockRes.data.reduce((acc: number, item: any) => acc + item.cantidad_disponible, 0));
+        setTotal(totalStock || disponibles);
+      }
+      setLoaded(true);
+    })();
+  }, []);
+
+  if (!loaded) {
+    return (
+      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 animate-pulse h-40" />
+    );
+  }
+
+  const porcentaje = total > 0 ? Math.round((disponibles / total) * 100) : 0;
+  const variant = porcentaje > 50 ? "success" : porcentaje > 20 ? "warning" : "danger";
 
   return (
     <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
@@ -46,7 +66,7 @@ export default function StockCard() {
         Paracaídas disponibles
       </p>
       <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3">
-        {STOCK_MOCK.disponibles}{" "}
+        {disponibles}{" "}
         <span className="text-sm font-normal text-slate-400 dark:text-slate-500">
           unidades
         </span>
@@ -54,11 +74,10 @@ export default function StockCard() {
 
       <ProgressBar value={porcentaje} variant={variant} className="mb-4.5" />
 
-      <p className="text-xs text-slate-400 dark:text-slate-500">
-        Última reposición: {STOCK_MOCK.ultimaReposicion}
-      </p>
-
-      <button className="mt-1 w-full flex items-center justify-center gap-2 rounded-lg border border-[var(--color-interactive)] text-[var(--color-interactive)] text-sm font-medium py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+      <button
+        onClick={() => router.push("/remitente/stock")}
+        className="mt-1 w-full flex items-center justify-center gap-2 rounded-lg border border-[var(--color-interactive)] text-[var(--color-interactive)] text-sm font-medium py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"

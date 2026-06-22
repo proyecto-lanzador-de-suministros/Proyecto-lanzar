@@ -19,6 +19,7 @@ import { RegistrarLanzadaUseCase } from "@/src/modules/solicitudes/domain/use-ca
 import { ConfirmarRecibidaUseCase } from "@/src/modules/solicitudes/domain/use-cases/ConfirmarRecibida.usecase";
 import { CancelarSolicitud } from "@/src/modules/solicitudes/domain/use-cases/CancelarSolicitud.usecase";
 import { AnularSolicitudUseCase } from "@/src/modules/solicitudes/domain/use-cases/AnularSolicitud.usecase";
+import { Trayectoria } from "@/src/modules/trayectoria/domain/entities/Trayectoria";
 
 // =============================================================================
 // Helpers
@@ -60,6 +61,36 @@ function createMocks() {
       liberarReserva: vi.fn(),
       verificarYReservar: vi.fn(),
     } satisfies Partial<ForManagingStock> as unknown as ForManagingStock,
+
+    envio: {
+      buscarPorIdSolicitud: vi.fn(),
+      guardarDatosTrayectoria: vi.fn(),
+      crear: vi.fn().mockResolvedValue({ id_envio: "env-001", id_solicitud: "sol-001", id_base: "rem-001", fecha_hora_programada: new Date(), estado_envio: "programado" }),
+      listarTodos: vi.fn(),
+      buscarPorId: vi.fn(),
+      asignarContenedor: vi.fn(),
+    },
+
+    trayectoria: {
+      ejecutar: vi.fn().mockResolvedValue(Trayectoria.crear({
+        id_trayectoria: "tra-001",
+        id_envio: "env-001",
+        punto_lanzamiento: { type: "Point", coordinates: [-62.3, -38.7] },
+        offset_norte_m: 100,
+        offset_este_m: 50,
+        timestamp_estimado: new Date(),
+        condiciones_seguras: true,
+        condiciones_climaticas: { velocidad_viento_ms: 5, direccion_viento_grados: 180, presion_atmosferica_hPa: 1013, altitud_terreno_m: 0, temperatura_c: 20 },
+        altitud_liberacion_m: 300,
+        peso_total_kg: 20,
+      })),
+    },
+
+    productos: {
+      buscarProductoPorIdentificador: vi.fn().mockResolvedValue({ id_producto: "prod-001", nombre: "Producto", peso_kg: 10 }),
+      listarCatalogo: vi.fn(),
+      listarBases: vi.fn(),
+    },
   };
 }
 
@@ -287,9 +318,23 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
       vi.clearAllMocks();
       mocks = createMocks();
       cancelarUC = new CancelarSolicitud(mocks.repo, mocks.stock);
-      preparacionUC = new RegistrarEnPreparacionUseCase(mocks.repo, new NotificarEnPreparacion(mocks.notifier as any), mocks.historial);
+      preparacionUC = new RegistrarEnPreparacionUseCase(
+        mocks.repo,
+        new NotificarEnPreparacion(mocks.notifier as any),
+        mocks.historial,
+        mocks.envio as any,
+        mocks.trayectoria as any,
+        mocks.productos as any,
+      );
       listoUC = new RegistrarListaUseCase(mocks.repo, new NotificarLista(mocks.notifier as any), mocks.historial);
-      caminoUC = new RegistrarEnCaminoUseCase(mocks.repo, new NotificarEnCamino(mocks.notifier as any), mocks.historial);
+      caminoUC = new RegistrarEnCaminoUseCase(
+        mocks.repo,
+        new NotificarEnCamino(mocks.notifier as any),
+        mocks.historial,
+        mocks.envio as any,
+        mocks.trayectoria as any,
+        mocks.productos as any,
+      );
       lanzadaUC = new RegistrarLanzadaUseCase(mocks.repo, new NotificarLanzada(mocks.notifier as any), mocks.historial);
       completarUC = new ConfirmarRecibidaUseCase(mocks.repo, new NotificarRecepcion(mocks.notifier as any), mocks.historial);
       anularUC = new AnularSolicitudUseCase(mocks.repo, new NotificarAnulacion(mocks.notifier as any), mocks.historial);

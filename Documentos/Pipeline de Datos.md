@@ -9,14 +9,14 @@ Calcula las coordenadas exactas y el momento de lanzamiento de un paquete desde 
 | ¿Qué datos? | Datos del envío: {id\_envio, peso\_kg (desde Producto/Detalle), latitud\_destino, longitud\_destino}. Datos meteorológicos: {velocidad\_viento, direccion\_viento, presion\_atmosferica, altitud\_terreno}. |
 | :---- | :---- |
 | **¿Desde dónde?** | Los datos del envío provienen de la Base de Datos (PostgreSQL, tablas SOLICITUD, DETALLE-SOLICITUD y PRODUCTO). Los datos meteorológicos provienen de la API Clima Externa. |
-| **¿Con qué frecuencia llegan?** | Streaming / Event-driven. Se solicitan cada vez que un paquete pasa a la etapa de preparación previa al vuelo. |
+| **¿Con qué frecuencia llegan?** | Streaming / Event-driven. Se solicitan cuando un paquete pasa a "En preparación" (CU-12 — cálculo inicial) y nuevamente cuando pasa a "En camino" (CU-14 — recálculo con clima actualizado). |
 | **¿Volumen estimado?** | Bajo/Moderado. Depende de la cantidad de paquetes por vuelo (ej. decenas de cálculos por plan de vuelo). Cada payload es de pocos kilobytes (JSON). |
 
 ### **PASO 2 \- DISPARADOR / TRIGGER**
 
-| ¿Cuándo se ejecuta? | Tipo de procesamiento: Event-driven / Streaming. Se dispara en el momento en que el Remitente cambia el estado del envío a "En preparación" (o asigna el paquete al Vuelo), requiriendo los parámetros para la carga. |
+| ¿Cuándo se ejecuta? | Tipo de procesamiento: Event-driven / Streaming. Se ejecuta **dos veces** en el ciclo de vida de la solicitud: 1) cuando el Remitente cambia el estado a "En preparación" (CU-12 — cálculo inicial de trayectoria), y 2) cuando el Remitente cambia el estado a "En camino" (CU-14 — recálculo con datos climáticos actualizados). No se ejecuta al lanzar (CU-15), ya que es solo el registro del evento. |
 | :---- | :---- |
-| **¿Quién lo dispara?** | El Requests Controller (o controlador de envíos) de la API Application (Backend Node.js) al recibir el request de cambio de estado desde la SPA del Remitente. |
+| **¿Quién lo dispara?** | El Requests Controller (o controlador de envíos) de la API Application (Backend Node.js) al recibir el request de cambio de estado desde la SPA del Remitente (PATCH /solicitudes/{id}/estado con nuevoEstado: "En preparación" o "En camino"). |
 
 ### **PASO 3 \- PROCESAMIENTO**
 
@@ -32,7 +32,7 @@ Calcula las coordenadas exactas y el momento de lanzamiento de un paquete desde 
 
 | ¿Qué se produce? | Un set de coordenadas (Latitud/Longitud) de lanzamiento offseteadas del destino real, un timestamp estimado y un flag de validación de seguridad. |
 | :---- | :---- |
-| **¿Dónde se guarda?** | Se actualiza el registro en la tabla ENVIO de la Base de Datos (PostgreSQL). |
+| **¿Dónde se guarda?** | Se actualiza el registro en la tabla ENVIO de la Base de Datos (PostgreSQL), específicamente en el campo `datos_clima` (JSON) que contiene el punto de lanzamiento (CARP), offsets, timestamp estimado, condiciones climáticas y flag de seguridad. |
 | **¿Quién consume el resultado?** | El Remitente (o la tripulación de vuelo) mediante la Web Application (SPA) para saber en qué momento y coordenadas exactas deben soltar el paquete. |
 
 ### **PASO 5 \- DECISIÓN ARQUITECTÓNICA**

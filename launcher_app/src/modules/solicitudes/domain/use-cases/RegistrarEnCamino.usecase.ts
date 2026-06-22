@@ -3,6 +3,9 @@ import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 import { EstadoSolicitud } from "../entities/Solicitud";
 import { NotificarEnCamino } from "@/src/modules/notificaciones/domain/use-cases/NotificarEnCamino.usecase";
+import { ForManagingEnvios, DatosTrayectoria } from "@/src/modules/envios/domain/ports/forManagingEnvios.port";
+import { CalcularTrayectoria } from "@/src/modules/trayectoria/domain/use-cases/CalcularTrayectoria.usecase";
+import { ForManagingProductos } from "@/src/modules/stock/domain/ports/forManagingProductos.port";
 
 export interface RegistrarEnCaminoInput {
   solicitudId: string;
@@ -15,14 +18,11 @@ export class RegistrarEnCaminoUseCase {
     private readonly solicitudRepository: ForManagingSolicitudes,
     private readonly notificarEnCamino: NotificarEnCamino,
     private readonly historial: ForManagingHistorial,
+    private readonly envioRepository: ForManagingEnvios,
+    private readonly calcularTrayectoria: CalcularTrayectoria,
+    private readonly productosRepository: ForManagingProductos,
   ) {}
 
-  /**
-   * Indica que la solicitud ya fue enviada y se encuentra en camino (CU-14).
-   * Solo el remitente asignado o un admin pueden ejecutar esto.
-   *
-   * @param input Datos necesarios para el registro.
-   */
   async ejecutar(input: RegistrarEnCaminoInput): Promise<void> {
     const { solicitudId, actorId, rol } = input;
     const solicitud = await this.solicitudRepository.buscarPorId(solicitudId);
@@ -31,20 +31,15 @@ export class RegistrarEnCaminoUseCase {
       throw Errores.solicitudNoEncontrada(solicitudId);
     }
 
-    // Verificar permisos: si es remitente, debe ser el asignado a la solicitud
     if (rol === "remitente" && solicitud.id_base !== actorId) {
       throw Errores.permisoDenegado("remitente", rol);
     }
 
     const estadoAnterior = solicitud.estado;
-
-    // La entidad valida la transición (Lista -> En camino)
     solicitud.avanzarEstado(EstadoSolicitud.EnCamino);
 
-    // Persistir el cambio
     await this.solicitudRepository.actualizarEstado(solicitudId, solicitud.estado);
 
-    // Registrar en el historial de auditoría
     await this.historial.registrar({
       solicitudId,
       estadoAnterior,
@@ -52,7 +47,43 @@ export class RegistrarEnCaminoUseCase {
       actorId,
     });
 
-    // Notificar al solicitante (CU-14, postcondición)
+    // Recalcular trayectoria y guardar en el envío (CU-14)
+    const envio = await this.envioRepository.buscarPorIdSolicitud(solicitudId);
+    if (envio) {
+      let peso_total_kg = 0;
+      for (const prod of solicitud.productos) {
+        const producto = await this.productosRepository.buscarProductoPorIdentificador(prod.productoId);
+        if (producto) {
+          peso_total_kg += producto.peso_kg * prod.cantidad;
+        }
+      }
+
+      const trayectoria = await this.calcularTrayectoria.ejecutar({
+        id_envio: envio.id_envio,
+        destino: solicitud.ubicacion_destino,
+        peso_total_kg,
+        altitud_liberacion_m: 300,
+      });
+
+      const datosTrayectoria: DatosTrayectoria = {
+        punto_lanzamiento: {
+          lat: trayectoria.punto_lanzamiento.coordinates[1],
+          lon: trayectoria.punto_lanzamiento.coordinates[0],
+        },
+        offset_norte_m: trayectoria.offset_norte_m,
+        offset_este_m: trayectoria.offset_este_m,
+        timestamp_estimado: trayectoria.timestamp_estimado.toISOString(),
+        condiciones_seguras: trayectoria.condiciones_seguras,
+        condiciones_climaticas: {
+          temperatura_c: trayectoria.condiciones_climaticas.temperatura_c,
+          velocidad_viento_ms: trayectoria.condiciones_climaticas.velocidad_viento_ms,
+          direccion_viento_grados: trayectoria.condiciones_climaticas.direccion_viento_grados,
+        },
+      };
+
+      await this.envioRepository.guardarDatosTrayectoria(envio.id_envio, datosTrayectoria);
+    }
+
     await this.notificarEnCamino.ejecutar(solicitudId, solicitud.id_usuario);
   }
 }
