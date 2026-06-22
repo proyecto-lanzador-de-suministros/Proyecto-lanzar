@@ -60,6 +60,7 @@ model Solicitud {
   ubicacion_destino  String // JSON: {"lat": -38.0, "lng": -62.5}
   motivo_cancelacion String?
   motivo_anulacion   String?
+  cantidad_cajas     Int?
   id_usuario         String
   id_admin           String?
   id_base            String?

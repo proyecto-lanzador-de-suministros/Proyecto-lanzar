@@ -88,6 +88,7 @@ export interface SolicitudProps {
   fecha_entrega?: Date;
   motivoCancelacion?: string;
   motivoAnulacion?: string;
+  cantidad_cajas?: number;
   fechaActualizacion: Date;
 }
 
@@ -163,6 +164,9 @@ export class Solicitud {
   }
   get motivoAnulacion() {
     return this.props.motivoAnulacion;
+  }
+  get cantidad_cajas() {
+    return this.props.cantidad_cajas;
   }
   get fechaActualizacion() {
     return this.props.fechaActualizacion;

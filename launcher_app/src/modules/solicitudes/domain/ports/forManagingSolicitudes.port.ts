@@ -17,6 +17,7 @@ export interface ForManagingSolicitudes {
       motivoAnulacion?: string;
       id_remitente?: string;
       fecha_entrega?: Date;
+      cantidad_cajas?: number;
     }
   ): Promise<void>;
 }

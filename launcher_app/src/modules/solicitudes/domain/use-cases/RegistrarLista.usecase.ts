@@ -8,6 +8,7 @@ export interface RegistrarListaInput {
   solicitudId: string;
   actorId: string;
   rol: "remitente" | "admin";
+  cantidad_cajas: number;
 }
 
 export class RegistrarListaUseCase {
@@ -24,11 +25,15 @@ export class RegistrarListaUseCase {
    * @param input Datos necesarios para el registro.
    */
   async ejecutar(input: RegistrarListaInput): Promise<void> {
-    const { solicitudId, actorId, rol } = input;
+    const { solicitudId, actorId, rol, cantidad_cajas } = input;
     const solicitud = await this.solicitudRepository.buscarPorId(solicitudId);
 
     if (!solicitud) {
       throw Errores.solicitudNoEncontrada(solicitudId);
+    }
+
+    if (cantidad_cajas <= 0) {
+      throw new Error("La cantidad de cajas debe ser mayor a cero.");
     }
 
     // Verificar permisos: si es remitente, debe ser el asignado a la solicitud
@@ -41,8 +46,8 @@ export class RegistrarListaUseCase {
     // La entidad valida la transición (En preparación -> Lista)
     solicitud.avanzarEstado(EstadoSolicitud.Lista);
 
-    // Persistir el cambio
-    await this.solicitudRepository.actualizarEstado(solicitudId, solicitud.estado);
+    // Persistir el cambio y la cantidad de cajas armadas
+    await this.solicitudRepository.actualizarEstado(solicitudId, solicitud.estado, { cantidad_cajas });
 
     // Registrar en el historial de auditoría
     await this.historial.registrar({

@@ -112,6 +112,9 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
         ...(extras?.motivoAnulacion !== undefined && {
           motivo_anulacion: extras.motivoAnulacion,
         }),
+        ...(extras?.cantidad_cajas !== undefined && {
+          cantidad_cajas: extras.cantidad_cajas,
+        }),
       },
     });
   }
@@ -139,6 +142,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
       fechaActualizacion: row.fecha_solicitada,
       motivoCancelacion: row.motivo_cancelacion ?? undefined,
       motivoAnulacion: row.motivo_anulacion ?? undefined,
+      cantidad_cajas: row.cantidad_cajas ?? undefined,
     });
   }
 }

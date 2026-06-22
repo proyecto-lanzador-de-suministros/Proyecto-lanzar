@@ -45,9 +45,10 @@ describe("RegistrarListaUseCase", () => {
       solicitudId: "sol-001",
       actorId: "rem-001",
       rol: "remitente",
+      cantidad_cajas: 5,
     });
 
-    expect(repoMock.actualizarEstado).toHaveBeenCalledWith("sol-001", EstadoSolicitud.Lista);
+    expect(repoMock.actualizarEstado).toHaveBeenCalledWith("sol-001", EstadoSolicitud.Lista, { cantidad_cajas: 5 });
     
     expect(historialMock.registrar).toHaveBeenCalledWith({
       solicitudId: "sol-001",
@@ -71,9 +72,10 @@ describe("RegistrarListaUseCase", () => {
       solicitudId: "sol-001",
       actorId: "admin-001",
       rol: "admin",
+      cantidad_cajas: 3,
     });
 
-    expect(repoMock.actualizarEstado).toHaveBeenCalledWith("sol-001", EstadoSolicitud.Lista);
+    expect(repoMock.actualizarEstado).toHaveBeenCalledWith("sol-001", EstadoSolicitud.Lista, { cantidad_cajas: 3 });
   });
 
   it("lanza error si el remitente no es el asignado", async () => {
@@ -85,6 +87,7 @@ describe("RegistrarListaUseCase", () => {
         solicitudId: "sol-001",
         actorId: "rem-001",
         rol: "remitente",
+        cantidad_cajas: 2,
       }),
     ).rejects.toMatchObject({ code: "PERMISO_DENEGADO" });
   });
@@ -97,8 +100,32 @@ describe("RegistrarListaUseCase", () => {
         solicitudId: "no-existe",
         actorId: "rem-001",
         rol: "remitente",
+        cantidad_cajas: 2,
       }),
     ).rejects.toMatchObject({ code: "SOLICITUD_NO_ENCONTRADA" });
+  });
+
+  it("lanza error si cantidad_cajas es menor o igual a cero", async () => {
+    const solicitud = Solicitud.reconstruir({ ...propsBase, estado: EstadoSolicitud.EnPreparacion });
+    repoMock.buscarPorId.mockResolvedValue(solicitud);
+
+    await expect(
+      useCase.ejecutar({
+        solicitudId: "sol-001",
+        actorId: "rem-001",
+        rol: "remitente",
+        cantidad_cajas: 0,
+      }),
+    ).rejects.toThrow("La cantidad de cajas debe ser mayor a cero.");
+
+    await expect(
+      useCase.ejecutar({
+        solicitudId: "sol-001",
+        actorId: "rem-001",
+        rol: "remitente",
+        cantidad_cajas: -1,
+      }),
+    ).rejects.toThrow("La cantidad de cajas debe ser mayor a cero.");
   });
 
   it("lanza error si la transición de estado es inválida", async () => {
@@ -110,6 +137,7 @@ describe("RegistrarListaUseCase", () => {
         solicitudId: "sol-001",
         actorId: "rem-001",
         rol: "remitente",
+        cantidad_cajas: 2,
       }),
     ).rejects.toMatchObject({ code: "TRANSICION_INVALIDA" });
   });
