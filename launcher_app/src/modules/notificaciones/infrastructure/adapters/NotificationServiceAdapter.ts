@@ -2,14 +2,31 @@ import { ForNotifying } from "../../domain/ports/forNotifying.port";
 import { ForNotifyingCuenta } from "../../domain/ports/forNotifyingCuenta.port";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
+import { sendEmail } from "@/src/infrastructure/notifications/emailSender";
 
-/**
- * Adaptador driven. Implementa ForNotifying orquestando los distintos
- * canales de notificación disponibles e insertando el registro en la base de datos.
- *
- * También implementa ForNotifyingCuenta para notificaciones de aprobación/rechazo
- * de cuenta (CU-02), que no están atadas a ninguna solicitud.
- */
+async function enviarEmailAsync(
+  usuarioId: string,
+  subject: string,
+  body: string,
+): Promise<void> {
+  try {
+    const usuario = await prisma.usuario.findUnique({
+      where: { id_usuario: usuarioId },
+      select: { email: true },
+    });
+
+    if (!usuario?.email) {
+      console.warn(`[NotificationServiceAdapter] Usuario ${usuarioId} sin email — salteando correo.`);
+      return;
+    }
+
+    await sendEmail(usuario.email, subject, body);
+    console.log(`[NotificationServiceAdapter] Email enviado a ${usuario.email}: ${subject}`);
+  } catch (error) {
+    console.error("[NotificationServiceAdapter] Error al enviar email:", error);
+  }
+}
+
 export class NotificationServiceAdapter implements ForNotifying, ForNotifyingCuenta {
   async notificar(params: {
     destinatario: string;
@@ -62,13 +79,19 @@ export class NotificationServiceAdapter implements ForNotifying, ForNotifyingCue
           id_usuario: params.destinatario,
         },
       });
+
+      enviarEmailAsync(
+        params.destinatario,
+        `Actualización de solicitud #${shortId}`,
+        mensaje,
+      );
+
       console.log(`[NotificationServiceAdapter] Notificación creada en DB para ${params.destinatario}: ${mensaje}`);
     } catch (error) {
       console.error("[NotificationServiceAdapter] Error al insertar notificación en base de datos:", error);
     }
   }
 
-  /** CU-02: notifica al usuario que su cuenta fue aprobada. */
   async notificarAprobacion(usuarioId: string): Promise<void> {
     await this.crearNotificacionDeCuenta(
       usuarioId,
@@ -76,7 +99,6 @@ export class NotificationServiceAdapter implements ForNotifying, ForNotifyingCue
     );
   }
 
-  /** CU-02, Caso A: notifica al usuario que su cuenta fue rechazada. */
   async notificarRechazo(usuarioId: string): Promise<void> {
     await this.crearNotificacionDeCuenta(
       usuarioId,
@@ -84,10 +106,6 @@ export class NotificationServiceAdapter implements ForNotifying, ForNotifyingCue
     );
   }
 
-  /**
-   * Crea una notificación sin solicitud asociada (id_solicitud queda null).
-   * Compartido por notificarAprobacion y notificarRechazo.
-   */
   private async crearNotificacionDeCuenta(usuarioId: string, mensaje: string): Promise<void> {
     try {
       await prisma.notificacion.create({
@@ -96,6 +114,13 @@ export class NotificationServiceAdapter implements ForNotifying, ForNotifyingCue
           id_usuario: usuarioId,
         },
       });
+
+      enviarEmailAsync(
+        usuarioId,
+        "Estado de tu cuenta — Launcher",
+        mensaje,
+      );
+
       console.log(`[NotificationServiceAdapter] Notificación de cuenta creada en DB para ${usuarioId}: ${mensaje}`);
     } catch (error) {
       console.error("[NotificationServiceAdapter] Error al insertar notificación de cuenta:", error);
