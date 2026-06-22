@@ -51,7 +51,11 @@ function getStatusDisplay(est: EstadoSolicitud) {
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
   return (
-    d.toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" }) +
+    d.toLocaleDateString("es-AR", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }) +
     " - " +
     d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) +
     " hs"
@@ -86,7 +90,16 @@ export default function SolicitanteSolicitudPage() {
       ]);
 
       if (resDetalle.success && resDetalle.data) {
-        setData(resDetalle.data);
+        setData({
+          ...resDetalle.data,
+          ubicacion_destino: {
+            ...resDetalle.data.ubicacion_destino,
+            coordinates: [
+              Number(resDetalle.data.ubicacion_destino.coordinates[0]),
+              Number(resDetalle.data.ubicacion_destino.coordinates[1]),
+            ],
+          },
+        });
       } else {
         setError(resDetalle.error || "No se pudo cargar la solicitud.");
       }
@@ -102,12 +115,16 @@ export default function SolicitanteSolicitudPage() {
   };
 
   useEffect(() => {
-    Promise.resolve().then(() => { if (solicitudId) fetchData(); });
+    Promise.resolve().then(() => {
+      if (solicitudId) fetchData();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [solicitudId]);
 
   function getNombreProducto(productoId: string) {
-    return productos.find((p) => p.id_producto === productoId)?.nombre ?? productoId;
+    return (
+      productos.find((p) => p.id_producto === productoId)?.nombre ?? productoId
+    );
   }
 
   function handleConfirmCancel() {
@@ -150,7 +167,11 @@ export default function SolicitanteSolicitudPage() {
         <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl text-sm">
           {error || "Solicitud no encontrada."}
         </div>
-        <Button variant="secondary" onClick={() => router.back()} className="mt-4">
+        <Button
+          variant="secondary"
+          onClick={() => router.back()}
+          className="mt-4"
+        >
           Volver
         </Button>
       </div>
@@ -162,14 +183,23 @@ export default function SolicitanteSolicitudPage() {
 
   return (
     <div className="flex flex-col gap-6 font-sans max-w-2xl">
-
       {/* Botón volver */}
       <button
         onClick={() => router.push("/solicitante/missolicitudes")}
         className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors w-fit"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
         </svg>
         Volver a mis solicitudes
       </button>
@@ -180,9 +210,13 @@ export default function SolicitanteSolicitudPage() {
           <p className="text-xs font-mono text-slate-400 mb-1">
             Solicitud #{data.id.substring(0, 8).toUpperCase()}
           </p>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Detalle del pedido</h1>
+          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+            Detalle del pedido
+          </h1>
         </div>
-        <StatusBadge variant={statusInfo.variant}>{statusInfo.text}</StatusBadge>
+        <StatusBadge variant={statusInfo.variant}>
+          {statusInfo.text}
+        </StatusBadge>
       </div>
 
       {/* Info general */}
@@ -193,15 +227,29 @@ export default function SolicitanteSolicitudPage() {
           label="Destino"
           value={`Lat: ${data.ubicacion_destino.coordinates[1].toFixed(5)}, Lng: ${data.ubicacion_destino.coordinates[0].toFixed(5)}`}
         />
-        <InfoRow label="Fecha de solicitud" value={formatDate(data.fechaSolicitada)} />
+        <InfoRow
+          label="Fecha de solicitud"
+          value={formatDate(data.fechaSolicitada)}
+        />
         {data.fechaEntrega && (
-          <InfoRow label="Fecha de entrega" value={formatDate(data.fechaEntrega)} />
+          <InfoRow
+            label="Fecha de entrega"
+            value={formatDate(data.fechaEntrega)}
+          />
         )}
         {data.motivoCancelacion && (
-          <InfoRow label="Motivo de cancelación" value={data.motivoCancelacion} danger />
+          <InfoRow
+            label="Motivo de cancelación"
+            value={data.motivoCancelacion}
+            danger
+          />
         )}
         {data.motivoAnulacion && (
-          <InfoRow label="Motivo de anulación" value={data.motivoAnulacion} danger />
+          <InfoRow
+            label="Motivo de anulación"
+            value={data.motivoAnulacion}
+            danger
+          />
         )}
       </div>
 
@@ -212,9 +260,16 @@ export default function SolicitanteSolicitudPage() {
         </h2>
         <ul className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
           {data.productos.map((p: any, i: number) => (
-            <li key={i} className="flex items-center justify-between px-4 py-3 text-sm">
-              <span className="text-slate-700 dark:text-slate-300">{getNombreProducto(p.productoId)}</span>
-              <span className="font-semibold text-slate-600 dark:text-slate-400">×{p.cantidad}</span>
+            <li
+              key={i}
+              className="flex items-center justify-between px-4 py-3 text-sm"
+            >
+              <span className="text-slate-700 dark:text-slate-300">
+                {getNombreProducto(p.productoId)}
+              </span>
+              <span className="font-semibold text-slate-600 dark:text-slate-400">
+                ×{p.cantidad}
+              </span>
             </li>
           ))}
         </ul>
@@ -236,7 +291,9 @@ export default function SolicitanteSolicitudPage() {
                   {h.estadoAnterior ? `${h.estadoAnterior} → ` : ""}
                   {h.estadoNuevo}
                 </p>
-                <p className="text-xs text-slate-400">{formatDate(h.fechaHora)}</p>
+                <p className="text-xs text-slate-400">
+                  {formatDate(h.fechaHora)}
+                </p>
               </li>
             ))}
           </ol>
@@ -271,9 +328,16 @@ export default function SolicitanteSolicitudPage() {
           <p className="text-sm font-medium text-green-800 dark:text-green-300">
             ¿Confirmás que recibiste el paquete?
           </p>
-          <p className="text-xs text-green-600 dark:text-green-400">Esta acción no se puede deshacer.</p>
+          <p className="text-xs text-green-600 dark:text-green-400">
+            Esta acción no se puede deshacer.
+          </p>
           <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => setConfirming(false)} disabled={isPending} className="flex-1">
+            <Button
+              variant="secondary"
+              onClick={() => setConfirming(false)}
+              disabled={isPending}
+              className="flex-1"
+            >
               Cancelar
             </Button>
             <Button
@@ -292,9 +356,12 @@ export default function SolicitanteSolicitudPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-5">
             <div>
-              <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">Cancelar solicitud</h3>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                Cancelar solicitud
+              </h3>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                ¿Estás seguro de que deseas cancelar esta solicitud? Esta acción liberará las provisiones reservadas.
+                ¿Estás seguro de que deseas cancelar esta solicitud? Esta acción
+                liberará las provisiones reservadas.
               </p>
             </div>
             <div className="flex flex-col gap-1 text-xs">
@@ -328,18 +395,29 @@ export default function SolicitanteSolicitudPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
-function InfoRow({ label, value, danger = false }: { label: string; value: string; danger?: boolean }) {
+function InfoRow({
+  label,
+  value,
+  danger = false,
+}: {
+  label: string;
+  value: string;
+  danger?: boolean;
+}) {
   return (
     <div className="flex items-center justify-between px-4 py-3">
-      <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-sm text-slate-500 dark:text-slate-400">
+        {label}
+      </span>
       <span
         className={`text-sm font-medium text-right max-w-xs ${
-          danger ? "text-red-600 dark:text-red-400" : "text-slate-800 dark:text-slate-200"
+          danger
+            ? "text-red-600 dark:text-red-400"
+            : "text-slate-800 dark:text-slate-200"
         }`}
       >
         {value}
