@@ -66,20 +66,6 @@ export default function Sidebar({ activeHref = "/", role }: SidebarConfig) {
           );
         })}
       </nav>
-      <div className="bg-white/10 rounded-xl p-4 flex flex-col items-center gap-1.5 text-center mt-2">
-        <p className="text-white text-[13px] font-semibold m-0">
-          ¿Necesitás ayuda?
-        </p>
-        <p className="text-white/55 text-xs m-0 leading-snug">
-          Nuestro equipo está para ayudarte.
-        </p>
-        <Link
-          href={role === "solicitante" ? "/solicitante/ayuda" : role === "remitente" ? "/remitente/ayuda" : "/ayuda"}
-          className="mt-2 w-full py-2 px-3 rounded-lg border border-white/30 bg-transparent text-white text-[13px] text-center cursor-pointer hover:bg-white/10 transition-colors no-underline block"
-        >
-          Contactar soporte
-        </Link>
-      </div>
     </aside>
   );
 }
