@@ -71,18 +71,19 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    console.log("[AdminDashboard] useEffect - montando, id:", undefined);
-    //fetchSolicitudes();
-    obtenerRemitentesAprobadosAction().then((res) => {
-      console.log(
-        "[AdminDashboard] obtenerRemitentesAprobadosAction response:",
-        res,
-      );
-      if (res.success && res.data) setRemitentesAprobados(res.data);
-    });
-    obtenerSolicitantesAction().then((res) => {
-      console.log("[AdminDashboard] obtenerSolicitantesAction response:", res);
-      if (res.success && res.data) setSolicitantes(res.data);
+    Promise.resolve().then(() => {
+      fetchSolicitudes();
+      obtenerRemitentesAprobadosAction().then((res) => {
+        console.log(
+          "[AdminDashboard] obtenerRemitentesAprobadosAction response:",
+          res,
+        );
+        if (res.success && res.data) setRemitentesAprobados(res.data);
+      });
+      obtenerSolicitantesAction().then((res) => {
+        console.log("[AdminDashboard] obtenerSolicitantesAction response:", res);
+        if (res.success && res.data) setSolicitantes(res.data);
+      });
     });
   }, []);
 
