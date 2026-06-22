@@ -82,6 +82,12 @@ const weatherAdapter = new CachedWeatherAdapter(
   new RedisWeatherCacheAdapter(),
 );
 const trajectoryCalculator = new TrajectoryCalculatorAdapter();
+
+export const calcularTrayectoriaUseCase = new CalcularTrayectoria(
+  weatherAdapter,
+  trajectoryCalculator,
+);
+
 const notificarSolicitudCreada = new NotificarSolicitudCreada(notificationAdapter);
 const notificarAnulacion = new NotificarAnulacion(notificationAdapter);
 const notificarAsignacion = new NotificarAsignacion(notificationAdapter);
@@ -252,18 +258,24 @@ export const actualizarStockUseCase = new ActualizarStockUseCase(stockRepository
 
 export const listarHistorialStockUseCase = new ListarHistorialStockUseCase(historialStockRepository);
 
+// ── Productos (Catálogo) ─────────────────────────────────────────────────────
+
+const productosRepository = new PrismaProductosRepository();
+
 // ── Envíos ────────────────────────────────────────────────────────────────────
 
 const envioRepository = new PrismaEnvioRepository();
 
 export const listarEnviosUseCase = new ListarEnviosUseCase(envioRepository);
 
-export const programarEnvioUseCase = new ProgramarEnvioUseCase(envioRepository, solicitudRepository);
+export const programarEnvioUseCase = new ProgramarEnvioUseCase(
+  envioRepository,
+  solicitudRepository,
+  calcularTrayectoriaUseCase,
+  productosRepository,
+);
 
 export const asignarContenedorUseCase = new AsignarContenedorAEnvioUseCase(envioRepository);
-// ── Productos (Catálogo) ─────────────────────────────────────────────────────
-
-const productosRepository = new PrismaProductosRepository();
 
 export const listarCatalogoProductosUseCase = new ListarCatalogoProductosUseCase(
   productosRepository,
@@ -284,11 +296,6 @@ export const generarReporteGeneralUseCase = new GenerarReporteGeneralUseCase(
 );
 
 // ── Trayectoria ─────────────────────────────────────────────────────────────
-
-export const calcularTrayectoriaUseCase = new CalcularTrayectoria(
-  weatherAdapter,
-  trajectoryCalculator,
-);
 
 export const weatherServiceAdapter = weatherAdapter;
 export const trajectoryCalculatorAdapter = trajectoryCalculator;

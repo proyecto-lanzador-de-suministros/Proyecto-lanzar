@@ -1,24 +1,24 @@
-# Máquina de Estados de la Solicitud — Versión Corregida
+# Máquina de Estados de la Solicitud — Versión Implementada
 
-Basado en la tabla canónica y los CU-08 a CU-20 de `Documentos/`.
+Basado en la tabla canónica de `Documentos/` y la implementación real en `Solicitud.ts`.
 
-## Estados Canónicos (11)
+## Estados Canónicos (10)
 
 ```
-Creada, Aprobada, Rechazada, Asignada, En Preparación, Listo,
+Creada, Rechazada, Asignada, En Preparación, Listo,
 En Camino, Lanzada, Completada, Cancelada, Anulada
 ```
+
+> **Nota:** El estado `Aprobada` existía en la documentación original pero fue eliminado en la implementación. `ControlarSolicitud` (CU-09) salta directo de `Creada` → `Asignada` (o `Rechazada`) en un solo paso.
 
 ## Tabla de Transiciones Canónica
 
 | Desde | Hacia | Quién ejecuta |
 |---|---|---|
 | *(ninguno)* | **Creada** | Solicitante, Admin |
-| **Creada** | **Aprobada** | Sistema (stock suficiente) |
+| **Creada** | **Asignada** | Sistema (stock suficiente + asigna remitente) |
 | **Creada** | **Rechazada** | Sistema (stock insuficiente) |
 | **Creada** | **Cancelada** | Solicitante, Admin |
-| **Aprobada** | **Asignada** | Sistema o Admin (asigna remitente) |
-| **Aprobada** | **Cancelada** | Solicitante, Admin |
 | **Asignada** | **Cancelada** | Solicitante, Admin |
 | **Asignada** | **En Preparación** | Remitente |
 | **Asignada** | **Anulada** | Admin, Remitente |
@@ -38,22 +38,22 @@ En Camino, Lanzada, Completada, Cancelada, Anulada
 ## Diagrama de Flujo Canónico
 
 ```
-Creada ──→ Aprobada ──→ Asignada ──→ En Preparación ──→ Listo ──→ En Camino ──→ Lanzada ──→ Completada
-    │            │            │              │              │            │             │
-    │            │            ├── Cancelada  │              │            │             ├── Anulada
-    │            ├── Cancelada│              ├── Anulada    ├── Anulada  ├── Anulada   │
-    ├── Rechazada│            │              │              │            │             │
-    │            │            │              │              │            │             │
-    └── Cancelada┘            └──────────────┴──────────────┴────────────┴─────────────┘
-                              (Anulada desde Asignada en adelante, ejecutado por Admin/Remitente)
+Creada ──→ Asignada ──→ En Preparación ──→ Listo ──→ En Camino ──→ Lanzada ──→ Completada
+    │           │              │              │            │             │
+    │           ├── Cancelada  │              │            │             ├── Anulada
+    │           │              ├── Anulada    ├── Anulada  ├── Anulada   │
+    ├── Rechazada              │              │            │             │
+    │                          │              │            │             │
+    └── Cancelada              └──────────────┴────────────┴──────────────┘
+                               (Anulada desde Asignada en adelante, ejecutado por Admin/Remitente)
 ```
 
-## Resumen de Correcciones Aplicadas
+## Resumen de Cambios Respecto a la Documentación Original
 
 | CU | Cambio |
 |---|---|
-| **CU-09** | Separado el flujo en dos pasos: Creada → Aprobada (stock suficiente), y opcionalmente Aprobada → Asignada (asignación de remitente). Corregida notificación: va al solicitante, no al remitente. |
-| **CU-10** | Ampliada excepción E1 para listar explícitamente todos los estados no cancelables. |
-| **CU-11** | Precondición 3 acotada: solo anulable desde Asignada, En Preparación, Listo, En Camino o Lanzada. Excepciones actualizadas para cubrir Creada, Aprobada y Rechazada. |
-| **CU-19** | Sin cambios — ya describía correctamente "Aprobada" como estado pendiente de asignación. |
-| **CU-20** | Comentario expandido: incluye el flujo canónico y los estados terminales. |
+| **CU-09** | Eliminado el estado intermedio `Aprobada`. El flujo unificado es: `Creada` → verifica stock → asigna remitente → `Asignada` (o `Rechazada`). |
+| **CU-10** | `Aprobada` eliminado de los estados cancelables. Ahora solo `{Creada, Asignada}`. |
+| **CU-11** | `Aprobada` eliminado de las precondiciones/excepciones. Solo anulable desde `{Asignada, En Preparación, Listo, En Camino, Lanzada}`. |
+| **CU-19** | Cambiado filtro de `Aprobada` → `Asignada`. |
+| **CU-20** | Actualizado listado de estados y flujo canónico. |

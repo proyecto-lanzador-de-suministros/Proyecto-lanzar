@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { id_solicitud, id_base } = body;
+    const { id_solicitud, id_base, altitud_liberacion_m } = body;
 
     if (!id_solicitud || !id_base) {
       return NextResponse.json(
@@ -39,16 +39,33 @@ export async function POST(request: Request) {
       );
     }
 
-    const envio = await programarEnvioUseCase.ejecutar({
+    if (!altitud_liberacion_m || typeof altitud_liberacion_m !== "number" || altitud_liberacion_m <= 0) {
+      return NextResponse.json(
+        { error: { code: "VALIDATION_ERROR", message: "altitud_liberacion_m debe ser un número positivo." } },
+        { status: 400 },
+      );
+    }
+
+    const resultado = await programarEnvioUseCase.ejecutar({
       id_solicitud,
       id_base,
+      altitud_liberacion_m,
     });
 
     return NextResponse.json(
       {
-        id: envio.id_envio,
-        fechaHoraProgramada: envio.fecha_hora_programada?.toISOString() ?? null,
-        estado: envio.estado_envio,
+        id: resultado.envio.id_envio,
+        fechaHoraProgramada: resultado.envio.fecha_hora_programada?.toISOString() ?? null,
+        estado: resultado.envio.estado_envio,
+        trayectoria: {
+          punto_lanzamiento: resultado.trayectoria.punto_lanzamiento,
+          offset_norte_m: resultado.trayectoria.offset_norte_m,
+          offset_este_m: resultado.trayectoria.offset_este_m,
+          timestamp_estimado: resultado.trayectoria.timestamp_estimado.toISOString(),
+          condiciones_seguras: resultado.trayectoria.condiciones_seguras,
+          altitud_liberacion_m: resultado.trayectoria.altitud_liberacion_m,
+          peso_total_kg: resultado.trayectoria.peso_total_kg,
+        },
       },
       { status: 201 },
     );

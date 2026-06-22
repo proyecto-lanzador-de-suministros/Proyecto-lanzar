@@ -5,7 +5,7 @@
 // ============================================================
 
 import type { PuntoGeometria } from "@/src/types/geometria";
-import { CondicionesClimaticas, Trayectoria } from "../entities/Trayectoria";
+import { Trayectoria } from "../entities/Trayectoria";
 import type { ForCalculatingTrajectory } from "../ports/forCalculatingTrajectory.port";
 import type { ForGettingWeather } from "../ports/forGettingWeather.port";
 
@@ -14,7 +14,6 @@ export interface CalcularTrayectoriaInput {
   destino: PuntoGeometria;
   peso_total_kg: number;
   altitud_liberacion_m: number;
-  condiciones_climaticas: CondicionesClimaticas;
   tipo_paracaidas?: string;
 }
 
