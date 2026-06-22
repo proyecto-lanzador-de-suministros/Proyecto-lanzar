@@ -62,6 +62,8 @@ import { AsignarContenedorAEnvioUseCase } from "./modules/envios/domain/use-case
 import { CalcularTrayectoria } from "./modules/trayectoria/domain/use-cases/CalcularTrayectoria.usecase";
 import { TrajectoryCalculatorAdapter } from "./modules/trayectoria/infrastructure/adapters/TrajectoryCalculatorAdapter";
 import { OpenMeteoWeatherAdapter } from "./modules/trayectoria/infrastructure/adapters/openMeteoWeatherAdapter";
+import { RedisWeatherCacheAdapter } from "./modules/trayectoria/infrastructure/adapters/redisWeatherCacheAdapter";
+import { CachedWeatherAdapter } from "./modules/trayectoria/infrastructure/adapters/cachedWeatherAdapter";
 
 // ── Infraestructura compartida ──────────────────────────────────────────────
 
@@ -74,7 +76,10 @@ export const historialRepository = new PrismaHistorialRepository();
 export const stockRepository = new PrismaStockRepository();
 
 const notificationAdapter = new NotificationServiceAdapter();
-const weatherAdapter = new OpenMeteoWeatherAdapter();
+const weatherAdapter = new CachedWeatherAdapter(
+  new OpenMeteoWeatherAdapter(),
+  new RedisWeatherCacheAdapter(),
+);
 const trajectoryCalculator = new TrajectoryCalculatorAdapter();
 const notificarSolicitudCreada = new NotificarSolicitudCreada(notificationAdapter);
 const notificarAnulacion = new NotificarAnulacion(notificationAdapter);
