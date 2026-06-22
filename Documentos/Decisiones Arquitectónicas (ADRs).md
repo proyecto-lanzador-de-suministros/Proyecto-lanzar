@@ -122,6 +122,10 @@ El sistema debe enviar notificaciones al Solicitante y Remitente en diversos cam
 | El usuario experimenta una velocidad óptima de interfaz sin esperar hilos bloqueantes de red. | Introduce consistencia eventual: el usuario recibe confirmación inmediata en la pantalla, pero el correo físico de confirmación puede arribar unos segundos más tarde. |
 | Mayor tolerancia a fallos: si el proveedor externo de correos se cae por horas, los mensajes quedan retenidos de forma segura en la cola en memoria sin perderse. | Incrementa la complejidad técnica del despliegue en infraestructura, requiriendo inicializar un proceso separado de background (worker) y administrar una instancia activa de Redis. |
 
+### **5\. Nota sobre BullMQ (22/06/2026) — Decisión de no implementar**
+
+El ADR-003 original eligió BullMQ + Redis como cola de mensajería asíncrona. Sin embargo, durante la implementación se determinó **no utilizar BullMQ en esta versión** por las siguientes razones: el costo de infraestructura (Redis + worker) en un proyecto universitario sin financiamiento, la complejidad operativa de mantener un worker 24/7, y que el volumen actual de notificaciones no justifica una cola persistente. En su lugar, las notificaciones se envían por SMTP directo (Nodemailer) en modo fire-and-forget y se registran en la tabla `Notificacion` de la base de datos. Ver `Estudio-Viabilidad-BullMQ.md` para la justificación completa.
+
 ## **ADR-004: Infraestructura y Despliegue**
 
 | ID | Título | Estado | Fecha |
