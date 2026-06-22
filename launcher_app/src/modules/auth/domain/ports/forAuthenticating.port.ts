@@ -2,7 +2,7 @@
 export interface UsuarioAutenticado {
   id: string;
   email: string;
-  rol: "admin" | "remitente" | "solicitante";
+  rol?: "admin" | "remitente" | "solicitante";
 }
 
 export interface ForAuthenticating {

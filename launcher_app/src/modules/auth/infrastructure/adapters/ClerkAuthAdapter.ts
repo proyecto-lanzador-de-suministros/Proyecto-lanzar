@@ -13,7 +13,6 @@ export class ClerkAuthAdapter implements ForAuthenticating {
     if (!userId) return null;
 
     const rol = sessionClaims?.metadata?.rol as UsuarioAutenticado["rol"];
-    if (!rol) return null;
 
     return {
       id: userId,

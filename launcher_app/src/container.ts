@@ -22,6 +22,7 @@ import { RechazarCuentaUseCase } from "./modules/usuarios/domain/use-cases/Recha
 import { EliminarCuentaUseCase } from "./modules/usuarios/domain/use-cases/EliminarCuenta.usecase";
 import { CrearCuentaUseCase } from "./modules/usuarios/domain/use-cases/CrearCuenta.usecase";
 import { CrearUsuarioAdminUseCase } from "./modules/usuarios/domain/use-cases/CrearUsuarioAdmin.usecase";
+import { CompletarRegistroUseCase } from "./modules/usuarios/domain/use-cases/CompletarRegistro.usecase";
 import { ListarUsuariosUseCase } from "./modules/usuarios/domain/use-cases/ListarUsuarios.usecase";
 import { ListarBasesRemitentesUseCase } from "./modules/usuarios/domain/use-cases/ListarBasesRemitentes.usecase";
 import { ActualizarBaseRemitenteUseCase } from "./modules/usuarios/domain/use-cases/ActualizarBaseRemitente.usecase";
@@ -130,6 +131,11 @@ export const crearCuentaUseCase = new CrearCuentaUseCase(
 );
 
 export const crearUsuarioAdminUseCase = new CrearUsuarioAdminUseCase(
+  usuarioRepository,
+  clerkSyncAdapter,
+);
+
+export const completarRegistroUseCase = new CompletarRegistroUseCase(
   usuarioRepository,
   clerkSyncAdapter,
 );

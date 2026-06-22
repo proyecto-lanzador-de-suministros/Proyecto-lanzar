@@ -7,6 +7,7 @@ export class IniciarSesion {
   async ejecutar(req: Request): Promise<string> {
     const usuario = await this.auth.obtenerUsuarioActual(req);
     if (!usuario) throw new Error("No autenticado");
+    if (!usuario.rol) return "/completar-registro";
     const rutas: Record<string, string> = {
       admin: "/admin/dashboard",
       remitente: "/remitente/dashboard",
