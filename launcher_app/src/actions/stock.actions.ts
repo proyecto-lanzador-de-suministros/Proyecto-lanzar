@@ -21,8 +21,11 @@ export async function consultarStockBaseAction(id_base: string) {
     return { success: false, error: "No autenticado." };
   }
 
-  if (rol === "remitente" && userId !== id_base) {
-    return { success: false, error: "Solo podés consultar tu propio stock." };
+  if (rol === "remitente") {
+    const idBase = await usuarioRepository.obtenerBaseDeRemitente(userId);
+    if (idBase !== id_base) {
+      return { success: false, error: "Solo podés consultar tu propio stock." };
+    }
   }
 
   if (rol !== "admin" && rol !== "remitente") {
@@ -61,8 +64,11 @@ export async function actualizarStockAction(
     return { success: false, error: "No autenticado." };
   }
 
-  if (rol === "remitente" && userId !== id_base) {
-    return { success: false, error: "Solo podés actualizar tu propio stock." };
+  if (rol === "remitente") {
+    const idBase = await usuarioRepository.obtenerBaseDeRemitente(userId);
+    if (idBase !== id_base) {
+      return { success: false, error: "Solo podés actualizar tu propio stock." };
+    }
   }
 
   if (rol !== "admin" && rol !== "remitente") {
@@ -99,8 +105,11 @@ export async function listarHistorialStockAction(id_base: string) {
   if (!userId) {
     return { success: false, error: "No autenticado." };
   }
-  if (rol === "remitente" && userId !== id_base) {
-    return { success: false, error: "Solo podés consultar el historial de tu propia base." };
+  if (rol === "remitente") {
+    const idBase = await usuarioRepository.obtenerBaseDeRemitente(userId);
+    if (idBase !== id_base) {
+      return { success: false, error: "Solo podés consultar el historial de tu propia base." };
+    }
   }
   if (rol !== "admin" && rol !== "remitente") {
     return { success: false, error: "No autorizado." };

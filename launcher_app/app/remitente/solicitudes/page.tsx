@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import StatusBadge from "@/app/components/ui/StatusBadge";
+import { consultarSolicitudesPendientesAction } from "@/src/actions/solicitudes.actions";
 
 type FilterTab = "TODAS" | "PENDIENTES" | "PREPARACION" | "EN_CAMINO" | "ENTREGADAS" | "CANCELADAS";
 
-interface SolicitudMock {
+interface SolicitudItem {
   id: string;
-  solicitante: string;
+  solicitanteNombre: string;
   estado: string;
   prioridad: string;
   destino: { lat: number; lng: number };
@@ -16,69 +17,6 @@ interface SolicitudMock {
   fecha_solicitada: string;
   id_base?: string;
 }
-
-const MOCK_SOLICITUDES: SolicitudMock[] = [
-  {
-    id: "SOL-001",
-    solicitante: "María López",
-    estado: "Asignada",
-    prioridad: "Alta",
-    destino: { lat: -34.6037, lng: -58.3816 },
-    productos: [{ nombre: "Vacunas", cantidad: 50 }, { nombre: "Botiquín", cantidad: 2 }],
-    fecha_solicitada: "2026-06-18T10:30:00",
-    id_base: "BASE-001",
-  },
-  {
-    id: "SOL-002",
-    solicitante: "Juan Pérez",
-    estado: "En preparación",
-    prioridad: "Media",
-    destino: { lat: -31.4201, lng: -64.1888 },
-    productos: [{ nombre: "Raciones", cantidad: 200 }],
-    fecha_solicitada: "2026-06-17T14:00:00",
-    id_base: "BASE-001",
-  },
-  {
-    id: "SOL-003",
-    solicitante: "Ana García",
-    estado: "Lista",
-    prioridad: "Urgente",
-    destino: { lat: -32.9468, lng: -60.6393 },
-    productos: [{ nombre: "Vacunas", cantidad: 100 }, { nombre: "Raciones", cantidad: 50 }],
-    fecha_solicitada: "2026-06-16T08:15:00",
-    id_base: "BASE-001",
-  },
-  {
-    id: "SOL-004",
-    solicitante: "Carlos Ruiz",
-    estado: "En camino",
-    prioridad: "Alta",
-    destino: { lat: -34.9214, lng: -57.9545 },
-    productos: [{ nombre: "Botiquín", cantidad: 5 }],
-    fecha_solicitada: "2026-06-15T16:45:00",
-    id_base: "BASE-001",
-  },
-  {
-    id: "SOL-005",
-    solicitante: "Laura Fernández",
-    estado: "Entregada",
-    prioridad: "Baja",
-    destino: { lat: -27.4514, lng: -58.9881 },
-    productos: [{ nombre: "Raciones", cantidad: 300 }],
-    fecha_solicitada: "2026-06-14T09:00:00",
-    id_base: "BASE-001",
-  },
-  {
-    id: "SOL-006",
-    solicitante: "Pedro Martínez",
-    estado: "Cancelada",
-    prioridad: "Media",
-    destino: { lat: -33.0348, lng: -58.5156 },
-    productos: [{ nombre: "Vacunas", cantidad: 25 }],
-    fecha_solicitada: "2026-06-13T11:20:00",
-    id_base: "BASE-001",
-  },
-];
 
 const getStatusGroup = (estado: string): FilterTab => {
   switch (estado) {
@@ -100,35 +38,52 @@ const getStatusGroup = (estado: string): FilterTab => {
   }
 };
 
+const STATUS_VARIANT: Record<string, "info" | "success" | "danger" | "warning"> = {
+  "En preparación": "warning",
+  "Lista": "warning",
+  "En camino": "info",
+  "Lanzada": "info",
+  "Completada": "success",
+  "Entregada": "success",
+  "Cancelada": "danger",
+  "Anulada": "danger",
+  "Rechazada": "danger",
+  "Asignada": "warning",
+  "Creada": "warning",
+};
+
 const getStatusVariant = (estado: string): "info" | "success" | "danger" | "warning" => {
-  switch (estado) {
-    case "En camino":
-    case "Lanzada":
-      return "info";
-    case "Entregada":
-    case "Completada":
-      return "success";
-    case "Cancelada":
-    case "Anulada":
-    case "Rechazada":
-      return "danger";
-    default:
-      return "warning";
-  }
+  return STATUS_VARIANT[estado] || "warning";
 };
 
 export default function RemitenteSolicitudesPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<FilterTab>("TODAS");
+  const [solicitudes, setSolicitudes] = useState<SolicitudItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = MOCK_SOLICITUDES.filter((s) => {
+  useEffect(() => {
+    consultarSolicitudesPendientesAction()
+      .then((res) => {
+        if (res.success && res.data) {
+          setSolicitudes(res.data);
+        } else {
+          setError(res.error || "Error al cargar solicitudes.");
+        }
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = solicitudes.filter((s) => {
     if (activeTab === "TODAS") return true;
     return getStatusGroup(s.estado) === activeTab;
   });
 
   const getCount = (tab: FilterTab) => {
-    if (tab === "TODAS") return MOCK_SOLICITUDES.length;
-    return MOCK_SOLICITUDES.filter((s) => getStatusGroup(s.estado) === tab).length;
+    if (tab === "TODAS") return solicitudes.length;
+    return solicitudes.filter((s) => getStatusGroup(s.estado) === tab).length;
   };
 
   const formatDate = (dateStr: string) => {
@@ -155,6 +110,12 @@ export default function RemitenteSolicitudesPage() {
           Gestioná las solicitudes de suministro asignadas a tu base de lanzamiento.
         </p>
       </div>
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl text-xs">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
 
       <div className="flex border-b border-slate-100 dark:border-slate-800 text-xs font-semibold gap-2 overflow-x-auto pb-0.5">
         {tabs.map(({ key, label }) => {
@@ -183,11 +144,17 @@ export default function RemitenteSolicitudesPage() {
         })}
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="flex flex-col gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 bg-slate-50 dark:bg-slate-800 animate-pulse rounded-2xl" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-10 text-center flex flex-col items-center justify-center">
           <span className="text-3xl mb-2">📦</span>
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No se encontraron solicitudes.</p>
-          <p className="text-xs text-slate-400 dark:text-slate-550 mt-1">Probá cambiando los filtros.</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Probá cambiando los filtros.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -200,7 +167,7 @@ export default function RemitenteSolicitudesPage() {
               <div className="flex flex-col gap-2 flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm">
-                    #{s.id}
+                    #{s.id?.substring(0, 8).toUpperCase()}
                   </span>
                   <StatusBadge variant={getStatusVariant(s.estado)}>{s.estado}</StatusBadge>
                   <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
@@ -209,10 +176,9 @@ export default function RemitenteSolicitudesPage() {
                 </div>
 
                 <div className="text-xs text-slate-500 dark:text-slate-400 flex flex-col gap-1 mt-1">
-                  <p><strong>Solicitante:</strong> {s.solicitante}</p>
+                  <p><strong>Solicitante:</strong> {s.solicitanteNombre}</p>
                   <p><strong>Fecha:</strong> {formatDate(s.fecha_solicitada)}</p>
-                  <p><strong>Destino:</strong> Lat: {s.destino.lat.toFixed(4)}, Lng: {s.destino.lng.toFixed(4)}</p>
-                  {s.id_base && <p><strong>Base:</strong> {s.id_base}</p>}
+                  <p><strong>Destino:</strong> Lat: {s.destino?.lat?.toFixed(4)}, Lng: {s.destino?.lng?.toFixed(4)}</p>
                 </div>
               </div>
 

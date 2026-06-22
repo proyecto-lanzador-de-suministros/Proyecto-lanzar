@@ -332,7 +332,7 @@ export async function consultarSolicitudAction(solicitudId: string) {
 
     if (rol === "remitente") {
       const usuario = await usuarioRepository.buscarPorId(userId);
-      id_base = usuario?.rol === "REMITENTE" ? usuario.id : undefined;
+      id_base = usuario?.rol === "REMITENTE" ? usuario.idBase : undefined;
     }
 
     const solicitud = await consultarSolicitudUseCase.ejecutar({
@@ -365,7 +365,7 @@ export async function consultarSolicitudesPendientesAction() {
 
     if (rol === "remitente") {
       const usuario = await usuarioRepository.buscarPorId(userId);
-      id_base = usuario?.rol === "REMITENTE" ? usuario.id : undefined;
+      id_base = usuario?.rol === "REMITENTE" ? usuario.idBase : undefined;
     }
 
     const solicitudes = await consultarSolicitudesPendientesUseCase.ejecutar({
@@ -373,7 +373,44 @@ export async function consultarSolicitudesPendientesAction() {
       id_base,
     });
 
-    return { success: true, data: solicitudes };
+    // Enriquecer con nombres de solicitante y productos
+    const uniqueUserIds = [...new Set(solicitudes.map((s) => s.id_usuario))];
+    const userPromises = uniqueUserIds.map((id) => usuarioRepository.buscarPorId(id));
+    const users = await Promise.all(userPromises);
+    const userMap = new Map(users.filter(Boolean).map((u) => [u!.id, u]));
+
+    // Obtener nombres de productos del catálogo
+    const allProductoIds = [...new Set(solicitudes.flatMap((s) => s.productos.map((p) => p.productoId)))];
+    const productMap = new Map<string, { nombre: string }>();
+    if (allProductoIds.length > 0) {
+      const catalogo = await listarCatalogoProductosUseCase.ejecutarCatalogo();
+      catalogo.forEach((p) => {
+        if (p.id_producto) {
+          productMap.set(p.id_producto, { nombre: p.nombre });
+        }
+      });
+    }
+
+    const data = solicitudes.map((s) => ({
+      id: s.id_solicitud,
+      id_usuario: s.id_usuario,
+      solicitanteNombre: userMap.get(s.id_usuario)?.nombre || "Desconocido",
+      estado: s.estado,
+      prioridad: s.prioridad,
+      destino: {
+        lat: s.ubicacion_destino.coordinates[1],
+        lng: s.ubicacion_destino.coordinates[0],
+      },
+      productos: s.productos.map((p) => ({
+        productoId: p.productoId,
+        nombre: productMap.get(p.productoId)?.nombre || p.productoId,
+        cantidad: p.cantidad,
+      })),
+      fecha_solicitada: s.fecha_solicitada.toISOString(),
+      id_base: s.id_base,
+    }));
+
+    return { success: true, data };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
