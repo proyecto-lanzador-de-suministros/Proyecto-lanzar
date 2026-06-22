@@ -4,7 +4,7 @@ info:
   version: 1.1.0
   description: Contrato REST para el sistema de encomiendas de caída libre. Autenticación delegada a Clerk (ADR-006).
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: http://localhost:3000/api
     description: Servidor de desarrollo
 
 tags:
@@ -127,6 +127,10 @@ paths:
                 nuevoEstado:
                   type: string
                   example: En preparación
+                cantidad_cajas:
+                  type: integer
+                  description: Requerido cuando nuevoEstado es "Lista"
+                  minimum: 1
       responses:
         '200':
           description: Estado actualizado exitosamente
@@ -215,7 +219,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Envio'
+              $ref: '#/components/schemas/ProgramarEnvioRequest'
       responses:
         '201':
           description: Envío creado
@@ -252,6 +256,42 @@ paths:
       responses:
         '201':
           description: Contenedor asignado al envío
+
+  # ==========================================
+  # ADMIN
+  # ==========================================
+  /admin/solicitudes:
+    get:
+      summary: Listar solicitudes del sistema (vista admin)
+      tags: [Solicitudes]
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de solicitudes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Solicitud'
+        '403':
+          description: Acceso denegado (requiere rol admin)
+
+  # ==========================================
+  # AUTENTICACIÓN
+  # ==========================================
+  /auth/login:
+    get:
+      summary: Iniciar sesión vía Clerk. Redirige a la página de autenticación.
+      tags: [Usuarios]
+      responses:
+        '302':
+          description: Redirección a la página de autenticación de Clerk
 
 components:
   securitySchemes:
@@ -379,6 +419,18 @@ components:
         estado:
           type: string
           example: Programado
+
+    ProgramarEnvioRequest:
+      type: object
+      required: [id_solicitud, id_base]
+      properties:
+        id_solicitud:
+          type: string
+          format: uuid
+          description: ID de la solicitud asociada
+        id_base:
+          type: string
+          description: ID de la base desde la que se envía
 
     Contenedor:
       type: object
