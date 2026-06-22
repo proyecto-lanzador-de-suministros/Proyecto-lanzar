@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import {
   usuarioRepository,
   listarCatalogoProductosUseCase,
+  envioRepository,
 } from "../container";
 
 /**
@@ -41,6 +42,9 @@ export async function consultarDetalleSolicitudRemitenteAction(
         error: "No tenés permiso para consultar esta solicitud.",
       };
     }
+
+    // Obtener datos del envío y trayectoria
+    const envio = await envioRepository.buscarPorIdSolicitud(solicitudId);
 
     // Enriquecer: nombre del solicitante
     const solicitante = await usuarioRepository.buscarPorId(solicitud.id_usuario);
@@ -86,6 +90,7 @@ export async function consultarDetalleSolicitudRemitenteAction(
           estadoNuevo: h.estadoNuevo,
           fechaHora: h.fechaHora.toISOString(),
         })),
+        trayectoria: envio?.datos_trayectoria ?? null,
       },
     };
   } catch (error: unknown) {

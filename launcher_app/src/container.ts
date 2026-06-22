@@ -260,7 +260,7 @@ const productosRepository = new PrismaProductosRepository();
 
 // ── Envíos ────────────────────────────────────────────────────────────────────
 
-const envioRepository = new PrismaEnvioRepository();
+export const envioRepository = new PrismaEnvioRepository();
 
 export const listarEnviosUseCase = new ListarEnviosUseCase(envioRepository);
 

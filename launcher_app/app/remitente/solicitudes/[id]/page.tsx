@@ -326,6 +326,51 @@ export default function RemitenteSolicitudDetallePage() {
             </div>
           </div>
 
+          {solicitud.trayectoria && (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-4">
+                🚀 Datos de trayectoria
+              </h2>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="col-span-2">
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mb-1">PUNTO DE LANZAMIENTO (CARP)</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    Lat: {solicitud.trayectoria.punto_lanzamiento.lat.toFixed(6)} | Lon: {solicitud.trayectoria.punto_lanzamiento.lon.toFixed(6)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mb-1">OFFSET</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    {solicitud.trayectoria.offset_norte_m > 0 ? `${solicitud.trayectoria.offset_norte_m} m al norte` : "0 m"}{" | "}
+                    {solicitud.trayectoria.offset_este_m > 0 ? `${solicitud.trayectoria.offset_este_m} m al este` : "0 m"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mb-1">LANZAMIENTO ESTIMADO</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    {new Date(solicitud.trayectoria.timestamp_estimado).toLocaleDateString("es-AR", {
+                      day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
+                    })} hs
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mb-1">CONDICIONES CLIMÁTICAS</p>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="text-slate-600 dark:text-slate-400">🌡️ {solicitud.trayectoria.condiciones_climaticas.temperatura_c}°C</span>
+                    <span className="text-slate-600 dark:text-slate-400">💨 {solicitud.trayectoria.condiciones_climaticas.velocidad_viento_ms} m/s</span>
+                    <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                      solicitud.trayectoria.condiciones_seguras
+                        ? "bg-green-50 dark:bg-green-950/25 text-green-600 dark:text-green-400"
+                        : "bg-red-50 dark:bg-red-950/25 text-red-600 dark:text-red-400"
+                    }`}>
+                      {solicitud.trayectoria.condiciones_seguras ? "✅ Seguro" : "❌ No seguro"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
             <h2 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-4">Línea de tiempo</h2>
             <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 pl-6 space-y-5">
