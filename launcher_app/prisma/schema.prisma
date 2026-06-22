@@ -138,7 +138,7 @@ model Envio {
   id_envio        String    @id @default(uuid())
   fecha_hora      DateTime?
   estado_envio    String    @default("PROGRAMADO")
-  datos_clima     Json?
+  datos_clima     Json?    // Almacena datos de trayectoria calculada (CARP, clima, offsets) como JSON
   entrega_real    DateTime?
   cod_seguimiento String?
   fecha_salida    DateTime?

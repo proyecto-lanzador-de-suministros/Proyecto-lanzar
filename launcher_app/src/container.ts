@@ -205,21 +205,9 @@ export const asignarRemitenteUseCase = new AsignarRemitenteUseCase(
   historialRepository,
 );
 
-export const registrarEnPreparacionUseCase = new RegistrarEnPreparacionUseCase(
-  solicitudRepository,
-  notificarEnPreparacion,
-  historialRepository,
-);
-
 export const registrarListaUseCase = new RegistrarListaUseCase(
   solicitudRepository,
   notificarLista,
-  historialRepository,
-);
-
-export const registrarEnCaminoUseCase = new RegistrarEnCaminoUseCase(
-  solicitudRepository,
-  notificarEnCamino,
   historialRepository,
 );
 
@@ -271,11 +259,27 @@ export const listarEnviosUseCase = new ListarEnviosUseCase(envioRepository);
 export const programarEnvioUseCase = new ProgramarEnvioUseCase(
   envioRepository,
   solicitudRepository,
+);
+
+export const asignarContenedorUseCase = new AsignarContenedorAEnvioUseCase(envioRepository);
+
+export const registrarEnPreparacionUseCase = new RegistrarEnPreparacionUseCase(
+  solicitudRepository,
+  notificarEnPreparacion,
+  historialRepository,
+  envioRepository,
   calcularTrayectoriaUseCase,
   productosRepository,
 );
 
-export const asignarContenedorUseCase = new AsignarContenedorAEnvioUseCase(envioRepository);
+export const registrarEnCaminoUseCase = new RegistrarEnCaminoUseCase(
+  solicitudRepository,
+  notificarEnCamino,
+  historialRepository,
+  envioRepository,
+  calcularTrayectoriaUseCase,
+  productosRepository,
+);
 
 export const listarCatalogoProductosUseCase = new ListarCatalogoProductosUseCase(
   productosRepository,
