@@ -15,6 +15,9 @@ export type DomainErrorCode =
   | "USUARIO_NO_ENCONTRADO"
   | "FALTA_ID_BASE"
   | "REMITENTE_NO_SELECCIONADO"
+  | "ENVIO_DUPLICADO"
+  | "SOLICITUD_NO_PROGRAMABLE"
+  | "BASE_NO_COINCIDE"
 
 export class DomainError extends Error {
   constructor(

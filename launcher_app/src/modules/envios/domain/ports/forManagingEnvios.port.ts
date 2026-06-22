@@ -22,5 +22,6 @@ export interface ForManagingEnvios {
   listarTodos(): Promise<Envio[]>;
   crear(envio: Omit<Envio, "id_envio">): Promise<Envio>;
   buscarPorId(id: string): Promise<Envio | null>;
+  buscarPorIdSolicitud(id_solicitud: string): Promise<Envio | null>;
   asignarContenedor(id_envio: string, contenedor: CrearContenedorInput): Promise<Contenedor>;
 }

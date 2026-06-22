@@ -96,4 +96,25 @@ export const Errores = {
       "REMITENTE_NO_SELECCIONADO",
       "Debe seleccionar un remitente válido.",
     ),
+
+  envioDuplicado: (id_solicitud: string) =>
+    new DomainError(
+      "ENVIO_DUPLICADO",
+      `Ya existe un envío programado para la solicitud ${id_solicitud}.`,
+      { id_solicitud },
+    ),
+
+  solicitudNoProgramable: (estadoActual: string) =>
+    new DomainError(
+      "SOLICITUD_NO_PROGRAMABLE",
+      `No se puede programar un envío para una solicitud en estado "${estadoActual}". La solicitud debe estar en estado "Lista".`,
+      { estadoActual },
+    ),
+
+  baseNoCoincide: (id_base_input: string, id_base_solicitud: string | undefined) =>
+    new DomainError(
+      "BASE_NO_COINCIDE",
+      `La base ${id_base_input} no coincide con la base asignada a la solicitud (${id_base_solicitud ?? "sin base"}).`,
+      { id_base_input, id_base_solicitud },
+    ),
 };

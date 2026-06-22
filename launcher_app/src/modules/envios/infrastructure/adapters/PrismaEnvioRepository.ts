@@ -46,6 +46,18 @@ export class PrismaEnvioRepository implements ForManagingEnvios {
     };
   }
 
+  async buscarPorIdSolicitud(id_solicitud: string): Promise<Envio | null> {
+    const row = await prisma.envio.findFirst({ where: { id_solicitud } });
+    if (!row) return null;
+    return {
+      id_envio: row.id_envio,
+      id_solicitud: row.id_solicitud,
+      id_base: row.id_base,
+      fecha_hora_programada: row.fecha_hora,
+      estado_envio: row.estado_envio,
+    };
+  }
+
   async asignarContenedor(id_envio: string, contenedor: CrearContenedorInput): Promise<Contenedor> {
     const row = await prisma.contenedor.create({
       data: {

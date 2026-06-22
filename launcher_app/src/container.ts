@@ -252,7 +252,7 @@ const envioRepository = new PrismaEnvioRepository();
 
 export const listarEnviosUseCase = new ListarEnviosUseCase(envioRepository);
 
-export const programarEnvioUseCase = new ProgramarEnvioUseCase(envioRepository);
+export const programarEnvioUseCase = new ProgramarEnvioUseCase(envioRepository, solicitudRepository);
 
 export const asignarContenedorUseCase = new AsignarContenedorAEnvioUseCase(envioRepository);
 // ── Productos (Catálogo) ─────────────────────────────────────────────────────
