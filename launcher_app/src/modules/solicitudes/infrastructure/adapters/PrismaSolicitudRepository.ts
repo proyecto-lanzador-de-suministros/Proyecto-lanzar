@@ -99,6 +99,7 @@ export class PrismaSolicitudesRepository implements ForManagingSolicitudes {
       motivoAnulacion?: string;
       id_base?: string;
       fecha_entrega?: Date;
+      cantidad_cajas?: number;
     },
   ): Promise<void> {
     await prisma.solicitud.update({

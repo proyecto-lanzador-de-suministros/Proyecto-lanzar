@@ -155,7 +155,7 @@ export default function AdminDashboard() {
    * registra el cambio en el historial de auditoría y notifica al
    * solicitante (o remitente, en CU-16) automáticamente.
    */
-  const handleAvanzarEstado = async () => {
+  const handleAvanzarEstado = async (cantidad_cajas?: number) => {
     if (!modalSolicitud)
       return { success: false, error: "No hay solicitud seleccionada." };
 
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
       [EstadoSolicitud.Asignada]: () =>
         registrarEnPreparacionAction(modalSolicitud.id),
       [EstadoSolicitud.EnPreparacion]: () =>
-        registrarListaAction(modalSolicitud.id),
+        registrarListaAction(modalSolicitud.id, cantidad_cajas!),
       [EstadoSolicitud.Lista]: () => registrarEnCaminoAction(modalSolicitud.id),
       [EstadoSolicitud.EnCamino]: () =>
         registrarLanzadaAction(modalSolicitud.id),
