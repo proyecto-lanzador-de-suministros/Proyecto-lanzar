@@ -147,7 +147,7 @@ export default function AdminLayout({
             <Logo className="w-10 h-10 flex-shrink-0" />
             <div>
               <span className="text-white font-bold text-base leading-none">
-                Launcher<span className="text-[#F5A623]">App</span>
+                Su<span className="text-[#F5A623]">Mi</span>
               </span>
             </div>
           </div>
