@@ -20,22 +20,33 @@ import {
   listarCatalogoProductosUseCase,
   usuarioRepository,
 } from "../container";
-import { PrioridadSolicitud, type ProductoSolicitado } from "../modules/solicitudes/domain/entities/Solicitud";
+import {
+  PrioridadSolicitud,
+  type ProductoSolicitado,
+} from "../modules/solicitudes/domain/entities/Solicitud";
 import type { PuntoGeometria } from "../types/geometria";
 import { prisma } from "../infrastructure/db/prisma.client";
 
 /**
  * Anula una solicitud (CU-11). Solo ejecutable por admin o remitente.
  */
-export async function anularSolicitudAction(solicitudId: string, formData: FormData) {
+export async function anularSolicitudAction(
+  solicitudId: string,
+  formData: FormData,
+) {
   const { userId, sessionClaims } = await auth();
 
-  if (!userId || (sessionClaims?.metadata?.rol !== "admin" && sessionClaims?.metadata?.rol !== "remitente")) {
+  if (
+    !userId ||
+    (sessionClaims?.metadata?.rol !== "admin" &&
+      sessionClaims?.metadata?.rol !== "remitente")
+  ) {
     return { success: false, error: "No autorizado." };
   }
 
   try {
-    const motivo = (formData.get("motivo") as string) || "Anulada por el administrador";
+    const motivo =
+      (formData.get("motivo") as string) || "Anulada por el administrador";
     await anularSolicitudUseCase.ejecutar(solicitudId, motivo, userId);
 
     revalidatePath("/admin/dashboard");
@@ -178,7 +189,10 @@ export async function confirmarRecibidaAction(solicitudId: string) {
 /**
  * Asigna un remitente aprobado a una solicitud (CU-09).
  */
-export async function asignarRemitenteAction(solicitudId: string, formData: FormData) {
+export async function asignarRemitenteAction(
+  solicitudId: string,
+  formData: FormData,
+) {
   const { userId, sessionClaims } = await auth();
 
   if (!userId || sessionClaims?.metadata?.rol !== "admin") {
@@ -212,7 +226,10 @@ export async function crearSolicitudAction(data: {
   const rol = sessionClaims?.metadata?.rol;
 
   if (!userId || rol !== "solicitante") {
-    return { success: false, error: "No autorizado. Se requiere rol solicitante." };
+    return {
+      success: false,
+      error: "No autorizado. Se requiere rol solicitante.",
+    };
   }
 
   try {
@@ -221,7 +238,10 @@ export async function crearSolicitudAction(data: {
     // Mapear los productos para resolver IDs reales por nombre/UUID
     const mappedProductos = [];
     for (const p of data.productos) {
-      const dbProduct = await listarCatalogoProductosUseCase.ejecutarBuscarProducto(p.productoId);
+      const dbProduct =
+        await listarCatalogoProductosUseCase.ejecutarBuscarProducto(
+          p.productoId,
+        );
       if (!dbProduct) {
         throw Errores.productoNoEncontrado(p.productoId);
       }
@@ -258,7 +278,10 @@ export async function crearSolicitudAction(data: {
  * Cancela una solicitud propia en estados tempranos (CU-10).
  * Ejecutable por solicitante (solo las propias) o admin (cualquiera).
  */
-export async function cancelarSolicitudAction(solicitudId: string, motivo?: string) {
+export async function cancelarSolicitudAction(
+  solicitudId: string,
+  motivo?: string,
+) {
   const { userId, sessionClaims } = await auth();
   const rol = sessionClaims?.metadata?.rol;
 
@@ -353,13 +376,17 @@ export async function obtenerSolicitudesSolicitanteAction() {
   const rol = sessionClaims?.metadata?.rol;
 
   if (!userId || rol !== "solicitante") {
-    return { success: false, error: "No autorizado. Se requiere rol solicitante." };
+    return {
+      success: false,
+      error: "No autorizado. Se requiere rol solicitante.",
+    };
   }
 
   try {
     await inicializarDatosPruebaUseCase.ejecutar(userId);
 
-    const solicitudesDomain = await solicitudRepository.listarPorSolicitante(userId);
+    const solicitudesDomain =
+      await solicitudRepository.listarPorSolicitante(userId);
     const data = solicitudesDomain.map((s) => ({
       id: s.id_solicitud,
       id_usuario: s.id_usuario,
@@ -369,8 +396,12 @@ export async function obtenerSolicitudesSolicitanteAction() {
       productos: s.productos,
       estado: s.estado,
       fecha_solicitada: s.fecha_solicitada.toISOString(),
-      fecha_estimada: s.fecha_estimada ? s.fecha_estimada.toISOString() : undefined,
-      fecha_entrega: s.fecha_entrega ? s.fecha_entrega.toISOString() : undefined,
+      fecha_estimada: s.fecha_estimada
+        ? s.fecha_estimada.toISOString()
+        : undefined,
+      fecha_entrega: s.fecha_entrega
+        ? s.fecha_entrega.toISOString()
+        : undefined,
       motivoCancelacion: s.motivoCancelacion,
       motivoAnulacion: s.motivoAnulacion,
       fechaActualizacion: s.fechaActualizacion.toISOString(),
@@ -420,7 +451,10 @@ export async function crearSolicitudAdminAction(data: {
   try {
     const mappedProductos = [];
     for (const p of data.productos) {
-      const dbProduct = await listarCatalogoProductosUseCase.ejecutarBuscarProducto(p.productoId);
+      const dbProduct =
+        await listarCatalogoProductosUseCase.ejecutarBuscarProducto(
+          p.productoId,
+        );
       if (!dbProduct) {
         throw Errores.productoNoEncontrado(p.productoId);
       }
@@ -468,6 +502,7 @@ export async function listarSolicitudesAdminAction(estado?: string) {
 
   try {
     const { listarSolicitudesAdminUseCase } = await import("../container");
+    //console.log("listando solicitudes...");
     const solicitudes = await listarSolicitudesAdminUseCase.ejecutar(estado);
 
     const data = solicitudes.map((s) => ({
@@ -496,7 +531,9 @@ export async function listarSolicitudesAdminAction(estado?: string) {
  * incluyendo el historial de cambios de estado (CU-20).
  * Solo accesible por admin.
  */
-export async function consultarDetalleSolicitudAdminAction(solicitudId: string) {
+export async function consultarDetalleSolicitudAdminAction(
+  solicitudId: string,
+) {
   const { userId, sessionClaims } = await auth();
   const rol = sessionClaims?.metadata?.rol;
 
@@ -506,7 +543,8 @@ export async function consultarDetalleSolicitudAdminAction(solicitudId: string) 
 
   try {
     const { consultarDetalleSolicitudUseCase } = await import("../container");
-    const { solicitud, historial } = await consultarDetalleSolicitudUseCase.ejecutar(solicitudId);
+    const { solicitud, historial } =
+      await consultarDetalleSolicitudUseCase.ejecutar(solicitudId);
 
     return {
       success: true,
@@ -522,7 +560,9 @@ export async function consultarDetalleSolicitudAdminAction(solicitudId: string) 
         motivoAnulacion: solicitud.motivoAnulacion,
         fechaSolicitada: solicitud.fecha_solicitada.toISOString(),
         fechaActualizacion: solicitud.fechaActualizacion.toISOString(),
-        fechaEntrega: solicitud.fecha_entrega ? solicitud.fecha_entrega.toISOString() : undefined,
+        fechaEntrega: solicitud.fecha_entrega
+          ? solicitud.fecha_entrega.toISOString()
+          : undefined,
         historial: historial.map((h) => ({
           id: h.id,
           actorId: h.actorId,
@@ -542,20 +582,29 @@ export async function consultarDetalleSolicitudAdminAction(solicitudId: string) 
  * Reutiliza el mismo use case que admin, pero valida que la solicitud
  * le pertenezca al solicitante autenticado.
  */
-export async function consultarDetalleSolicitudSolicitanteAction(solicitudId: string) {
+export async function consultarDetalleSolicitudSolicitanteAction(
+  solicitudId: string,
+) {
   const { userId, sessionClaims } = await auth();
   const rol = sessionClaims?.metadata?.rol;
 
   if (!userId || rol !== "solicitante") {
-    return { success: false, error: "No autorizado. Se requiere rol solicitante." };
+    return {
+      success: false,
+      error: "No autorizado. Se requiere rol solicitante.",
+    };
   }
 
   try {
     const { consultarDetalleSolicitudUseCase } = await import("../container");
-    const { solicitud, historial } = await consultarDetalleSolicitudUseCase.ejecutar(solicitudId);
+    const { solicitud, historial } =
+      await consultarDetalleSolicitudUseCase.ejecutar(solicitudId);
     // Verificar pertenencia: el solicitante solo puede ver sus propias solicitudes
     if (solicitud.id_usuario !== userId) {
-      return { success: false, error: "No tenés permiso para consultar esta solicitud." };
+      return {
+        success: false,
+        error: "No tenés permiso para consultar esta solicitud.",
+      };
     }
 
     return {
@@ -570,7 +619,9 @@ export async function consultarDetalleSolicitudSolicitanteAction(solicitudId: st
         motivoAnulacion: solicitud.motivoAnulacion,
         fechaSolicitada: solicitud.fecha_solicitada.toISOString(),
         fechaActualizacion: solicitud.fechaActualizacion.toISOString(),
-        fechaEntrega: solicitud.fecha_entrega ? solicitud.fecha_entrega.toISOString() : undefined,
+        fechaEntrega: solicitud.fecha_entrega
+          ? solicitud.fecha_entrega.toISOString()
+          : undefined,
         puedeSerCancelada: solicitud.puedeSerCancelada(),
         historial: historial.map((h) => ({
           id: h.id,

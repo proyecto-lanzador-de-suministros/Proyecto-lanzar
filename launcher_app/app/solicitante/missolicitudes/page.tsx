@@ -39,7 +39,7 @@ export default function MisSolicitudesPage() {
   };
 
   useEffect(() => {
-    fetchSolicitudes();
+    Promise.resolve().then(() => fetchSolicitudes());
   }, []);
 
   const handleCancelClick = (sol: any) => {

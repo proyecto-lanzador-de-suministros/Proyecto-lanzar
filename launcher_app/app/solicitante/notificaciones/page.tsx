@@ -33,7 +33,7 @@ export default function NotificacionesPage() {
   };
 
   useEffect(() => {
-    fetchNotificaciones();
+    Promise.resolve().then(() => fetchNotificaciones());
   }, []);
 
   const formatDate = (dateStr: string) => {

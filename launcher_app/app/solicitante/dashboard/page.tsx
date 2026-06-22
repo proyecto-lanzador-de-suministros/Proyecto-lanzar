@@ -53,7 +53,7 @@ export default function SolicitanteDashboard() {
   };
 
   useEffect(() => {
-    fetchData();
+    Promise.resolve().then(() => fetchData());
   }, []);
 
   const handleSelectPoint = (lat: number, lng: number) => {

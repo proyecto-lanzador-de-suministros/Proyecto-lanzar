@@ -57,7 +57,13 @@ export default function AdminDashboard() {
       console.log("[AdminDashboard] fetchSolicitudes response:", res);
       if (res.success && res.data) {
         console.log("[AdminDashboard] Solicitudes cargadas:", res.data.length);
-        setSolicitudes(res.data);
+        setSolicitudes(
+          res.data.map((s) => ({
+            ...s,
+            latDestino: Number(s.latDestino),
+            lonDestino: Number(s.lonDestino),
+          })),
+        );
       } else {
         throw new Error(res.error ?? "Error al obtener las solicitudes.");
       }
@@ -81,7 +87,10 @@ export default function AdminDashboard() {
         if (res.success && res.data) setRemitentesAprobados(res.data);
       });
       obtenerSolicitantesAction().then((res) => {
-        console.log("[AdminDashboard] obtenerSolicitantesAction response:", res);
+        console.log(
+          "[AdminDashboard] obtenerSolicitantesAction response:",
+          res,
+        );
         if (res.success && res.data) setSolicitantes(res.data);
       });
     });
