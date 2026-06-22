@@ -112,7 +112,7 @@ export default function ActividadReciente({ solicitudes, loading }: ActividadRec
             </div>
           ))}
           <Link
-            href="/admin/solicitudes"
+            href="/admin/dashboard#solicitudes"
             className="text-xs text-[#1565C0] font-semibold flex items-center gap-1 mt-2 hover:underline"
           >
             Ver todas las actividades
