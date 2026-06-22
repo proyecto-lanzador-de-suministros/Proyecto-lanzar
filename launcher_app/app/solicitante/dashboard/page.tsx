@@ -26,7 +26,10 @@ export default function SolicitanteDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   // Estado para la ubicación seleccionada en el mapa
-  const [selectedPoint, setSelectedPoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedPoint, setSelectedPoint] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   const fetchData = async () => {
     try {
@@ -37,7 +40,13 @@ export default function SolicitanteDashboard() {
       ]);
 
       if (resSol.success && resSol.data) {
-        setSolicitudes(resSol.data);
+        setSolicitudes(
+          resSol.data.map((s) => ({
+            ...s,
+            latDestino: Number(s.ubicacion_destino.coordinates[1]),
+            lonDestino: Number(s.ubicacion_destino.coordinates[0]),
+          })),
+        );
       } else if (resSol.error) {
         setError(resSol.error);
       }
@@ -64,7 +73,7 @@ export default function SolicitanteDashboard() {
   const handleCreateClick = () => {
     if (!selectedPoint) return;
     router.push(
-      `/solicitante/solicitudes/nueva?lat=${selectedPoint.lat}&lon=${selectedPoint.lng}`
+      `/solicitante/solicitudes/nueva?lat=${selectedPoint.lat}&lon=${selectedPoint.lng}`,
     );
   };
 
@@ -120,8 +129,12 @@ export default function SolicitanteDashboard() {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }) + ", " + 
-           d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) + " hs";
+    return (
+      d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }) +
+      ", " +
+      d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) +
+      " hs"
+    );
   };
 
   return (
@@ -134,17 +147,18 @@ export default function SolicitanteDashboard() {
 
       {/* Grid Superior: Mapa y Estado */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
         {/* Columna Principal: Mapa y Mis Solicitudes */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          
           {/* Card de Nueva Solicitud */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Nueva solicitud</h2>
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                  Nueva solicitud
+                </h2>
                 <p className="text-xs text-slate-400 dark:text-slate-500">
-                  Haz clic en el mapa para marcar el punto de entrega y habilitar la creación.
+                  Haz clic en el mapa para marcar el punto de entrega y
+                  habilitar la creación.
                 </p>
               </div>
               <Button
@@ -164,7 +178,9 @@ export default function SolicitanteDashboard() {
             {selectedPoint && (
               <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/40 text-orange-800 dark:text-orange-300 text-xs px-3 py-2 rounded-lg flex items-center justify-between">
                 <span>
-                  <strong>Ubicación seleccionada:</strong> Lat: {selectedPoint.lat.toFixed(6)}, Lng: {selectedPoint.lng.toFixed(6)}
+                  <strong>Ubicación seleccionada:</strong> Lat:{" "}
+                  {selectedPoint.lat.toFixed(6)}, Lng:{" "}
+                  {selectedPoint.lng.toFixed(6)}
                 </span>
                 <button
                   onClick={() => setSelectedPoint(null)}
@@ -177,29 +193,43 @@ export default function SolicitanteDashboard() {
 
             {/* Mapa interactivo */}
             <div className="w-full overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
-              <CoverageMap onSelectPoint={handleSelectPoint} selectedPoint={selectedPoint} />
+              <CoverageMap
+                onSelectPoint={handleSelectPoint}
+                selectedPoint={selectedPoint}
+              />
             </div>
           </div>
 
           {/* Card de Mis Solicitudes (Vista Rápida) */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">Mis solicitudes recientes</h2>
+              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                Mis solicitudes recientes
+              </h2>
               <Link href="/solicitante/missolicitudes">
-                <span className="text-xs text-brand hover:underline font-semibold cursor-pointer">Ver todas</span>
+                <span className="text-xs text-brand hover:underline font-semibold cursor-pointer">
+                  Ver todas
+                </span>
               </Link>
             </div>
 
             {loading ? (
               <div className="flex flex-col gap-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-12 bg-slate-50 dark:bg-slate-800 animate-pulse rounded-lg" />
+                  <div
+                    key={i}
+                    className="h-12 bg-slate-50 dark:bg-slate-800 animate-pulse rounded-lg"
+                  />
                 ))}
               </div>
             ) : solicitudes.length === 0 ? (
               <div className="py-8 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-xl">
-                <p className="text-sm text-slate-400 dark:text-slate-500">Aún no has realizado ninguna solicitud.</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Marca un punto en el mapa para comenzar.</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500">
+                  Aún no has realizado ninguna solicitud.
+                </p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                  Marca un punto en el mapa para comenzar.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -224,10 +254,16 @@ export default function SolicitanteDashboard() {
                             #{s.id.substring(0, 8).toUpperCase()}
                           </td>
                           <td className="py-3 px-2">
-                            <StatusBadge variant={statusInfo.variant}>{statusInfo.text}</StatusBadge>
+                            <StatusBadge variant={statusInfo.variant}>
+                              {statusInfo.text}
+                            </StatusBadge>
                           </td>
-                          <td className="py-3 px-2 font-medium capitalize">{s.prioridad.toLowerCase()}</td>
-                          <td className="py-3 px-2 text-slate-400">{formatDate(s.fecha_solicitada)}</td>
+                          <td className="py-3 px-2 font-medium capitalize">
+                            {s.prioridad.toLowerCase()}
+                          </td>
+                          <td className="py-3 px-2 text-slate-400">
+                            {formatDate(s.fecha_solicitada)}
+                          </td>
                         </tr>
                       );
                     })}
@@ -236,70 +272,99 @@ export default function SolicitanteDashboard() {
               </div>
             )}
           </div>
-
         </div>
 
         {/* Columna Lateral: Estado global, Notificaciones y Ayuda */}
         <div className="flex flex-col gap-6">
-          
           {/* Card de Estado de Solicitudes (Contadores) */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col gap-4">
-            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">Estado de tus solicitudes</h2>
-            
+            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+              Estado de tus solicitudes
+            </h2>
+
             <div className="flex flex-col gap-2.5">
-              
               {/* En camino */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/30 dark:border-blue-900/30">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm">✈️</span>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">En camino</span>
+                  <span className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm">
+                    ✈️
+                  </span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    En camino
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{enCamino}</span>
+                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                  {enCamino}
+                </span>
               </div>
 
               {/* En proceso */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-100/30 dark:border-orange-900/30">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm">⏱️</span>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">En proceso</span>
+                  <span className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm">
+                    ⏱️
+                  </span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    En proceso
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{enProceso}</span>
+                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                  {enProceso}
+                </span>
               </div>
 
               {/* Entregados */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-green-50/50 dark:bg-green-950/20 border border-green-100/30 dark:border-green-900/30">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm">✅</span>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Entregados</span>
+                  <span className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm">
+                    ✅
+                  </span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Entregados
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-green-600 dark:text-green-400">{entregadas}</span>
+                <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                  {entregadas}
+                </span>
               </div>
 
               {/* Cancelados */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-red-50/50 dark:bg-red-950/20 border border-red-100/30 dark:border-red-900/30">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm">❌</span>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Cancelados</span>
+                  <span className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm">
+                    ❌
+                  </span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Cancelados
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-red-600 dark:text-red-400">{canceladas}</span>
+                <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                  {canceladas}
+                </span>
               </div>
-
             </div>
           </div>
 
           {/* Card de Notificaciones Recientes */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">Notificaciones recientes</h2>
+              <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                Notificaciones recientes
+              </h2>
               <Link href="/solicitante/notificaciones">
-                <span className="text-xs text-brand hover:underline font-semibold cursor-pointer">Ver todas</span>
+                <span className="text-xs text-brand hover:underline font-semibold cursor-pointer">
+                  Ver todas
+                </span>
               </Link>
             </div>
 
             {loading ? (
               <div className="flex flex-col gap-2">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-10 bg-slate-50 dark:bg-slate-800 animate-pulse rounded-lg" />
+                  <div
+                    key={i}
+                    className="h-10 bg-slate-50 dark:bg-slate-800 animate-pulse rounded-lg"
+                  />
                 ))}
               </div>
             ) : notificaciones.length === 0 ? (
@@ -309,11 +374,18 @@ export default function SolicitanteDashboard() {
             ) : (
               <div className="flex flex-col gap-3">
                 {notificaciones.slice(0, 3).map((n) => (
-                  <div key={n.id_notificacion} className="flex gap-2.5 text-xs pb-2.5 border-b border-slate-50 dark:border-slate-800 last:border-0 last:pb-0">
+                  <div
+                    key={n.id_notificacion}
+                    className="flex gap-2.5 text-xs pb-2.5 border-b border-slate-50 dark:border-slate-800 last:border-0 last:pb-0"
+                  >
                     <span className="text-brand shrink-0">🔔</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-slate-700 dark:text-slate-300 leading-snug">{n.mensaje}</p>
-                      <span className="text-[10px] text-slate-400 mt-0.5 block">{formatDate(n.fecha_hora)}</span>
+                      <p className="text-slate-700 dark:text-slate-300 leading-snug">
+                        {n.mensaje}
+                      </p>
+                      <span className="text-[10px] text-slate-400 mt-0.5 block">
+                        {formatDate(n.fecha_hora)}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -323,28 +395,31 @@ export default function SolicitanteDashboard() {
 
           {/* Card de Información Útil */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col gap-3 text-xs">
-            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">Información útil</h2>
-            
+            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+              Información útil
+            </h2>
+
             <div className="flex flex-col gap-2">
               <Link href="/solicitante/ayuda?q=0">
                 <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-                  <span className="font-medium text-slate-700 dark:text-slate-300">¿Cómo hacer una solicitud?</span>
+                  <span className="font-medium text-slate-700 dark:text-slate-300">
+                    ¿Cómo hacer una solicitud?
+                  </span>
                   <span className="text-slate-400">➔</span>
                 </div>
               </Link>
               <Link href="/solicitante/ayuda?q=4">
                 <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-                  <span className="font-medium text-slate-700 dark:text-slate-300">Condiciones de envío</span>
+                  <span className="font-medium text-slate-700 dark:text-slate-300">
+                    Condiciones de envío
+                  </span>
                   <span className="text-slate-400">➔</span>
                 </div>
               </Link>
             </div>
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }
