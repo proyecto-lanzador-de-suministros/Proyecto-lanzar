@@ -13,7 +13,7 @@ interface ModalGestionSolicitudProps {
   onAsignarRemitente: (remitenteId: string) => Promise<{ success: boolean; error?: string }>;
   onAnular: () => Promise<{ success: boolean; error?: string }>;
   onCancelar: (motivo?: string) => Promise<{ success: boolean; error?: string }>;
-  onAvanzarEstado: () => Promise<{ success: boolean; error?: string }>;
+  onAvanzarEstado: (cantidad_cajas?: number) => Promise<{ success: boolean; error?: string }>;
 }
 
 // Estados desde los que el admin puede cancelar (CU-10): estados tempranos.
@@ -29,6 +29,7 @@ export default function ModalGestionSolicitud({
   onAvanzarEstado,
 }: ModalGestionSolicitudProps) {
   const [remitenteSeleccionado, setRemitenteSeleccionado] = useState("");
+  const [cantidadCajas, setCantidadCajas] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [errorModal, setErrorModal] = useState<string | null>(null);
 
@@ -93,9 +94,17 @@ export default function ModalGestionSolicitud({
   };
 
   const handleAvanzarEstado = async () => {
+    if (solicitud.estado === EstadoSolicitud.EnPreparacion) {
+      const cajas = parseInt(cantidadCajas, 10);
+      if (!cajas || cajas <= 0) {
+        setErrorModal("Ingresá una cantidad de cajas válida (mayor a cero).");
+        return;
+      }
+    }
     setGuardando(true);
     setErrorModal(null);
-    const res = await onAvanzarEstado();
+    const cajas = parseInt(cantidadCajas, 10);
+    const res = await onAvanzarEstado(isNaN(cajas) ? undefined : cajas);
     if (!res.success) setErrorModal(res.error ?? "No se pudo actualizar el estado.");
     setGuardando(false);
   };
@@ -225,6 +234,21 @@ export default function ModalGestionSolicitud({
                 <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
                   Siguiente paso del flujo
                 </label>
+                {solicitud.estado === EstadoSolicitud.EnPreparacion && (
+                  <div className="mb-3">
+                    <label className="block text-xs text-[#6B7280] mb-1">
+                      Cantidad de cajas armadas
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={cantidadCajas}
+                      onChange={(e) => setCantidadCajas(e.target.value)}
+                      placeholder="Ej: 3"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1565C0] bg-white"
+                    />
+                  </div>
+                )}
                 <button
                   onClick={handleAvanzarEstado}
                   disabled={guardando}

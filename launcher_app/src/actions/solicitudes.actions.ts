@@ -85,7 +85,10 @@ export async function registrarEnPreparacionAction(solicitudId: string) {
 /**
  * Marca una solicitud como lista (CU-13).
  */
-export async function registrarListaAction(solicitudId: string) {
+export async function registrarListaAction(
+  solicitudId: string,
+  cantidad_cajas: number,
+) {
   const { userId, sessionClaims } = await auth();
   const rol = sessionClaims?.metadata?.rol;
 
@@ -93,11 +96,19 @@ export async function registrarListaAction(solicitudId: string) {
     return { success: false, error: "No autorizado." };
   }
 
+  if (!cantidad_cajas || cantidad_cajas <= 0) {
+    return {
+      success: false,
+      error: "La cantidad de cajas debe ser mayor a cero.",
+    };
+  }
+
   try {
     await registrarListaUseCase.ejecutar({
       solicitudId,
       actorId: userId,
       rol: rol as "remitente" | "admin",
+      cantidad_cajas,
     });
 
     revalidatePath("/admin/dashboard");
