@@ -14,7 +14,9 @@ interface NotificacionGlobalJSON {
 }
 
 export default function AdminNotificacionesPage() {
-  const [notificaciones, setNotificaciones] = useState<NotificacionGlobalJSON[]>([]);
+  const [notificaciones, setNotificaciones] = useState<
+    NotificacionGlobalJSON[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagina, setPagina] = useState(1);
@@ -24,7 +26,9 @@ export default function AdminNotificacionesPage() {
   const cargar = async (paginaActual: number) => {
     setLoading(true);
     setError(null);
-    const res = await listarNotificacionesGlobalAction({ pagina: paginaActual });
+    const res = await listarNotificacionesGlobalAction({
+      pagina: paginaActual,
+    });
     if (res.success && res.data) {
       setNotificaciones(res.data);
       setTotalPaginas(res.paginacion?.totalPaginas ?? 1);
@@ -36,8 +40,7 @@ export default function AdminNotificacionesPage() {
   };
 
   useEffect(() => {
-    cargar(pagina);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    Promise.resolve().then(() => cargar(pagina));
   }, [pagina]);
 
   const formatFecha = (iso: string) =>
@@ -56,12 +59,14 @@ export default function AdminNotificacionesPage() {
         <div>
           <h1 className="text-2xl font-bold text-[#1A1A2E]">Notificaciones</h1>
           <p className="text-sm text-[#6B7280] mt-0.5">
-            Todas las notificaciones enviadas a solicitantes y remitentes del sistema.
+            Todas las notificaciones enviadas a solicitantes y remitentes del
+            sistema.
           </p>
         </div>
         {!loading && (
           <span className="text-xs font-medium bg-gray-100 text-[#6B7280] px-2.5 py-1.5 rounded-full">
-            {total} notificación{total !== 1 ? "es" : ""} enviada{total !== 1 ? "s" : ""}
+            {total} notificación{total !== 1 ? "es" : ""} enviada
+            {total !== 1 ? "s" : ""}
           </span>
         )}
       </div>
@@ -77,12 +82,16 @@ export default function AdminNotificacionesPage() {
           {loading ? (
             <div className="p-10 flex justify-center items-center gap-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F5A623]" />
-              <span className="text-sm text-[#6B7280]">Cargando notificaciones...</span>
+              <span className="text-sm text-[#6B7280]">
+                Cargando notificaciones...
+              </span>
             </div>
           ) : notificaciones.length === 0 ? (
             <div className="p-10 text-center">
               <span className="text-3xl mb-2 block">🔔</span>
-              <p className="text-sm font-medium text-[#1A1A2E]">No se enviaron notificaciones todavía.</p>
+              <p className="text-sm font-medium text-[#1A1A2E]">
+                No se enviaron notificaciones todavía.
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -97,7 +106,10 @@ export default function AdminNotificacionesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50 text-sm">
                   {notificaciones.map((n) => (
-                    <tr key={n.id} className="hover:bg-[#F8FAFC] transition-colors">
+                    <tr
+                      key={n.id}
+                      className="hover:bg-[#F8FAFC] transition-colors"
+                    >
                       <td className="px-6 py-4 text-[#1A1A2E] text-xs whitespace-nowrap">
                         {formatFecha(n.fechaHora)}
                       </td>
@@ -113,7 +125,9 @@ export default function AdminNotificacionesPage() {
                             #{n.solicitudId.substring(0, 8).toUpperCase()}
                           </Link>
                         ) : (
-                          <span className="text-[11px] text-[#6B7280] italic">Cuenta de usuario</span>
+                          <span className="text-[11px] text-[#6B7280] italic">
+                            Cuenta de usuario
+                          </span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-[#1A1A2E] text-xs">
@@ -144,7 +158,9 @@ export default function AdminNotificacionesPage() {
                   Anterior
                 </button>
                 <button
-                  onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+                  onClick={() =>
+                    setPagina((p) => Math.min(totalPaginas, p + 1))
+                  }
                   disabled={pagina >= totalPaginas}
                   className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-[#6B7280] hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >

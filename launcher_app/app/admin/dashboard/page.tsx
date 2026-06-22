@@ -13,7 +13,10 @@ import {
   confirmarRecibidaAction,
   listarSolicitudesAdminAction,
 } from "@/src/actions/solicitudes.actions";
-import { obtenerRemitentesAprobadosAction, obtenerSolicitantesAction } from "@/src/actions/usuarios.actions";
+import {
+  obtenerRemitentesAprobadosAction,
+  obtenerSolicitantesAction,
+} from "@/src/actions/usuarios.actions";
 
 import StatsCards from "@/app/components/dashboard/StatsCards";
 import GraficaDona from "@/app/components/dashboard/GraficaDona";
@@ -23,7 +26,10 @@ import AccionesYAlertas from "@/app/components/dashboard/AccionesYAlertas";
 import TablaSolicitudes from "@/app/components/dashboard/TablaSolicitudes";
 import ModalGestionSolicitud from "@/app/components/dashboard/ModalGestionSolicitud";
 import ModalCrearSolicitudAdmin from "@/app/components/dashboard/ModalCrearSolicitudAdmin";
-import { RemitenteOption, SolicitudJSON } from "@/app/components/dashboard/types";
+import {
+  RemitenteOption,
+  SolicitudJSON,
+} from "@/app/components/dashboard/types";
 
 export default function AdminDashboard() {
   console.log("[AdminDashboard] Componente montado");
@@ -31,10 +37,16 @@ export default function AdminDashboard() {
   const [solicitudes, setSolicitudes] = useState<SolicitudJSON[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modalSolicitud, setModalSolicitud] = useState<SolicitudJSON | null>(null);
-  const [remitentesAprobados, setRemitentesAprobados] = useState<RemitenteOption[]>([]);
+  const [modalSolicitud, setModalSolicitud] = useState<SolicitudJSON | null>(
+    null,
+  );
+  const [remitentesAprobados, setRemitentesAprobados] = useState<
+    RemitenteOption[]
+  >([]);
   const [mostrarCrear, setMostrarCrear] = useState(false);
-  const [solicitantes, setSolicitantes] = useState<{ id: string; nombre: string }[]>([]);
+  const [solicitantes, setSolicitantes] = useState<
+    { id: string; nombre: string }[]
+  >([]);
 
   const fetchSolicitudes = async () => {
     console.log("[AdminDashboard] fetchSolicitudes iniciando...");
@@ -59,31 +71,40 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    console.log("[AdminDashboard] useEffect - montando, id:", undefined);
-    fetchSolicitudes();
-    obtenerRemitentesAprobadosAction().then((res) => {
-      console.log("[AdminDashboard] obtenerRemitentesAprobadosAction response:", res);
-      if (res.success && res.data) setRemitentesAprobados(res.data);
-    });
-    obtenerSolicitantesAction().then((res) => {
-      console.log("[AdminDashboard] obtenerSolicitantesAction response:", res);
-      if (res.success && res.data) setSolicitantes(res.data);
+    Promise.resolve().then(() => {
+      fetchSolicitudes();
+      obtenerRemitentesAprobadosAction().then((res) => {
+        console.log(
+          "[AdminDashboard] obtenerRemitentesAprobadosAction response:",
+          res,
+        );
+        if (res.success && res.data) setRemitentesAprobados(res.data);
+      });
+      obtenerSolicitantesAction().then((res) => {
+        console.log("[AdminDashboard] obtenerSolicitantesAction response:", res);
+        if (res.success && res.data) setSolicitantes(res.data);
+      });
     });
   }, []);
 
   // Stats derivadas, usadas tanto en alertas como en otros componentes.
   const pendientes = solicitudes.filter(
-    (s) => s.estado === EstadoSolicitud.Creada || s.estado === EstadoSolicitud.Asignada,
+    (s) =>
+      s.estado === EstadoSolicitud.Creada ||
+      s.estado === EstadoSolicitud.Asignada,
   ).length;
   const canceladas = solicitudes.filter(
-    (s) => s.estado === EstadoSolicitud.Cancelada || s.estado === EstadoSolicitud.Anulada,
+    (s) =>
+      s.estado === EstadoSolicitud.Cancelada ||
+      s.estado === EstadoSolicitud.Anulada,
   ).length;
 
   const abrirModal = (sol: SolicitudJSON) => setModalSolicitud(sol);
   const cerrarModal = () => setModalSolicitud(null);
 
   const handleAsignarRemitente = async (remitenteId: string) => {
-    if (!modalSolicitud) return { success: false, error: "No hay solicitud seleccionada." };
+    if (!modalSolicitud)
+      return { success: false, error: "No hay solicitud seleccionada." };
     const formData = new FormData();
     formData.append("remitenteId", remitenteId);
     const res = await asignarRemitenteAction(modalSolicitud.id, formData);
@@ -95,7 +116,8 @@ export default function AdminDashboard() {
   };
 
   const handleAnular = async () => {
-    if (!modalSolicitud) return { success: false, error: "No hay solicitud seleccionada." };
+    if (!modalSolicitud)
+      return { success: false, error: "No hay solicitud seleccionada." };
     const formData = new FormData();
     formData.append("motivo", "Anulada por administrador");
     const res = await anularSolicitudAction(modalSolicitud.id, formData);
@@ -107,7 +129,8 @@ export default function AdminDashboard() {
   };
 
   const handleCancelar = async (motivo?: string) => {
-    if (!modalSolicitud) return { success: false, error: "No hay solicitud seleccionada." };
+    if (!modalSolicitud)
+      return { success: false, error: "No hay solicitud seleccionada." };
     const res = await cancelarSolicitudAction(modalSolicitud.id, motivo);
     if (res.success) {
       await fetchSolicitudes();
@@ -124,22 +147,33 @@ export default function AdminDashboard() {
    * solicitante (o remitente, en CU-16) automáticamente.
    */
   const handleAvanzarEstado = async () => {
-    if (!modalSolicitud) return { success: false, error: "No hay solicitud seleccionada." };
+    if (!modalSolicitud)
+      return { success: false, error: "No hay solicitud seleccionada." };
 
     const accionesPorEstado: Partial<
-      Record<EstadoSolicitud, () => Promise<{ success: boolean; error?: string }>>
+      Record<
+        EstadoSolicitud,
+        () => Promise<{ success: boolean; error?: string }>
+      >
     > = {
-      [EstadoSolicitud.Asignada]: () => registrarEnPreparacionAction(modalSolicitud.id),
-      [EstadoSolicitud.EnPreparacion]: () => registrarListaAction(modalSolicitud.id),
+      [EstadoSolicitud.Asignada]: () =>
+        registrarEnPreparacionAction(modalSolicitud.id),
+      [EstadoSolicitud.EnPreparacion]: () =>
+        registrarListaAction(modalSolicitud.id),
       [EstadoSolicitud.Lista]: () => registrarEnCaminoAction(modalSolicitud.id),
-      [EstadoSolicitud.EnCamino]: () => registrarLanzadaAction(modalSolicitud.id),
-      [EstadoSolicitud.Lanzada]: () => confirmarRecibidaAction(modalSolicitud.id),
+      [EstadoSolicitud.EnCamino]: () =>
+        registrarLanzadaAction(modalSolicitud.id),
+      [EstadoSolicitud.Lanzada]: () =>
+        confirmarRecibidaAction(modalSolicitud.id),
     };
 
     const ejecutarAccion = accionesPorEstado[modalSolicitud.estado];
 
     if (!ejecutarAccion) {
-      return { success: false, error: "No hay una transición disponible para el estado actual." };
+      return {
+        success: false,
+        error: "No hay una transición disponible para el estado actual.",
+      };
     }
 
     const res = await ejecutarAccion();
@@ -155,7 +189,9 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-8 py-5 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#1A1A2E]">Panel de control</h1>
+          <h1 className="text-2xl font-bold text-[#1A1A2E]">
+            Panel de control
+          </h1>
           <p className="text-sm text-[#6B7280] mt-0.5">
             Resumen general de la actividad del sistema.
           </p>
