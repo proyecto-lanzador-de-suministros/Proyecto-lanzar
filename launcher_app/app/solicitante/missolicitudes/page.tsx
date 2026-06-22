@@ -38,8 +38,13 @@ export default function MisSolicitudesPage() {
         setSolList(
           res.data.map((s) => ({
             ...s,
-            latDestino: Number(s.ubicacion_destino.coordinates[0]),
-            lonDestino: Number(s.ubicacion_destino.coordinates[1]),
+            ubicacion_destino: {
+              ...s.ubicacion_destino,
+              coordinates: [
+                Number(s.ubicacion_destino.coordinates[0]),
+                Number(s.ubicacion_destino.coordinates[1]),
+              ],
+            },
           })),
         );
       } else {
