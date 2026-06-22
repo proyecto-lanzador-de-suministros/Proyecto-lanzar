@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { usePathname, useRouter } from "next/navigation";
+import { UserButton, useUser } from "@clerk/nextjs";
 import Logo from "@/app/components/ui/Logo";
+import { useEffect } from "react";
 
 // Paleta del mockup: sidebar navy #1B2A4A, acento amber #F5A623, nav activo #1565C0
 
@@ -108,6 +109,18 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const rol = user?.publicMetadata?.rol as string | undefined;
+    if (rol !== "admin") {
+      router.push("/");
+    }
+  }, [isLoaded, user, router]);
+
+  if (!isLoaded) return null;
 
   const isActive = (href: string) =>
     href === "/admin/dashboard"

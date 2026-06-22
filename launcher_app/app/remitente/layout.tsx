@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import DashboardShell from "@/app/components/layout/DashboardShell";
 import { useEffect, useState } from "react";
 import { obtenerNotificacionesAction } from "@/src/actions/notificaciones.actions";
@@ -11,7 +12,19 @@ export default function RemitenteLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isLoaded } = useUser();
   const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const rol = user?.publicMetadata?.rol as string | undefined;
+    if (rol !== "remitente") {
+      router.push("/");
+    }
+  }, [isLoaded, user, router]);
+
+  if (!isLoaded) return null;
 
   const fetchNotifCount = () => {
     obtenerNotificacionesAction().then((res) => {
