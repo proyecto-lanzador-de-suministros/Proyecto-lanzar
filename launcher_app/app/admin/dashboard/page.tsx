@@ -26,6 +26,8 @@ import ModalCrearSolicitudAdmin from "@/app/components/dashboard/ModalCrearSolic
 import { RemitenteOption, SolicitudJSON } from "@/app/components/dashboard/types";
 
 export default function AdminDashboard() {
+  console.log("[AdminDashboard] Componente montado");
+
   const [solicitudes, setSolicitudes] = useState<SolicitudJSON[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,28 +37,36 @@ export default function AdminDashboard() {
   const [solicitantes, setSolicitantes] = useState<{ id: string; nombre: string }[]>([]);
 
   const fetchSolicitudes = async () => {
+    console.log("[AdminDashboard] fetchSolicitudes iniciando...");
     setLoading(true);
     setError(null);
     try {
       const res = await listarSolicitudesAdminAction();
+      console.log("[AdminDashboard] fetchSolicitudes response:", res);
       if (res.success && res.data) {
+        console.log("[AdminDashboard] Solicitudes cargadas:", res.data.length);
         setSolicitudes(res.data);
       } else {
         throw new Error(res.error ?? "Error al obtener las solicitudes.");
       }
     } catch (err: unknown) {
+      console.error("[AdminDashboard] fetchSolicitudes error:", err);
       setError(err instanceof Error ? err.message : "Error desconocido.");
     } finally {
+      console.log("[AdminDashboard] fetchSolicitudes finalizado");
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log("[AdminDashboard] useEffect - montando, id:", undefined);
     fetchSolicitudes();
     obtenerRemitentesAprobadosAction().then((res) => {
+      console.log("[AdminDashboard] obtenerRemitentesAprobadosAction response:", res);
       if (res.success && res.data) setRemitentesAprobados(res.data);
     });
     obtenerSolicitantesAction().then((res) => {
+      console.log("[AdminDashboard] obtenerSolicitantesAction response:", res);
       if (res.success && res.data) setSolicitantes(res.data);
     });
   }, []);

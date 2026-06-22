@@ -112,15 +112,23 @@ export default function AdminLayout({
   const router = useRouter();
   const { user, isLoaded } = useUser();
 
+  console.log("[AdminLayout] Render, pathname:", pathname, "isLoaded:", isLoaded, "user:", user?.id);
+
   useEffect(() => {
+    console.log("[AdminLayout] useEffect, isLoaded:", isLoaded, "user:", user?.id);
     if (!isLoaded) return;
     const rol = user?.publicMetadata?.rol as string | undefined;
+    console.log("[AdminLayout] Rol detectado:", rol);
     if (rol !== "admin") {
+      console.warn("[AdminLayout] Rol no es admin, redirigiendo a /");
       router.push("/");
     }
   }, [isLoaded, user, router]);
 
-  if (!isLoaded) return null;
+  if (!isLoaded) {
+    console.log("[AdminLayout] isLoaded false, retornando null");
+    return null;
+  }
 
   const isActive = (href: string) =>
     href === "/admin/dashboard"

@@ -32,19 +32,33 @@ interface DetalleSolicitudJSON {
 
 export default function AdminDetalleSolicitudPage() {
   const params = useParams<{ id: string }>();
+  console.log("[AdminDetalle] Componente montado, params:", params);
+
   const router = useRouter();
   const [detalle, setDetalle] = useState<DetalleSolicitudJSON | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!params.id) return;
+    console.log("[AdminDetalle] useEffect - params.id:", params.id);
+    if (!params.id) {
+      console.warn("[AdminDetalle] params.id es undefined, retornando");
+      return;
+    }
+    console.log("[AdminDetalle] Llamando consultarDetalleSolicitudAdminAction...");
     consultarDetalleSolicitudAdminAction(params.id).then((res) => {
+      console.log("[AdminDetalle] consultarDetalleSolicitudAdminAction response:", res);
       if (res.success && res.data) {
+        console.log("[AdminDetalle] Detalle cargado exitosamente");
         setDetalle(res.data as DetalleSolicitudJSON);
       } else {
+        console.error("[AdminDetalle] Error en respuesta:", res.error);
         setError(res.error ?? "No se pudo cargar la solicitud.");
       }
+      setLoading(false);
+    }).catch((err) => {
+      console.error("[AdminDetalle] Error en promesa:", err);
+      setError(err instanceof Error ? err.message : "Error desconocido.");
       setLoading(false);
     });
   }, [params.id]);
