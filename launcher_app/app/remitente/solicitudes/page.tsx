@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import StatusBadge from "@/app/components/ui/StatusBadge";
-import { consultarSolicitudesPendientesAction } from "@/src/actions/solicitudes.actions";
+import { obtenerSolicitudesRemitenteAction } from "@/src/actions/solicitudes.actions";
 
 type FilterTab = "TODAS" | "PENDIENTES" | "PREPARACION" | "EN_CAMINO" | "ENTREGADAS" | "CANCELADAS";
 
@@ -64,7 +64,7 @@ export default function RemitenteSolicitudesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    consultarSolicitudesPendientesAction()
+    obtenerSolicitudesRemitenteAction()
       .then((res) => {
         if (res.success && res.data) {
           setSolicitudes(res.data);

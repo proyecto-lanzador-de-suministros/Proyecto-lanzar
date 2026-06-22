@@ -349,6 +349,69 @@ export async function consultarSolicitudAction(solicitudId: string) {
 }
 
 /**
+ * Lista todas las solicitudes asignadas a la base del remitente.
+ */
+export async function obtenerSolicitudesRemitenteAction() {
+  const { userId, sessionClaims } = await auth();
+  const rol = sessionClaims?.metadata?.rol;
+
+  if (!userId || rol !== "remitente") {
+    return { success: false, error: "No autorizado." };
+  }
+
+  try {
+    const usuario = await usuarioRepository.buscarPorId(userId);
+    const id_base = usuario?.rol === "REMITENTE" ? usuario.idBase : undefined;
+
+    if (!id_base) {
+      return { success: false, error: "No tenés una base asignada." };
+    }
+
+    const solicitudes = await solicitudRepository.listarPorBase(id_base);
+
+    // Enriquecer con nombres de solicitante y productos
+    const uniqueUserIds = [...new Set(solicitudes.map((s) => s.id_usuario))];
+    const userPromises = uniqueUserIds.map((id) => usuarioRepository.buscarPorId(id));
+    const users = await Promise.all(userPromises);
+    const userMap = new Map(users.filter(Boolean).map((u) => [u!.id, u]));
+
+    const allProductoIds = [...new Set(solicitudes.flatMap((s) => s.productos.map((p) => p.productoId)))];
+    const productMap = new Map<string, { nombre: string }>();
+    if (allProductoIds.length > 0) {
+      const catalogo = await listarCatalogoProductosUseCase.ejecutarCatalogo();
+      catalogo.forEach((p) => {
+        if (p.id_producto) {
+          productMap.set(p.id_producto, { nombre: p.nombre });
+        }
+      });
+    }
+
+    const data = solicitudes.map((s) => ({
+      id: s.id_solicitud,
+      id_usuario: s.id_usuario,
+      solicitanteNombre: userMap.get(s.id_usuario)?.nombre || "Desconocido",
+      estado: s.estado,
+      prioridad: s.prioridad,
+      destino: {
+        lat: s.ubicacion_destino.coordinates[1],
+        lng: s.ubicacion_destino.coordinates[0],
+      },
+      productos: s.productos.map((p) => ({
+        productoId: p.productoId,
+        nombre: productMap.get(p.productoId)?.nombre || p.productoId,
+        cantidad: p.cantidad,
+      })),
+      fecha_solicitada: s.fecha_solicitada.toISOString(),
+      id_base: s.id_base,
+    }));
+
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Lista las solicitudes pendientes según el rol (CU-19).
  * Remitente ve las de su base, admin ve todas.
  */
