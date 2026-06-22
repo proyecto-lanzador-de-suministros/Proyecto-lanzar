@@ -215,12 +215,14 @@ export const registrarListaUseCase = new RegistrarListaUseCase(
   solicitudRepository,
   notificarLista,
   historialRepository,
+  usuarioRepository,
 );
 
 export const registrarLanzadaUseCase = new RegistrarLanzadaUseCase(
   solicitudRepository,
   notificarLanzada,
   historialRepository,
+  usuarioRepository,
 );
 
 export const confirmarRecibidaUseCase = new ConfirmarRecibidaUseCase(
@@ -276,6 +278,7 @@ export const registrarEnPreparacionUseCase = new RegistrarEnPreparacionUseCase(
   envioRepository,
   calcularTrayectoriaUseCase,
   productosRepository,
+  usuarioRepository,
 );
 
 export const registrarEnCaminoUseCase = new RegistrarEnCaminoUseCase(
@@ -285,6 +288,7 @@ export const registrarEnCaminoUseCase = new RegistrarEnCaminoUseCase(
   envioRepository,
   calcularTrayectoriaUseCase,
   productosRepository,
+  usuarioRepository,
 );
 
 export const listarCatalogoProductosUseCase = new ListarCatalogoProductosUseCase(

@@ -8,6 +8,7 @@ import {
   registrarLanzadaUseCase,
   registrarListaUseCase,
   solicitudRepository,
+  usuarioRepository,
 } from "@/src/container";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
 import { handleDomainError } from "@/src/infrastructure/errors/handleDomainError";
@@ -66,16 +67,19 @@ export async function PATCH(
       );
     }
 
-    if (rol === "remitente" && solicitud.id_base !== userId) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "FORBIDDEN",
-            message: "No tienes permiso para modificar esta solicitud.",
+    if (rol === "remitente") {
+      const usuario = await usuarioRepository.buscarPorId(userId);
+      if (!usuario || usuario.idBase !== solicitud.id_base) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "FORBIDDEN",
+              message: "No tienes permiso para modificar esta solicitud.",
+            },
           },
-        },
-        { status: 403 },
-      );
+          { status: 403 },
+        );
+      }
     }
 
     if (nuevoEstado === EstadoSolicitud.EnPreparacion) {

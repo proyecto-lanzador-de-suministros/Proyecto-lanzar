@@ -6,6 +6,7 @@ import { NotificarEnPreparacion } from "@/src/modules/notificaciones/domain/use-
 import { ForManagingEnvios, DatosTrayectoria } from "@/src/modules/envios/domain/ports/forManagingEnvios.port";
 import { CalcularTrayectoria } from "@/src/modules/trayectoria/domain/use-cases/CalcularTrayectoria.usecase";
 import { ForManagingProductos } from "@/src/modules/stock/domain/ports/forManagingProductos.port";
+import { ForManagingUsuarios } from "@/src/modules/usuarios/domain/ports/forManagingUsuarios.port";
 
 export interface RegistrarEnPreparacionInput {
   solicitudId: string;
@@ -21,6 +22,7 @@ export class RegistrarEnPreparacionUseCase {
     private readonly envioRepository: ForManagingEnvios,
     private readonly calcularTrayectoria: CalcularTrayectoria,
     private readonly productosRepository: ForManagingProductos,
+    private readonly usuarioRepository: ForManagingUsuarios,
   ) {}
 
   async ejecutar(input: RegistrarEnPreparacionInput): Promise<void> {
@@ -31,8 +33,11 @@ export class RegistrarEnPreparacionUseCase {
       throw Errores.solicitudNoEncontrada(solicitudId);
     }
 
-    if (rol === "remitente" && solicitud.id_base !== actorId) {
-      throw Errores.permisoDenegado("remitente", rol);
+    if (rol === "remitente") {
+      const usuario = await this.usuarioRepository.buscarPorId(actorId);
+      if (!usuario || usuario.idBase !== solicitud.id_base) {
+        throw Errores.permisoDenegado("remitente", rol);
+      }
     }
 
     const estadoAnterior = solicitud.estado;

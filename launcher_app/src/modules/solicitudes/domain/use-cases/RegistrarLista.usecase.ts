@@ -3,6 +3,7 @@ import { ForManagingSolicitudes } from "../ports/forManagingSolicitudes.port";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
 import { EstadoSolicitud } from "../entities/Solicitud";
 import { NotificarLista } from "@/src/modules/notificaciones/domain/use-cases/NotificarLista.usecase";
+import { ForManagingUsuarios } from "@/src/modules/usuarios/domain/ports/forManagingUsuarios.port";
 
 export interface RegistrarListaInput {
   solicitudId: string;
@@ -16,6 +17,7 @@ export class RegistrarListaUseCase {
     private readonly solicitudRepository: ForManagingSolicitudes,
     private readonly notificarLista: NotificarLista,
     private readonly historial: ForManagingHistorial,
+    private readonly usuarioRepository: ForManagingUsuarios,
   ) {}
 
   /**
@@ -37,8 +39,11 @@ export class RegistrarListaUseCase {
     }
 
     // Verificar permisos: si es remitente, debe ser el asignado a la solicitud
-    if (rol === "remitente" && solicitud.id_base !== actorId) {
-      throw Errores.permisoDenegado("remitente", rol);
+    if (rol === "remitente") {
+      const usuario = await this.usuarioRepository.buscarPorId(actorId);
+      if (!usuario || usuario.idBase !== solicitud.id_base) {
+        throw Errores.permisoDenegado("remitente", rol);
+      }
     }
 
     const estadoAnterior = solicitud.estado;
