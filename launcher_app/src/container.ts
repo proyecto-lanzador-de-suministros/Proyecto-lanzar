@@ -167,6 +167,7 @@ export const cancelarSolicitudUseCase = new CancelarSolicitud(
   stockRepository,
   notificarCancelacion,
   historialRepository,
+  usuarioRepository,
 );
 
 export const consultarSolicitudUseCase = new ConsultarSolicitudUseCase(solicitudRepository);

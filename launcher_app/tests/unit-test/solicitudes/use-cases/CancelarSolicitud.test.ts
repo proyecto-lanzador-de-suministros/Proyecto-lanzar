@@ -10,6 +10,9 @@ describe("CancelarSolicitud", () => {
     actualizarEstado: ReturnType<typeof vi.fn>;
   };
   let stockMock: { liberarReserva: ReturnType<typeof vi.fn> };
+  let notificarMock: { ejecutar: ReturnType<typeof vi.fn> };
+  let historialMock: { registrar: ReturnType<typeof vi.fn> };
+  let usuarioRepoMock: { listarRemitentesPorBase: ReturnType<typeof vi.fn> };
   let useCase: CancelarSolicitud;
 
   beforeEach(() => {
@@ -19,9 +22,15 @@ describe("CancelarSolicitud", () => {
       actualizarEstado: vi.fn(),
     };
     stockMock = { liberarReserva: vi.fn() };
+    notificarMock = { ejecutar: vi.fn() };
+    historialMock = { registrar: vi.fn() };
+    usuarioRepoMock = { listarRemitentesPorBase: vi.fn() };
     useCase = new CancelarSolicitud(
       repoMock as unknown as ForManagingSolicitudes,
       stockMock as unknown as ForManagingStock,
+      notificarMock as any,
+      historialMock as any,
+      usuarioRepoMock as any,
     );
   });
 
@@ -52,6 +61,41 @@ describe("CancelarSolicitud", () => {
       "sol-001",
       EstadoSolicitud.Cancelada,
       { motivoCancelacion: undefined },
+    );
+  });
+
+  it("notifica al solicitante al cancelar", async () => {
+    repoMock.buscarPorId.mockResolvedValue(Solicitud.reconstruir(propsCreada()));
+
+    await useCase.ejecutar({
+      id_solicitud: "sol-001",
+      id_usuario: "usr-001",
+      rol: "solicitante",
+    });
+
+    expect(notificarMock.ejecutar).toHaveBeenCalledWith("sol-001", "usr-001", undefined);
+  });
+
+  it("notifica a los remitentes de la base asignada al cancelar", async () => {
+    repoMock.buscarPorId.mockResolvedValue(
+      Solicitud.reconstruir({ ...propsCreada(), id_base: "base-007", estado: EstadoSolicitud.Asignada }),
+    );
+    usuarioRepoMock.listarRemitentesPorBase.mockResolvedValue([
+      { id: "rem-001" },
+      { id: "rem-002" },
+    ]);
+
+    await useCase.ejecutar({
+      id_solicitud: "sol-001",
+      id_usuario: "admin-001",
+      rol: "admin",
+    });
+
+    expect(usuarioRepoMock.listarRemitentesPorBase).toHaveBeenCalledWith("base-007");
+    expect(notificarMock.ejecutar).toHaveBeenCalledWith(
+      "sol-001",
+      "usr-001",
+      ["rem-001", "rem-002"],
     );
   });
 

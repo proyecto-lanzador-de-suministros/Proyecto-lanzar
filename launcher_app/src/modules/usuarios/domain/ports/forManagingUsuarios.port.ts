@@ -46,4 +46,7 @@ export interface ForManagingUsuarios {
 
   /** Guarda datos de perfil (nombre, email, telefono) en nuestra DB. */
   guardarDatosPerfil(id: string, datos: DatosPerfilInput): Promise<void>;
+
+  /** Retorna los usuarios remitentes asignados a una base específica. */
+  listarRemitentesPorBase(baseId: string): Promise<Usuario[]>;
 }

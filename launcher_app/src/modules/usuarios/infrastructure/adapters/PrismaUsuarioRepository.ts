@@ -115,6 +115,14 @@ export class PrismaUsuarioRepository implements ForManagingUsuarios {
     });
   }
 
+  async listarRemitentesPorBase(baseId: string): Promise<Usuario[]> {
+    const rows = await prisma.usuario.findMany({
+      where: { rol: "REMITENTE", id_base: baseId },
+      include: { base: true },
+    });
+    return rows.map(row => this.mapToDomain(row));
+  }
+
   async crearBaseRemitente(id: string, datos: CrearBaseRemitenteInput): Promise<void> {
     await prisma.$transaction(async (tx) => {
       const base = await tx.base.create({

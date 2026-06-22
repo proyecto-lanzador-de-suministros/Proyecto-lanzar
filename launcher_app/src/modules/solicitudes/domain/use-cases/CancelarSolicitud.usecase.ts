@@ -10,6 +10,7 @@ import { Solicitud } from "../entities/Solicitud";
 import { ForManagingStock } from "@/src/modules/stock/domain/ports/forManagingStock.port";
 import { NotificarCancelacion } from "@/src/modules/notificaciones/domain/use-cases/NotificarCancelacion.usecase";
 import { ForManagingHistorial } from "@/src/modules/historial/domain/ports/forManagingHistorial.port";
+import { ForManagingUsuarios } from "@/src/modules/usuarios/domain/ports/forManagingUsuarios.port";
 
 export interface CancelarSolicitudInput {
   id_solicitud: string;
@@ -24,6 +25,7 @@ export class CancelarSolicitud {
     private readonly stock: ForManagingStock,
     private readonly notificarCancelacion: NotificarCancelacion,
     private readonly historial: ForManagingHistorial,
+    private readonly usuarioRepo: ForManagingUsuarios,
   ) {}
 
   async ejecutar(input: CancelarSolicitudInput): Promise<Solicitud> {
@@ -67,9 +69,15 @@ export class CancelarSolicitud {
     }
 
     try {
+      let remitenteIds: string[] | undefined;
+      if (solicitud.id_base) {
+        const remitentes = await this.usuarioRepo.listarRemitentesPorBase(solicitud.id_base);
+        remitenteIds = remitentes.map(r => r.id);
+      }
       await this.notificarCancelacion.ejecutar(
         solicitud.id_solicitud,
         solicitud.id_usuario,
+        remitenteIds,
       );
     } catch {
       // fire-and-forget
