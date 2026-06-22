@@ -43,6 +43,8 @@ export default function AdminDetalleSolicitudPage() {
     console.log("[AdminDetalle] useEffect - params.id:", params.id);
     if (!params.id) {
       console.warn("[AdminDetalle] params.id es undefined, retornando");
+      setLoading(false);
+      setError("ID de solicitud no disponible.");
       return;
     }
     console.log("[AdminDetalle] Llamando consultarDetalleSolicitudAdminAction...");

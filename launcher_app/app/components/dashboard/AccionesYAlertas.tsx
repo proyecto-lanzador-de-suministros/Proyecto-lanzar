@@ -1,3 +1,5 @@
+"use client";
+
 // Acciones rápidas (links a otras secciones) y alertas derivadas del estado actual de las solicitudes.
 import React from "react";
 

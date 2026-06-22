@@ -1,3 +1,5 @@
+"use client";
+
 // Gráfico de líneas (SVG puro) con la evolución semanal de solicitudes, entregas y cancelaciones.
 import React from "react";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";

@@ -1,3 +1,5 @@
+"use client";
+
 // Panel de actividad reciente derivada de las solicitudes (creación, entrega, cancelación).
 import React from "react";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";

@@ -1,3 +1,5 @@
+"use client";
+
 // Modal para gestionar una solicitud puntual: asignar remitente, avanzar estado, cancelar o anular.
 import React, { useState } from "react";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";

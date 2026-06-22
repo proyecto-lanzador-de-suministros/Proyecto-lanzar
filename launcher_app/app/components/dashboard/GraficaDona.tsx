@@ -1,3 +1,5 @@
+"use client";
+
 // Gráfico de dona (SVG puro) que muestra la distribución de solicitudes por estado.
 import React from "react";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";

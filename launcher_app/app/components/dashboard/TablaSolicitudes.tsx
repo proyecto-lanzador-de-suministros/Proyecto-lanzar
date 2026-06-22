@@ -1,3 +1,5 @@
+"use client";
+
 // Tabla principal de gestión de solicitudes del dashboard de admin.
 import React from "react";
 import Link from "next/link";

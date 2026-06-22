@@ -1,3 +1,5 @@
+"use client";
+
 // Cards de estadísticas resumidas del dashboard de admin.
 import React from "react";
 import { EstadoSolicitud } from "@/src/modules/solicitudes/domain/entities/Solicitud";
