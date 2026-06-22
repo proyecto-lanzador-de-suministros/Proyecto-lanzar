@@ -12,6 +12,7 @@ describe("RegistrarLanzadaUseCase", () => {
   };
   let notifierMock: { notificar: ReturnType<typeof vi.fn> };
   let historialMock: { registrar: ReturnType<typeof vi.fn> };
+  let usuarioMock: { buscarPorId: ReturnType<typeof vi.fn> };
   let useCase: RegistrarLanzadaUseCase;
 
   beforeEach(() => {
@@ -19,10 +20,12 @@ describe("RegistrarLanzadaUseCase", () => {
     repoMock = { buscarPorId: vi.fn(), actualizarEstado: vi.fn() };
     notifierMock = { notificar: vi.fn() };
     historialMock = { registrar: vi.fn() };
+    usuarioMock = { buscarPorId: vi.fn().mockResolvedValue({ idBase: "rem-001" }) };
     useCase = new RegistrarLanzadaUseCase(
       repoMock as unknown as ForManagingSolicitudes,
       new NotificarLanzada(notifierMock as any),
       historialMock as unknown as ForManagingHistorial,
+      usuarioMock as any,
     );
   });
 

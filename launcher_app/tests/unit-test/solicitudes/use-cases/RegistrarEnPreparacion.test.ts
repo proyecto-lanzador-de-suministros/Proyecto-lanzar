@@ -38,6 +38,7 @@ describe("RegistrarEnPreparacionUseCase", () => {
   };
   let trayectMock: { ejecutar: ReturnType<typeof vi.fn> };
   let prodMock: { buscarProductoPorIdentificador: ReturnType<typeof vi.fn>; listarCatalogo: ReturnType<typeof vi.fn>; listarBases: ReturnType<typeof vi.fn> };
+  let usuarioMock: { buscarPorId: ReturnType<typeof vi.fn> };
   let useCase: RegistrarEnPreparacionUseCase;
 
   beforeEach(() => {
@@ -45,6 +46,7 @@ describe("RegistrarEnPreparacionUseCase", () => {
     repoMock = { buscarPorId: vi.fn(), actualizarEstado: vi.fn() };
     notifierMock = { notificar: vi.fn() };
     historialMock = { registrar: vi.fn() };
+    usuarioMock = { buscarPorId: vi.fn().mockResolvedValue({ idBase: "rem-001" }) };
     envioMock = {
       buscarPorIdSolicitud: vi.fn(),
       guardarDatosTrayectoria: vi.fn(),
@@ -66,6 +68,7 @@ describe("RegistrarEnPreparacionUseCase", () => {
       envioMock as any,
       trayectMock as any,
       prodMock as any,
+      usuarioMock as any,
     );
   });
 

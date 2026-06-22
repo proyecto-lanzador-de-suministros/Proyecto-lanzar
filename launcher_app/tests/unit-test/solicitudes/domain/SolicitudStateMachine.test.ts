@@ -91,6 +91,10 @@ function createMocks() {
       listarCatalogo: vi.fn(),
       listarBases: vi.fn(),
     },
+
+    usuario: {
+      buscarPorId: vi.fn().mockResolvedValue({ idBase: "rem-001" }),
+    },
   };
 }
 
@@ -325,8 +329,9 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
         mocks.envio as any,
         mocks.trayectoria as any,
         mocks.productos as any,
+        mocks.usuario as any,
       );
-      listoUC = new RegistrarListaUseCase(mocks.repo, new NotificarLista(mocks.notifier as any), mocks.historial);
+      listoUC = new RegistrarListaUseCase(mocks.repo, new NotificarLista(mocks.notifier as any), mocks.historial, mocks.usuario as any);
       caminoUC = new RegistrarEnCaminoUseCase(
         mocks.repo,
         new NotificarEnCamino(mocks.notifier as any),
@@ -334,8 +339,9 @@ describe("Solicitud — Máquina de Estados (canonical)", () => {
         mocks.envio as any,
         mocks.trayectoria as any,
         mocks.productos as any,
+        mocks.usuario as any,
       );
-      lanzadaUC = new RegistrarLanzadaUseCase(mocks.repo, new NotificarLanzada(mocks.notifier as any), mocks.historial);
+      lanzadaUC = new RegistrarLanzadaUseCase(mocks.repo, new NotificarLanzada(mocks.notifier as any), mocks.historial, mocks.usuario as any);
       completarUC = new ConfirmarRecibidaUseCase(mocks.repo, new NotificarRecepcion(mocks.notifier as any), mocks.historial);
       anularUC = new AnularSolicitudUseCase(mocks.repo, new NotificarAnulacion(mocks.notifier as any), mocks.historial);
     });
