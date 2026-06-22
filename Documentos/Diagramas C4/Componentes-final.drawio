@@ -1,0 +1,197 @@
+<mxfile host="app.diagrams.net" scale="1" border="0">
+  <diagram name="Página-1" id="EN5RzAvOZTs0ppkX2a5c">
+    <mxGraphModel dx="1368" dy="921" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ohnBnXwE-KjPPSCp-RZO-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="1230" width="1660" x="-230" y="-380" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="580" width="1560" x="-200" y="-30" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-22" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-3" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-23" connectable="0" parent="bolv546pIgB-zYjglKqL-22" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Delega a" vertex="1">
+          <mxGeometry relative="1" x="-0.186" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;Sign In Controller&lt;/b&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Encargado de inicio de sesión y registro de cuentas.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="240" x="-170" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-25" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-4" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-26" connectable="0" parent="bolv546pIgB-zYjglKqL-25" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Usa para verificar" vertex="1">
+          <mxGeometry relative="1" x="-0.0629" y="-1" as="geometry">
+            <mxPoint y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-30" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-4" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-31" connectable="0" parent="bolv546pIgB-zYjglKqL-30" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Usa" vertex="1">
+          <mxGeometry relative="1" x="-0.1615" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-36" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-12">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="330" y="160" />
+              <mxPoint x="505" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-37" connectable="0" parent="bolv546pIgB-zYjglKqL-36" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Usa para guardar&lt;div&gt;solicitudes&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.1663" y="1" as="geometry">
+            <mxPoint y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;b&gt;Requests Controller&lt;/b&gt;&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Recibe peticiones HTTP de usuarios para crear, cancelar o consultar estado de una solicitud.&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="240" x="150" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-32" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-12">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-50" y="460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-33" connectable="0" parent="bolv546pIgB-zYjglKqL-32" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Usa para verificar" vertex="1">
+          <mxGeometry relative="1" x="-0.0357" y="1" as="geometry">
+            <mxPoint x="87" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;Security/Auth Controller&lt;/b&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Encargado de ivalidación de contraseñas y permisos.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="240" x="-170" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-34" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="bolv546pIgB-zYjglKqL-12">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-35" connectable="0" parent="bolv546pIgB-zYjglKqL-34" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Usa para leer&amp;nbsp;&lt;div&gt;y modificar&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.5138" y="2" as="geometry">
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;b&gt;Servicio de Gestión de Stock&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Componente invocado cuando se crea una solicitud, revisa si hay inventario suficiente y aprueba o rechaza la solicitud.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="240" x="150" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-28" edge="1" parent="1" source="y5x6Qx5YlzClIo6pXe73-1" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="bolv546pIgB-zYjglKqL-9" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="890" y="100" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-29" connectable="0" parent="bolv546pIgB-zYjglKqL-28" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Usa" vertex="1">
+          <mxGeometry relative="1" x="-0.0462" y="1" as="geometry">
+            <mxPoint x="-1" y="-28" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-48" edge="1" parent="1" source="y5x6Qx5YlzClIo6pXe73-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="bolv546pIgB-zYjglKqL-51">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1010" y="49.999999999999886" as="sourcePoint" />
+            <mxPoint x="1230" y="650" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-49" connectable="0" parent="bolv546pIgB-zYjglKqL-48" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Usa" vertex="1">
+          <mxGeometry relative="1" x="-0.1431" y="2" as="geometry">
+            <mxPoint x="-2" y="118" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-42" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-9" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-41">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-43" connectable="0" parent="bolv546pIgB-zYjglKqL-42" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Hace llamadas API a&lt;div&gt;[HTTPS]&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.6216" y="5" as="geometry">
+            <mxPoint x="-5" y="-28" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Integración API Clima" vertex="1">
+          <mxGeometry height="80" width="220" x="780" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-45" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-44">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="590" y="-160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-46" connectable="0" parent="bolv546pIgB-zYjglKqL-45" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Envía notificaciones vía&lt;div&gt;[HTTPS]&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0418" y="-6" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;b&gt;Notification Manager&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Encargado de disparar alertas a los usuarios en los cambios de estado correspondientes.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="240" x="470" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-38" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-12" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="ohnBnXwE-KjPPSCp-RZO-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="450" y="670" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-39" connectable="0" parent="bolv546pIgB-zYjglKqL-38" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Lee y escribe&lt;div&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;[SQL&lt;/font&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 11px;&quot;&gt;]&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.2656" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Integración BDD" vertex="1">
+          <mxGeometry height="80" width="220" x="340" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-16" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-20" connectable="0" parent="bolv546pIgB-zYjglKqL-16" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Hace llamadas API a&lt;div&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;[JSON/ &lt;/font&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 11px;&quot;&gt;HTTPS]&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.3111" y="2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-17" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-21" connectable="0" parent="bolv546pIgB-zYjglKqL-17" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Hace llamadas API a&lt;div&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;[JSON/ &lt;/font&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 11px;&quot;&gt;HTTPS]&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.2782" y="3" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: transparent;&quot;&gt;&lt;b&gt;API Application&lt;/b&gt;&lt;/span&gt;&lt;div&gt;[Contenedor: Next.js]&lt;br&gt;&lt;br&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Coordina solicitudes, entregas,&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;usuarios y notificaciones mediante&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;una API REST.&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="240" x="150" y="-340" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-41" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;API Clima&lt;/b&gt;&lt;div&gt;[Sistema Externo]&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="180" x="800" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-44" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;Sistema de notificaciones&lt;/b&gt;&lt;div&gt;[Sistema Externo]&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="190" x="780" y="-210" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-47" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;API Maps&lt;/b&gt;&lt;div&gt;[Sistema Externo]&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="180" x="1100" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-52" edge="1" parent="1" source="bolv546pIgB-zYjglKqL-51" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="bolv546pIgB-zYjglKqL-47">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-53" connectable="0" parent="bolv546pIgB-zYjglKqL-52" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Hace llamadas API a&lt;div&gt;[HTTPS]&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.2118" y="5" as="geometry">
+            <mxPoint x="-5" y="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bolv546pIgB-zYjglKqL-51" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Integración API Mapa" vertex="1">
+          <mxGeometry height="80" width="220" x="1080" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="ohnBnXwE-KjPPSCp-RZO-1" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10.176506491268356;" value="&lt;div&gt;&lt;b&gt;Base de Datos&lt;/b&gt;&lt;/div&gt;[Contenedor: PostgreSQL]&lt;br&gt;&lt;br&gt;Almacena usuarios, solicitudes,&lt;br&gt;envíos y estados del sistema." vertex="1">
+          <mxGeometry height="100" width="206" x="347" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="ohnBnXwE-KjPPSCp-RZO-4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=20;" value="&lt;br&gt;&lt;span&gt;&lt;b&gt;Diagrama de componentes para Sistema de Entrega de Provisiones - API Application&lt;/b&gt;&lt;/span&gt;&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="40" width="844.5" x="-220" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="y5x6Qx5YlzClIo6pXe73-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;b&gt;Calculador de Trayectoria&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Calcula ruta óptima y tiempos estimados de entrega&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;utilizando datos geográficos y condiciones climáticas.&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;.&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="240" x="770" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
