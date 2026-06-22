@@ -80,4 +80,11 @@ export interface ForSyncingExternalAuth {
     usuarioId: string,
     nombreCompleto: string,
   ): Promise<void>;
+
+  /**
+   * Elimina un usuario del IdP externo.
+   * Usado para rollback cuando la persistencia en Postgres falla
+   * después de crear el usuario en el IdP.
+   */
+  eliminarUsuarioExterno(usuarioId: string): Promise<void>;
 }

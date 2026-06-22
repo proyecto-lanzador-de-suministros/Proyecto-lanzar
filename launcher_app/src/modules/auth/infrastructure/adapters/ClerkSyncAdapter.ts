@@ -127,4 +127,9 @@ export class ClerkSyncAdapter implements ForSyncingExternalAuth {
       ...(lastName && { lastName }),
     });
   }
+
+  async eliminarUsuarioExterno(usuarioId: string): Promise<void> {
+    const client = await clerkClient();
+    await client.users.deleteUser(usuarioId);
+  }
 }

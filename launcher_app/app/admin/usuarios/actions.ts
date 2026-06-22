@@ -3,7 +3,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
-import { aprobarCuentaUseCase, crearCuentaUseCase } from "@/src/container";
+import { aprobarCuentaUseCase, crearUsuarioAdminUseCase } from "@/src/container";
 
 async function verificarAdmin() {
   const { userId, sessionClaims } = await auth();
@@ -203,38 +203,25 @@ export async function crearUsuarioAction(datos: {
   const chequeo = await verificarAdmin();
   if (!chequeo.ok) return { success: false, error: chequeo.error };
 
+  const rolNorm = rolNormalizar(datos.rol);
+
   try {
-    const { id: userId } = await crearCuentaUseCase.ejecutar(datos);
-    const rolNorm = rolNormalizar(datos.rol);
-
-    await prisma.$transaction(async (tx) => {
-      await tx.usuario.create({
-        data: {
-          id_usuario: userId,
-          nombre: datos.nombre,
-          email: datos.email,
-          rol: rolNorm,
-          estado_cuenta: "APROBADA",
-        },
-      });
-
-      if (rolNorm === "REMITENTE") {
-        const base = await tx.base.create({
-          data: {
+    const { id } = await crearUsuarioAdminUseCase.ejecutar({
+      email: datos.email,
+      password: datos.password,
+      nombre: datos.nombre,
+      rol: rolNorm as "SOLICITANTE" | "REMITENTE" | "ADMINISTRADOR",
+      datosBase: rolNorm === "REMITENTE"
+        ? {
             nombre: `Base Logística ${datos.nombre}`,
-            posicion_base: JSON.stringify({ lat: 0, lng: 0 }),
+            posicionBase: JSON.stringify({ lat: 0, lng: 0 }),
             direccion: "",
-          },
-        });
-        await tx.usuario.update({
-          where: { id_usuario: userId },
-          data: { id_base: base.id_base },
-        });
-      }
+          }
+        : undefined,
     });
 
     revalidatePath("/admin/usuarios");
-    return { success: true, data: { id: userId } };
+    return { success: true, data: { id } };
   } catch (error: any) {
     return { success: false, error: error.message ?? "No se pudo crear el usuario." };
   }

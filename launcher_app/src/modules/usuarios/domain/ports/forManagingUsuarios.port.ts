@@ -1,4 +1,5 @@
 import { Usuario } from "../entities/Usuario";
+import { Base } from "../entities/Base";
 
 export interface BaseRemitenteData {
   id_remitente: string;
@@ -32,6 +33,7 @@ export interface DatosPerfilInput {
 }
 
 export interface ForManagingUsuarios {
+  crear(usuario: Usuario, datosBase?: Base): Promise<Usuario>;
   buscarPorId(id: string): Promise<Usuario | null>;
   listarPendientes(): Promise<Usuario[]>;
   listarTodos(): Promise<Usuario[]>;

@@ -9,7 +9,7 @@ export interface DatosBaseInput {
   direccion: string;
 }
 
-export interface CrearCuentaInput {
+export interface CrearUsuarioAdminInput {
   email: string;
   password: string;
   nombre: string;
@@ -17,17 +17,17 @@ export interface CrearCuentaInput {
   datosBase?: DatosBaseInput;
 }
 
-export interface CrearCuentaOutput {
+export interface CrearUsuarioAdminOutput {
   id: string;
 }
 
-export class CrearCuentaUseCase {
+export class CrearUsuarioAdminUseCase {
   constructor(
     private readonly usuarioRepository: ForManagingUsuarios,
     private readonly externalAuth: ForSyncingExternalAuth,
   ) {}
 
-  async ejecutar(input: CrearCuentaInput): Promise<CrearCuentaOutput> {
+  async ejecutar(input: CrearUsuarioAdminInput): Promise<CrearUsuarioAdminOutput> {
     if (!input.email.includes("@")) {
       throw new Error("Ingresá un email válido.");
     }
@@ -40,18 +40,16 @@ export class CrearCuentaUseCase {
       throw new Error("El nombre no puede estar vacío.");
     }
 
-    if (input.rol === "REMITENTE" && !input.datosBase) {
-      throw new Error("El remitente debe proporcionar los datos de la base.");
-    }
+    const rolExterno = input.rol === "ADMINISTRADOR" ? "admin" : input.rol === "REMITENTE" ? "remitente" : "solicitante";
 
     const { id } = await this.externalAuth.crearUsuarioExterno({
       email: input.email,
       password: input.password,
       nombre: input.nombre,
-      rol: input.rol === "ADMINISTRADOR" ? "admin" : input.rol === "REMITENTE" ? "remitente" : "solicitante",
+      rol: rolExterno,
     });
 
-    const estadoInicial = Usuario.estadoInicial(input.rol, false);
+    const estadoInicial = Usuario.estadoInicial(input.rol, true);
 
     const usuario = new Usuario(
       id,

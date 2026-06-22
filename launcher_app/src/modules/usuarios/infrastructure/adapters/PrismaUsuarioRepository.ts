@@ -1,8 +1,48 @@
 import { ForManagingUsuarios, BaseRemitenteData, ActualizarBaseRemitenteInput, CrearBaseRemitenteInput, DatosPerfilInput } from "../../domain/ports/forManagingUsuarios.port";
 import { Usuario, EstadoCuenta, RolUsuario } from "../../domain/entities/Usuario";
+import { Base } from "../../domain/entities/Base";
 import { prisma } from "@/src/infrastructure/db/prisma.client";
 
 export class PrismaUsuarioRepository implements ForManagingUsuarios {
+  async crear(usuario: Usuario, datosBase?: Base): Promise<Usuario> {
+    return prisma.$transaction(async (tx) => {
+      let idBase: string | undefined;
+
+      if (datosBase) {
+        const base = await tx.base.create({
+          data: {
+            nombre: datosBase.nombre,
+            posicion_base: datosBase.posicionBase,
+            direccion: datosBase.direccion,
+          },
+        });
+        idBase = base.id_base;
+      }
+
+      await tx.usuario.create({
+        data: {
+          id_usuario: usuario.id,
+          nombre: usuario.nombre ?? null,
+          email: usuario.email ?? null,
+          telefono: usuario.telefono ?? null,
+          rol: usuario.rol,
+          estado_cuenta: usuario.estadoCuenta,
+          id_base: idBase ?? null,
+        },
+      });
+
+      return new Usuario(
+        usuario.id,
+        usuario.estadoCuenta,
+        usuario.rol,
+        usuario.nombre,
+        usuario.email,
+        usuario.telefono,
+        idBase,
+      );
+    });
+  }
+
   async buscarPorId(id: string): Promise<Usuario | null> {
     const row = await prisma.usuario.findUnique({
       where: { id_usuario: id },
@@ -152,6 +192,14 @@ export class PrismaUsuarioRepository implements ForManagingUsuarios {
     } else if (row.nombre) {
       nombre = row.nombre;
     }
-    return new Usuario(row.id_usuario, row.estado_cuenta as EstadoCuenta, rol, nombre);
+    return new Usuario(
+      row.id_usuario,
+      row.estado_cuenta as EstadoCuenta,
+      rol,
+      nombre,
+      row.email ?? undefined,
+      row.telefono ?? undefined,
+      row.id_base ?? undefined,
+    );
   }
 }
