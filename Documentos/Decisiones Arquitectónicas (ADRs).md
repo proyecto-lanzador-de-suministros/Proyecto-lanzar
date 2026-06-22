@@ -85,6 +85,10 @@ El sistema maneja entidades fuertemente acopladas de un modelo relacional: Usuar
 | Consistencia y validez de datos garantizada a nivel de motor de almacenamiento. | Esquema rígido: cualquier cambio estructurado en el modelo de datos requerirá la creación y ejecución de scripts de migración formales. |
 | Las consultas complejas de reportes y trazabilidad se resuelven eficientemente con SQL estándar sin sobrecargar el servidor Node.js. | Lecturas pesadas, masivas o concurrentes sobre el clima o trayectorias pueden requerir la adición estratégica de un caché en memoria (ver ADR-005). |
 
+### 5. Nota sobre PostGIS (22/06/2026) — Decisión de no implementar
+
+El ADR-002 original eligió PostgreSQL con PostGIS. Sin embargo, durante la implementación se determinó **no utilizar PostGIS en esta versión** por incompatibilidad con Prisma ORM (ver `Decision-PostGIS.md` para justificación completa). En su lugar, las coordenadas se almacenan como `String` JSON y los cálculos de distancia se realizan en el backend con la fórmula de Haversine. Esta decisión no invalida la elección de PostgreSQL como motor principal.
+
 ## **ADR-003: Comunicación entre Componentes (Notificaciones)**
 
 | ID | Título | Estado | Fecha |
