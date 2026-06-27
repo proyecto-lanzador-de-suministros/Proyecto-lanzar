@@ -1,6 +1,7 @@
 # ***¡¡¡LEER Explicacion-estructura.md!!!!***
 # Idea General
 LINK: https://proyecto-lanzar-phi.vercel.app/
+
 **cuentas**:
 admin
  + admin | adminUser@
