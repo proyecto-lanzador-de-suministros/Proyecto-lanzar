@@ -1,6 +1,13 @@
 # ***¡¡¡LEER Explicacion-estructura.md!!!!***
 # Idea General
-
+LINK: https://proyecto-lanzar-phi.vercel.app/
+**cuentas**:
+admin
+ + admin | adminUser@
+solicitante
+ + solicitante | solicitante@
+remitente
+ + remitente | remitente@
 Aplicación (a definir si es web, mobile o desktop) que funciona como un sistema de solicitudes. La aplicación cuenta con dos paneles, uno destinado a los **remitentes** y otro a los **destinatarios**. Ambos paneles cuentan con un mapa interactivo de su zona.
 
 El/los solicitantes pueden solicitar un paquete en una zona determinada (tal vez individualmente, tal vez en grupo) y un remitente aprobado de la organización puede decidir si aceptarla o no. Luego, tiene la responsabilidad de completar la encomienda.
